@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FMC7Connection.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PFMHR010IMPL</a> &gt; <a href="index.source.html" class="el_package">com.bbva.pfmh.lib.r010.impl.cics</a> &gt; <span class="el_source">FMC7Connection.java</span></div><h1>FMC7Connection.java</h1><pre class="source lang-java linenums">package com.bbva.pfmh.lib.r010.impl.cics;
+
+import com.bbva.elara.library.AbstractLibrary;
+import com.bbva.kusu.dto.users.entity.AliasFavContractEntity;
+import com.bbva.kusu.lib.r325.KUSUR325;
+import com.bbva.pfmh.dto.fmc7.ffmm.FFMM7;
+import com.bbva.pfmh.dto.fmc7.request.FMC7Request;
+import com.bbva.pfmh.dto.fmc7.response.FMC7Response;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.IntPaginationDTO;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.OutputInvestmentFundsDTO;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.FundsNumberTypeIdOutputEnum;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.InputListInvestmentFundsDTO;
+
+import com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.InvestmentFundNumberType;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.InvestmentFundType;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.AvailableFundPosition;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.InvestmentFund;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.FundPosition;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.FundCurrency;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.NetAssetValue;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.Title;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.Fund;
+import com.bbva.pfmh.lib.r010.impl.utils.ValidationUtils;
+import com.bbva.pfmh.lib.r015.PFMHR015;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+<span class="fc" id="L34">public class FMC7Connection extends AbstractLibrary {</span>
+
+<span class="fc" id="L36">    private static final Logger LOGGER = LoggerFactory.getLogger(FMC7Connection.class);</span>
+    private PFMHR015 pfmhR015;
+    private KUSUR325 kusuR325;
+    private List&lt;String&gt; uniqueErrorCodes;
+    private String defaultError;
+    private static final String INVESTMENT_FUND_TYPE_SIMPLE = &quot;SIMPLE&quot;;
+    private static final String PFMHCUSTOMERID = &quot;Es obligatorio indicar el customerId&quot;;
+    private static final String PFMH_NOT_DPS = &quot;No existen DPS a mostrar con esos datos ingresados&quot;;
+    private static final String FME2026 = &quot;FME2026&quot;;
+    private static final String FME2059 = &quot;FME2059&quot;;
+    private static final String FME2099 = &quot;FME2099&quot;;
+    private static final String FME2084 = &quot;FME2084&quot;;
+    private static final String FME2060 = &quot;FME2060&quot;;
+    private static final String FME2100 = &quot;FME2100&quot;;
+    private static final String FME2092 = &quot;FME2092&quot;;
+
+    public List&lt;OutputInvestmentFundsDTO&gt; executeFMC7Transaction(InputListInvestmentFundsDTO input) {
+<span class="fc" id="L53">        List&lt;OutputInvestmentFundsDTO&gt; response = Collections.emptyList();</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (!ValidationUtils.validationInputIsNullOrEmpty(input)) {</span>
+<span class="fc" id="L55">            LOGGER.info(&quot;***** PFMH010Impl - input: {} *****&quot;, input);</span>
+<span class="fc" id="L56">            LOGGER.info(&quot;***** PFMH010Impl - participantDTO: {} *****&quot;, input.getCustomerId());</span>
+<span class="fc" id="L57">            response = executeFMC7Input(input);</span>
+        } else {
+<span class="fc" id="L59">            this.addAdviceWithDescription(&quot; PFMH&quot;, PFMHCUSTOMERID);</span>
+<span class="fc" id="L60">            LOGGER.info(&quot;***** PFMH010Impl - executeFMC7Transaction - FFMM  is null *****&quot;);</span>
+        }
+<span class="fc" id="L62">        return response;</span>
+    }
+
+    public List&lt;OutputInvestmentFundsDTO&gt; executeFMC7Input(InputListInvestmentFundsDTO input) {
+<span class="fc" id="L66">        LOGGER.info(&quot;***** PFMH010Impl - executeFMC7Transaction - Start *****&quot;);</span>
+<span class="fc" id="L67">        LOGGER.info(&quot;***** PFMH010Impl - executeFMC7Transaction - request: {}&quot;, input);</span>
+
+<span class="fc" id="L69">        FMC7Request request = new FMC7Request();</span>
+
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        if (input.getPageSize() != null) {</span>
+<span class="fc" id="L72">            request.setTamPagi(input.getPageSize());</span>
+        }
+
+<span class="fc" id="L75">        request.setNumCli(input.getCustomerId());</span>
+<span class="fc" id="L76">        request.setIndPagi(input.getPaginationKey());</span>
+<span class="fc" id="L77">        LOGGER.info(&quot;***** PFMH010Impl - executeFMC7Transaction - request: {}&quot;, request);</span>
+
+<span class="fc" id="L79">        FMC7Response response = this.pfmhR015.executeFMC7(request);</span>
+<span class="fc" id="L80">        LOGGER.info(&quot;***** PFMH010Impl - executeFMC7Transaction - response: {}&quot;, response);</span>
+
+<span class="fc bfc" id="L82" title="All 2 branches covered.">        if (response.getHostAdviceCode() != null) {</span>
+<span class="fc" id="L83">            this.addAdviceWithDescription(matchErrorCodeHost(response), response.getHostMessage());</span>
+<span class="fc" id="L84">            LOGGER.info(&quot;***** PFMH010Impl - executeFMC7Transaction - Error at FMC7 execution - Host advice code: {}&quot;, response.getHostAdviceCode());</span>
+<span class="fc" id="L85">            return Collections.emptyList();</span>
+        }
+
+<span class="fc" id="L88">        return mapFMC7ouput(response, input);</span>
+    }
+
+    public List&lt;OutputInvestmentFundsDTO&gt; mapFMC7ouput(FMC7Response responsefmc7, InputListInvestmentFundsDTO input) {
+<span class="fc" id="L92">        LOGGER.info(&quot;***** PFMH010Impl - mapFMC7ouput - Start response: {} *****&quot;, responsefmc7);</span>
+<span class="fc" id="L93">        List&lt;OutputInvestmentFundsDTO&gt; dtoIntInvestmentFundsList = new ArrayList&lt;&gt;();</span>
+
+<span class="pc bpc" id="L95" title="1 of 4 branches missed.">        if (responsefmc7.getFfmm7() == null || responsefmc7.getFfmm7().isEmpty()) {</span>
+<span class="fc" id="L96">            this.addAdviceWithDescription(&quot;PFMH_DPS&quot;,PFMH_NOT_DPS);</span>
+<span class="fc" id="L97">            return Collections.emptyList();</span>
+        }
+
+<span class="fc" id="L100">        List&lt;Fund&gt; funds = mapOutFunds(responsefmc7);</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">        for (FFMM7 ffmm7 : responsefmc7.getFfmm7()) {</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">            if (ffmm7 == null){</span>
+<span class="nc" id="L103">                continue;</span>
+            }
+<span class="fc" id="L105">            InvestmentFund investmentFund = new InvestmentFund();</span>
+<span class="fc" id="L106">            investmentFund.setNumber(ffmm7.getIdContr());</span>
+<span class="fc" id="L107">            investmentFund.setInvestmentFundId(ffmm7.getIdContr());</span>
+<span class="fc" id="L108">            investmentFund.setNumberType(mapOutNumberType(ffmm7.getcTipNum(), ffmm7.getdTipNum()));</span>
+<span class="fc" id="L109">            investmentFund.setInvestmentFundType(new InvestmentFundType());</span>
+<span class="fc" id="L110">            investmentFund.getInvestmentFundType().setId(INVESTMENT_FUND_TYPE_SIMPLE);</span>
+<span class="fc" id="L111">            investmentFund.getInvestmentFundType().setName(INVESTMENT_FUND_TYPE_SIMPLE);</span>
+
+<span class="pc bpc" id="L113" title="7 of 16 branches missed.">            if (ffmm7.getIdSubPr() != null || ffmm7.getNumCuot() != null || ffmm7.getSalCont() != null || ffmm7.getdMonEsd() != null || ffmm7.getdSubPro() != null || ffmm7.getIdMonFn() != null || ffmm7.getSalDisp() != null || ffmm7.getValCuot() != null) {</span>
+<span class="fc" id="L114">                investmentFund.setFunds(funds);</span>
+            }
+
+<span class="fc" id="L117">            OutputInvestmentFundsDTO dtoIntInvestmentFund = new OutputInvestmentFundsDTO();</span>
+<span class="fc" id="L118">            dtoIntInvestmentFund.setData(Collections.singletonList(investmentFund));</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">            if(validarContratoEnKsanYHost(&quot;PE&quot; + ffmm7.getIdContr(), dtoIntInvestmentFund)) {</span>
+<span class="fc" id="L120">                dtoIntInvestmentFundsList.add(dtoIntInvestmentFund);</span>
+            }
+
+<span class="fc" id="L123">            investmentFund.setIsVisible(getVisible(&quot;PE&quot; + ffmm7.getIdContr(), input.getCustomerId()));</span>
+
+<span class="fc" id="L125">        }</span>
+<span class="pc bpc" id="L126" title="3 of 4 branches missed.">        if (responsefmc7.getPagination() != null &amp;&amp; !dtoIntInvestmentFundsList.isEmpty()) {</span>
+<span class="nc" id="L127">            IntPaginationDTO intPag = new IntPaginationDTO();</span>
+<span class="nc" id="L128">            intPag.setPaginationKey(responsefmc7.getPagination().getIdpagin());</span>
+<span class="nc" id="L129">            Integer tam = responsefmc7.getPagination().getTampagi();</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">            if (tam != null) {</span>
+<span class="nc" id="L131">                intPag.setPageSize(tam.longValue());</span>
+            }
+<span class="nc" id="L133">            dtoIntInvestmentFundsList.get(0).setPagination(intPag);</span>
+        }
+<span class="fc" id="L135">        LOGGER.info(&quot;***** PFMH010Impl - mapFMC7ouput - dtoIntInvestmentFundsList: {} *****&quot;, dtoIntInvestmentFundsList);</span>
+<span class="fc" id="L136">        return dtoIntInvestmentFundsList;</span>
+    }
+
+    public boolean getVisible(String globalContractId, String profileId) {
+<span class="fc bfc" id="L140" title="All 2 branches covered.">        if (kusuR325 == null) {</span>
+<span class="fc" id="L141">            LOGGER.warn(&quot;[getVisible] - kusur325 no configurado&quot;);</span>
+<span class="fc" id="L142">            return false;</span>
+        }
+<span class="fc" id="L144">        LOGGER.info(&quot;[getVisible] - globalContractId: {}&quot;, globalContractId);</span>
+<span class="fc" id="L145">        LOGGER.info(&quot;[getVisible] - profileId: {}&quot;, profileId);</span>
+<span class="fc" id="L146">        List&lt;AliasFavContractEntity&gt; contractEntityListIn = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L147">        AliasFavContractEntity contractEntity = new AliasFavContractEntity();</span>
+<span class="fc" id="L148">        contractEntity.setGContractId(globalContractId);</span>
+<span class="fc" id="L149">        contractEntityListIn.add(contractEntity);</span>
+<span class="fc" id="L150">        LOGGER.info(&quot;[getVisible] - contractEntityListIn: {}&quot;, contractEntityListIn);</span>
+<span class="fc" id="L151">        List&lt;AliasFavContractEntity&gt; outKusuR325 = kusuR325.executeGetAliasFavoriteContractsList(profileId, contractEntityListIn);</span>
+
+<span class="fc" id="L153">        LOGGER.info(&quot;[getVisible] - result of kusu: {}&quot;, outKusuR325);</span>
+<span class="pc bpc" id="L154" title="1 of 4 branches missed.">        if (outKusuR325 != null &amp;&amp; !outKusuR325.isEmpty()) {</span>
+<span class="fc" id="L155">            LOGGER.info(&quot;[getVisible] - getgVisibleContractIndType: {}&quot;, outKusuR325.get(0).getgVisibleContractIndType());</span>
+<span class="fc" id="L156">            return Boolean.parseBoolean(outKusuR325.get(0).getgVisibleContractIndType());</span>
+        } else {
+<span class="fc" id="L158">            return false;</span>
+        }
+    }
+
+    public List&lt;Fund&gt; mapOutFunds(FMC7Response response) {
+<span class="fc" id="L163">        LOGGER.info(&quot;***** PFMH010Impl - mapOutFunds - Start FMC7Response: {} *****&quot;, response);</span>
+<span class="fc" id="L164">        List&lt;Fund&gt; dtoOutList = new ArrayList&lt;&gt;();</span>
+
+<span class="fc bfc" id="L166" title="All 4 branches covered.">        if (response.getFfmm7() == null || response.getFfmm7().isEmpty()) {</span>
+<span class="fc" id="L167">            LOGGER.warn(&quot;La lista FFMM7  está vacía o es nula.&quot;);</span>
+<span class="fc" id="L168">            return dtoOutList;</span>
+        }
+<span class="fc bfc" id="L170" title="All 2 branches covered.">        for (FFMM7 ffmm7 : response.getFfmm7()){</span>
+<span class="fc" id="L171">            Fund fund = new Fund();</span>
+<span class="fc" id="L172">            fund.setFundId(ffmm7.getIdSubPr());</span>
+<span class="fc" id="L173">            fund.setOwnedShares(ffmm7.getNumCuot());</span>
+<span class="fc" id="L174">            FundPosition fundPosition = new FundPosition();</span>
+<span class="fc" id="L175">            fundPosition.setAmount(ffmm7.getSalCont());</span>
+<span class="fc" id="L176">            fundPosition.setCurrency(ffmm7.getdMonEsd());</span>
+<span class="fc" id="L177">            fund.setFundPosition(fundPosition);</span>
+<span class="fc" id="L178">            Title title = new Title();</span>
+<span class="fc" id="L179">            title.setId(ffmm7.getIdSubPr());</span>
+<span class="fc" id="L180">            title.setName(ffmm7.getdSubPro());</span>
+<span class="fc" id="L181">            fund.setTitle(title);</span>
+<span class="fc" id="L182">            FundCurrency currency = new FundCurrency();</span>
+<span class="fc" id="L183">            currency.setId(ffmm7.getdMonEsd());</span>
+<span class="fc" id="L184">            currency.setName(ffmm7.getIdMonFn());</span>
+<span class="fc" id="L185">            fund.setCurrency(currency);</span>
+<span class="fc" id="L186">            AvailableFundPosition availableFundPosition = new AvailableFundPosition();</span>
+<span class="fc" id="L187">            availableFundPosition.setAmount(ffmm7.getSalDisp());</span>
+<span class="fc" id="L188">            availableFundPosition.setCurrency(ffmm7.getdMonEsd());</span>
+<span class="fc" id="L189">            fund.setAvailableFundPosition(availableFundPosition);</span>
+<span class="fc" id="L190">            NetAssetValue netAssetValue = new NetAssetValue();</span>
+<span class="fc" id="L191">            netAssetValue.setAmount(ffmm7.getValCuot());</span>
+<span class="fc" id="L192">            netAssetValue.setCurrency(ffmm7.getdMonEsd());</span>
+<span class="fc" id="L193">            fund.setNetAssetValue(netAssetValue);</span>
+<span class="fc" id="L194">            dtoOutList.add(fund);</span>
+<span class="fc" id="L195">        }</span>
+
+<span class="fc" id="L197">        LOGGER.info(&quot;***** PFMH010Impl - mapOutFunds - Start dtoOutList: {} *****&quot;, dtoOutList);</span>
+<span class="fc" id="L198">        return dtoOutList;</span>
+    }
+
+    public InvestmentFundNumberType mapOutNumberType(final String ctipnum, final String dtipnum) {
+<span class="fc bfc" id="L202" title="All 4 branches covered.">        if (StringUtils.isEmpty(ctipnum) &amp;&amp; StringUtils.isEmpty(dtipnum)) {</span>
+<span class="fc" id="L203">            return null;</span>
+        }
+<span class="fc" id="L205">        InvestmentFundNumberType dtoOut = new InvestmentFundNumberType();</span>
+<span class="fc bfc" id="L206" title="All 2 branches covered.">        if (!StringUtils.isEmpty(ctipnum)) {</span>
+<span class="fc" id="L207">            String id = FundsNumberTypeIdOutputEnum.getValueFromKey(ctipnum);</span>
+<span class="pc bpc" id="L208" title="1 of 2 branches missed.">            dtoOut.setId(id != null ? id : ctipnum);</span>
+        }
+<span class="fc" id="L210">        dtoOut.setName(dtipnum);</span>
+<span class="fc" id="L211">        return dtoOut;</span>
+    }
+
+
+    public String matchErrorCodeHost(FMC7Response response) {
+<span class="fc bfc" id="L216" title="All 2 branches covered.">        if (uniqueErrorCodes.contains(response.getHostAdviceCode())) {</span>
+<span class="fc" id="L217">            return &quot;PFMH&quot; + response.getHostAdviceCode();</span>
+        } else {
+<span class="fc" id="L219">            return &quot;PFMH&quot; + defaultError;</span>
+        }
+    }
+
+    public void initializeErrorCodeList() {
+<span class="fc" id="L224">        defaultError = FME2026;</span>
+<span class="fc" id="L225">        uniqueErrorCodes = Arrays.asList(FME2026, FME2059, FME2099, FME2084, FME2060, FME2100, FME2092);</span>
+<span class="fc" id="L226">    }</span>
+
+    public boolean validarContratoEnKsanYHost(String contratoGlobal, OutputInvestmentFundsDTO dto) {
+<span class="fc bfc" id="L229" title="All 2 branches covered.">        if (contratoGlobal == null) {</span>
+<span class="fc" id="L230">            LOGGER.warn(&quot;[validarContratoEnKsanYHost] - contratoGlobal nulo&quot;);</span>
+<span class="fc" id="L231">            return false;</span>
+        }
+<span class="fc" id="L233">        return validateContractHostLocal(dto, contratoGlobal);</span>
+    }
+
+
+    public boolean validateContractHostLocal(OutputInvestmentFundsDTO dto, String contratoGlobal) {
+<span class="fc" id="L238">        LOGGER.info(&quot;***** PFMHR010Impl - validateContractHostLocal - Start *****&quot;);</span>
+<span class="pc bpc" id="L239" title="1 of 6 branches missed.">        if (dto == null || dto.getData() == null || dto.getData().isEmpty()) {</span>
+<span class="fc" id="L240">            LOGGER.error(&quot;El DTO de fondos de inversión no contiene contratos&quot;);</span>
+<span class="fc" id="L241">            return false;</span>
+        }
+<span class="fc" id="L243">        String contratoHost = contratoGlobal.substring(2); // Elimina &quot;PE&quot;</span>
+<span class="fc" id="L244">        return dto.getData().stream()</span>
+<span class="fc" id="L245">                .anyMatch(fund -&gt; contratoHost.equals(fund.getNumber()));</span>
+    }
+
+    public void setPfmhR015(PFMHR015 pfmhR015) {
+<span class="fc" id="L249">        this.pfmhR015 = pfmhR015;</span>
+<span class="fc" id="L250">    }</span>
+
+    public void setKusuR325(KUSUR325 kusur325) {
+<span class="fc" id="L253">        this.kusuR325 = kusur325;</span>
+<span class="fc" id="L254">    }</span>
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

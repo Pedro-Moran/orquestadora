@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<transaction xmlns="http://www.w3schools.com" transactionName="KUSUT324" application="KUSU" version="01" country="ZZ" language="ES">
+	<paramsIn>
+		<parameter order="1" name="userId" mandatory="1" type="String" size="36"/>
+		<parameter order="2" name="profileId" mandatory="1" type="String" size="36"/>
+		<list order="3" name="contracts" mandatory="0">
+			<dto order="1" name="Type" mandatory="0" package="com.bbva.kusu.dto.users.beans.UserContract" artifactId="KUSUC000">
+				<parameter order="1" name="id" mandatory="0" type="String" size="50"/>
+			</dto>
+		</list>
+	</paramsIn>
+	<paramsOut>
+		<list order="1" name="contracts" mandatory="1">
+			<dto order="1" name="Type" mandatory="1" package="com.bbva.kusu.dto.users.beans.UserContract" artifactId="KUSUC000">
+				<parameter order="1" name="id" mandatory="1" type="String" size="100"/>
+				<parameter order="2" name="alias" mandatory="0" type="String" size="100"/>
+				<parameter order="3" name="isFavorite" mandatory="1" type="Boolean" size="0"/>
+				<parameter order="4" name="isOperative" mandatory="0" type="Boolean" size="0"/>
+				<parameter order="5" name="isVisible" mandatory="0" type="Boolean" size="0"/>
+			</dto>
+		</list>
+	</paramsOut>
+	<description>Transaction that consults the alias/favorite of one or more contracts.</description>
+</transaction>

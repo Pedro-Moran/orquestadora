@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jdbc="http://www.springframework.org/schema/jdbc" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
+	<bean id="kusuR106" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.bbva.kusu.lib.r106.KUSUR106"/>
+	</bean>
+	<bean id="kusuR205" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.bbva.kusu.lib.r205.KUSUR205"/>
+	</bean>
+	<bean id="kusuR232" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.bbva.kusu.lib.r232.KUSUR232"/>
+	</bean>
+	<bean id="kusuR121" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.bbva.kusu.lib.r121.KUSUR121"/>
+	</bean>
+	<bean id="kusuRF25" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.bbva.kusu.lib.rf25.KUSURF25"/>
+	</bean>
+	<bean id="kusuR183" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.bbva.kusu.lib.r183.KUSUR183"/>
+	</bean>
+</beans>

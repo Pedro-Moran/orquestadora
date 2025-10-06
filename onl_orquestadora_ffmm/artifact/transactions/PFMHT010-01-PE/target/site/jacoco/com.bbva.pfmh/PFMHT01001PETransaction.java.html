@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PFMHT01001PETransaction.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PFMHT010-01-PE</a> &gt; <a href="index.source.html" class="el_package">com.bbva.pfmh</a> &gt; <span class="el_source">PFMHT01001PETransaction.java</span></div><h1>PFMHT01001PETransaction.java</h1><pre class="source lang-java linenums">package com.bbva.pfmh;
+
+
+import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.InputListInvestmentFundsDTO;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.IntPaginationDTO;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.OutputInvestmentFundsDTO;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.PaginationDTO;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.LinksDTO;
+import com.bbva.pfmh.lib.r010.PFMHR010;
+import com.bbva.elara.domain.transaction.Severity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.client.RestClientException;
+
+import java.util.List;
+
+
+<span class="fc" id="L18">public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {</span>
+
+
+<span class="fc" id="L21">    private static final Logger LOGGER = LoggerFactory.getLogger(PFMHT01001PETransaction.class);</span>
+    private static final String PAGINATION_KEY_PARAM = &quot;paginationKey=&quot;;
+    private static final String PAGE_SIZE_PARAM = &quot;&amp;pageSize=&quot;;
+
+    @Override
+    public void execute() {
+<span class="fc" id="L27">        LOGGER.info(&quot;[PFMHT010] execute:: START&quot;);</span>
+<span class="fc" id="L28">        PFMHR010 pfmhR010 = this.getServiceLibrary(PFMHR010.class);</span>
+<span class="fc" id="L29">        InputListInvestmentFundsDTO input = this.getInputlistinvestmentfundsdto();</span>
+
+<span class="fc" id="L31">        String customerId = input.getCustomerId();</span>
+<span class="fc" id="L32">        String paginationKey = input.getPaginationKey();</span>
+<span class="fc" id="L33">        Integer pageSize = input.getPageSize();</span>
+
+<span class="fc" id="L35">        LOGGER.info(&quot;customerId: {}&quot;, customerId);</span>
+<span class="fc" id="L36">        LOGGER.info(&quot;paginationKey: {}&quot;, paginationKey);</span>
+<span class="fc" id="L37">        LOGGER.info(&quot;pageSize: {}&quot;, pageSize);</span>
+
+<span class="fc" id="L39">        LOGGER.info(&quot;RBVDT30301PETransaction - START&quot;);</span>
+
+        try {
+<span class="fc" id="L42">            List&lt;OutputInvestmentFundsDTO&gt; responseOut = pfmhR010.executeGetFFMMStatements(input);</span>
+<span class="fc" id="L43">            LOGGER.info(&quot;responseOut -&gt; {}&quot;, responseOut);</span>
+<span class="pc bpc" id="L44" title="1 of 4 branches missed.">            if (responseOut != null &amp;&amp; !responseOut.isEmpty()) {</span>
+<span class="fc" id="L45">                this.setResponseOut(responseOut);</span>
+<span class="fc" id="L46">                IntPaginationDTO intPag = responseOut.get(0).getPagination();</span>
+<span class="pc bpc" id="L47" title="3 of 6 branches missed.">                if (intPag != null &amp;&amp; intPag.getPaginationKey() != null &amp;&amp; intPag.getPageSize() != null) {</span>
+<span class="fc" id="L48">                    int currentKey = Integer.parseInt(intPag.getPaginationKey());</span>
+<span class="fc" id="L49">                    int size = intPag.getPageSize().intValue();</span>
+<span class="fc" id="L50">                    PaginationDTO pagination = mapPagination(currentKey, size, responseOut.size());</span>
+<span class="fc" id="L51">                    this.setPagination(pagination);</span>
+                }
+<span class="fc" id="L53">                this.setSeverity(Severity.OK);</span>
+<span class="fc" id="L54">            } else {</span>
+<span class="fc" id="L55">                this.setResponseOut(List.of());</span>
+<span class="fc" id="L56">                this.setSeverity(Severity.ENR);</span>
+            }
+<span class="fc" id="L58">        } catch (RestClientException e) {</span>
+<span class="fc" id="L59">            LOGGER.error(&quot;Error executing PFMHR010 service: {}&quot;, e.getMessage());</span>
+<span class="fc" id="L60">            this.setResponseOut(List.of());</span>
+<span class="fc" id="L61">            this.setSeverity(Severity.ENR);</span>
+<span class="fc" id="L62">        }</span>
+<span class="fc" id="L63">    }</span>
+
+    private PaginationDTO mapPagination(int paginationKey, int pageSize, int total) {
+<span class="fc" id="L66">        PaginationDTO pagination = new PaginationDTO();</span>
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        if (total &lt;= 0) {</span>
+<span class="nc" id="L68">            return pagination;</span>
+        }
+<span class="fc" id="L70">        int totalPages = (int) Math.ceil((double) total / pageSize);</span>
+<span class="fc" id="L71">        int last = totalPages - 1;</span>
+<span class="fc" id="L72">        LinksDTO links = new LinksDTO();</span>
+<span class="fc" id="L73">        links.setFirst(PAGINATION_KEY_PARAM + &quot;0&quot; + PAGE_SIZE_PARAM + pageSize);</span>
+<span class="fc" id="L74">        links.setLast(PAGINATION_KEY_PARAM + last + PAGE_SIZE_PARAM + pageSize);</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if (paginationKey + 1 &lt; totalPages) {</span>
+<span class="nc" id="L76">            links.setNext(PAGINATION_KEY_PARAM + (paginationKey + 1) + PAGE_SIZE_PARAM + pageSize);</span>
+        }
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">        if (paginationKey &gt; 0) {</span>
+<span class="nc" id="L79">            links.setPrevious(PAGINATION_KEY_PARAM + (paginationKey - 1) + PAGE_SIZE_PARAM + pageSize);</span>
+        }
+<span class="fc" id="L81">        pagination.setLinks(links);</span>
+<span class="fc" id="L82">        pagination.setPage(paginationKey);</span>
+<span class="fc" id="L83">        pagination.setTotalPages(totalPages);</span>
+<span class="fc" id="L84">        pagination.setTotalElements(total);</span>
+<span class="fc" id="L85">        pagination.setPageSizeOut(pageSize);</span>
+<span class="fc" id="L86">        return pagination;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

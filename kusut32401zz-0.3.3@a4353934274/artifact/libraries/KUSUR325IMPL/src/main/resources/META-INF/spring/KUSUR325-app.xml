@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:osgi="http://www.springframework.org/schema/osgi" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi.xsd">
+	<bean id="kusuR325" class="com.bbva.kusu.lib.r325.impl.KUSUR325Impl" parent="kusuR325Abstract">
+		<property name="kusuR106" ref="kusuR106"/>
+		<property name="kusuR205" ref="kusuR205"/>
+		<property name="kusuR232" ref="kusuR232"/>
+		<property name="kusuR121" ref="kusuR121"/>
+		<property name="kusuRF25" ref="kusuRF25"/>
+		<property name="kusuR183" ref="kusuR183"/>
+	</bean>
+</beans>
