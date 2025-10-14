@@ -1,0 +1,6 @@
+{
+  "userId":"$testCase.userId",
+  "profileId":"$testCase.profileId",
+  "contracts":"$testCase.contracts",
+  "id":"$testCase.id"
+}
