@@ -58,6 +58,7 @@ public class FMC7ConnectionTest {
         ThreadContext.set(context);
         getObjectIntrospection();
         fmc7Connection.setPfmhR015(pfmhR015);
+        fmc7Connection.setKusuR325(kusuR325);
         fmc7Connection.initializeErrorCodeList();
     }
 
@@ -272,18 +273,6 @@ public class FMC7ConnectionTest {
     }
 
     @Test
-    public void testGetVisible_ReturnsTrue() {
-        AliasFavContractEntity entity = new AliasFavContractEntity();
-        entity.setgVisibleContractIndType("true");
-        when(kusuR325.executeGetAliasFavoriteContractsList(any(), Mockito.<AliasFavContractEntity>anyList()))
-                .thenReturn(Collections.singletonList(entity));
-
-        boolean result = fmc7Connection.getVisible("PE00112233", "user123");
-
-        assertTrue(result);
-    }
-
-    @Test
     public void testGetVisible_KusurNull() {
         fmc7Connection.setKusuR325(null);
 
@@ -308,6 +297,22 @@ public class FMC7ConnectionTest {
         boolean result = fmc7Connection.getVisible("PE00112233", "user123");
 
         assertFalse(result);
+    }
+
+    @Test
+    public void testGetVisible_ReturnsTrueForVisibilityIndicators() {
+        for (String indicator : Arrays.asList("true", "Y", " Si ")) {
+            AliasFavContractEntity entity = new AliasFavContractEntity();
+            entity.setgVisibleContractIndType(indicator);
+            when(kusuR325.executeGetAliasFavoriteContractsList(any(), Mockito.<AliasFavContractEntity>anyList()))
+                    .thenReturn(Collections.singletonList(entity));
+
+            assertTrue("Expected visible for indicator: " + indicator,
+                    fmc7Connection.getVisible("PE00112233", "user123"));
+
+            Mockito.reset(kusuR325);
+            fmc7Connection.setKusuR325(kusuR325);
+        }
     }
 
     @Test

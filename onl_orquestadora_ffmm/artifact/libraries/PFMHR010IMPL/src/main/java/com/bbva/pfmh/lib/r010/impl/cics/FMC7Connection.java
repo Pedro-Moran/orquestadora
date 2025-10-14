@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 public class FMC7Connection extends AbstractLibrary {
 
@@ -175,10 +176,24 @@ public class FMC7Connection extends AbstractLibrary {
         LOGGER.info("[getVisible] - result of kusu: {}", outKusuR325);
         if (outKusuR325 != null && !outKusuR325.isEmpty()) {
             LOGGER.info("[getVisible] - getgVisibleContractIndType: {}", outKusuR325.get(0).getgVisibleContractIndType());
-            return Boolean.parseBoolean(outKusuR325.get(0).getgVisibleContractIndType());
+            return toBoolean(outKusuR325.get(0).getgVisibleContractIndType());
         } else {
             return false;
         }
+    }
+
+    private boolean toBoolean(String value) {
+        if (StringUtils.isBlank(value)) {
+            return false;
+        }
+        String normalized = StringUtils.trim(value).toUpperCase(Locale.ROOT);
+        return "TRUE".equals(normalized)
+                || "T".equals(normalized)
+                || "Y".equals(normalized)
+                || "YES".equals(normalized)
+                || "S".equals(normalized)
+                || "SI".equals(normalized)
+                || "1".equals(normalized);
     }
 
     public List<Fund> mapOutFunds(FMC7Response response) {
