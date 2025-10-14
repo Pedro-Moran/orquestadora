@@ -88,14 +88,14 @@ public class PFMHR015ImplTest {
 		Assert.assertNotNull(response);
 		Assert.assertEquals(0, pfmhR015.getAdviceList().size());
 		Assert.assertEquals("00110122998000000412", response.getFfmm7().get(0).getIdContr());
-		Assert.assertEquals(new BigDecimal("234.68104377"), response.getFfmm7().get(0).getNumCuot());
-		Assert.assertEquals(new BigDecimal("54316.73"), response.getFfmm7().get(0).getSalDisp());
+                Assert.assertEquals(new BigDecimal("2346.81043777"), response.getFfmm7().get(0).getNumCuot());
+                Assert.assertEquals(new BigDecimal("543167.37"), response.getFfmm7().get(0).getSalDisp());
 		Assert.assertEquals("PEN", response.getFfmm7().get(0).getdMonEsd());
 		Assert.assertEquals("0031", response.getFfmm7().get(0).getIdSubPr());
 		Assert.assertEquals("BBVA CASH SOLES", response.getFfmm7().get(0).getdSubPro().trim());
 		Assert.assertEquals("SOLES", response.getFfmm7().get(0).getIdMonFn().trim());
-		Assert.assertEquals(new BigDecimal("54316.73"), response.getFfmm7().get(0).getSalCont());
-		Assert.assertEquals(new BigDecimal("23.14491918"), response.getFfmm7().get(0).getValCuot());
+                Assert.assertEquals(new BigDecimal("543167.37"), response.getFfmm7().get(0).getSalCont());
+                Assert.assertEquals(new BigDecimal("231.44919187"), response.getFfmm7().get(0).getValCuot());
 		Assert.assertEquals("L", response.getFfmm7().get(0).getcTipNum());
 		Assert.assertEquals("CODIGO INTERNO DEL BBVA", response.getFfmm7().get(0).getdTipNum().trim());
 		Assert.assertEquals("123456789012345678", response.getPagination().getIdpagin());
@@ -137,7 +137,7 @@ public class PFMHR015ImplTest {
 		Assert.assertNotNull(response);
 		Assert.assertEquals(1, response.getFfmm7().size());
 		Assert.assertEquals("123", response.getFfmm7().get(0).getIdContr());
-		Assert.assertEquals(BigDecimal.ZERO, response.getFfmm7().get(0).getNumCuot());
+                Assert.assertEquals(new BigDecimal("0E-8"), response.getFfmm7().get(0).getNumCuot());
 		Assert.assertEquals("", response.getFfmm7().get(0).getdMonEsd());
 	}
 
@@ -171,23 +171,25 @@ public class PFMHR015ImplTest {
 		extractBigDecimal.setAccessible(true);
 		BigDecimal number = (BigDecimal) extractBigDecimal.invoke(pfmhR015, "0000012345", 0, 10, 2);
 		Assert.assertEquals(new BigDecimal("123.45"), number);
-		BigDecimal zero = (BigDecimal) extractBigDecimal.invoke(pfmhR015, "          ", 0, 10, 2);
-		Assert.assertEquals(BigDecimal.ZERO, zero);
+                BigDecimal zero = (BigDecimal) extractBigDecimal.invoke(pfmhR015, "          ", 0, 10, 2);
+                Assert.assertEquals(new BigDecimal("0.00"), zero);
 	}
 
 	@Test
 	public void testCleanAndSafeSubstring() throws Exception {
-		Method clean = PFMHR015Impl.class.getDeclaredMethod("cleanAndConvertToBigDecimal", String.class);
-		clean.setAccessible(true);
-		BigDecimal cleaned = (BigDecimal) clean.invoke(pfmhR015, "a1b2c3");
-		Assert.assertEquals(new BigDecimal("123"), cleaned);
-		Assert.assertEquals(BigDecimal.ZERO, (BigDecimal) clean.invoke(pfmhR015, "abc"));
-		Assert.assertEquals(BigDecimal.ZERO, (BigDecimal) clean.invoke(pfmhR015, (Object) null));
+                Method clean = PFMHR015Impl.class.getDeclaredMethod("cleanAndConvertToBigDecimal", String.class);
+                clean.setAccessible(true);
+                BigDecimal cleaned = (BigDecimal) clean.invoke(pfmhR015, "a1b2c3");
+                Assert.assertEquals(new BigDecimal("123"), cleaned);
+                Assert.assertEquals(BigDecimal.ZERO, (BigDecimal) clean.invoke(pfmhR015, "abc"));
+                Assert.assertEquals(BigDecimal.ZERO, (BigDecimal) clean.invoke(pfmhR015, (Object) null));
+                Assert.assertEquals(new BigDecimal("2830840671"), (BigDecimal) clean.invoke(pfmhR015, "0000000283084067A"));
+                Assert.assertEquals(new BigDecimal("-2830840671"), (BigDecimal) clean.invoke(pfmhR015, "0000000283084067J"));
 
-		Method safe = PFMHR015Impl.class.getDeclaredMethod("safeSubstring", String.class, int.class, int.class);
-		safe.setAccessible(true);
-		String sub = (String) safe.invoke(pfmhR015, "hello", 1, 10);
-		Assert.assertEquals("ello", sub);
+                Method safe = PFMHR015Impl.class.getDeclaredMethod("safeSubstring", String.class, int.class, int.class);
+                safe.setAccessible(true);
+                String sub = (String) safe.invoke(pfmhR015, "hello", 1, 10);
+                Assert.assertEquals("ello", sub);
 		String negative = (String) safe.invoke(pfmhR015, "test", -1, 2);
 		Assert.assertEquals("", negative);
 		String outRange = (String) safe.invoke(pfmhR015, "hi", 3, 5);
