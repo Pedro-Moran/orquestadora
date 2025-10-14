@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +23,41 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class PFMHR015Impl extends PFMHR015Abstract {
+
+        private static final Map<Character, OverpunchDigit> OVERPUNCH_LOOKUP;
+
+        static {
+                Map<Character, OverpunchDigit> lookup = new HashMap<>();
+                //
+                // En los registros CICS el último dígito y el signo se representan con la notación
+                // "overpunch". Las letras {A..I indican valores positivos 0..9 y }J..R indican
+                // valores negativos 0..9 respectivamente. Con este mapa reconstruimos el último
+                // dígito para que la conversión a BigDecimal mantenga la precisión original.
+                //
+                lookup.put('{', new OverpunchDigit(0, false));
+                lookup.put('A', new OverpunchDigit(1, false));
+                lookup.put('B', new OverpunchDigit(2, false));
+                lookup.put('C', new OverpunchDigit(3, false));
+                lookup.put('D', new OverpunchDigit(4, false));
+                lookup.put('E', new OverpunchDigit(5, false));
+                lookup.put('F', new OverpunchDigit(6, false));
+                lookup.put('G', new OverpunchDigit(7, false));
+                lookup.put('H', new OverpunchDigit(8, false));
+                lookup.put('I', new OverpunchDigit(9, false));
+
+                lookup.put('}', new OverpunchDigit(0, true));
+                lookup.put('J', new OverpunchDigit(1, true));
+                lookup.put('K', new OverpunchDigit(2, true));
+                lookup.put('L', new OverpunchDigit(3, true));
+                lookup.put('M', new OverpunchDigit(4, true));
+                lookup.put('N', new OverpunchDigit(5, true));
+                lookup.put('O', new OverpunchDigit(6, true));
+                lookup.put('P', new OverpunchDigit(7, true));
+                lookup.put('Q', new OverpunchDigit(8, true));
+                lookup.put('R', new OverpunchDigit(9, true));
+
+                OVERPUNCH_LOOKUP = Collections.unmodifiableMap(lookup);
+        }
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PFMHR015Impl.class);
 
@@ -143,22 +180,106 @@ public class PFMHR015Impl extends PFMHR015Abstract {
 		return safeSubstring(value, startIndex, startIndex + length).trim();
 	}
 
-	private BigDecimal extractBigDecimal(String value, int startIndex, int length, int scale) {
-		String substring = safeSubstring(value, startIndex, startIndex + length);
-		BigDecimal number = cleanAndConvertToBigDecimal(substring);
-		return number.signum() == 0 ? BigDecimal.ZERO : number.movePointLeft(scale);
-	}
+        private BigDecimal extractBigDecimal(String value, int startIndex, int length, int scale) {
+                String substring = safeSubstring(value, startIndex, startIndex + length);
+                HostNumber hostNumber = decodeHostNumber(substring);
 
-	private BigDecimal cleanAndConvertToBigDecimal(String value) {
-		if (value == null || value.trim().isEmpty()) {
-			return BigDecimal.ZERO;
-		}
-		String cleanedValue = value.trim().replaceAll("\\D", "");
-		if (cleanedValue.isEmpty()) {
-			return BigDecimal.ZERO;
-		}
-		return new BigDecimal(cleanedValue);
-	}
+                if (hostNumber.isZero()) {
+                        return BigDecimal.ZERO.setScale(scale);
+                }
+
+                return hostNumber.toBigDecimal(scale);
+        }
+
+        BigDecimal cleanAndConvertToBigDecimal(String value) {
+                HostNumber hostNumber = decodeHostNumber(value);
+                if (hostNumber.isZero()) {
+                        return BigDecimal.ZERO;
+                }
+                return hostNumber.toBigDecimal();
+        }
+
+        private HostNumber decodeHostNumber(String value) {
+                String trimmedValue = normalizeInput(value);
+                if (trimmedValue == null) {
+                        return HostNumber.zero();
+                }
+
+                boolean negative = trimmedValue.indexOf('-') >= 0;
+                StringBuilder digits = new StringBuilder(trimmedValue.length());
+                for (int i = 0; i < trimmedValue.length(); i++) {
+                        char currentChar = trimmedValue.charAt(i);
+                        if (Character.isDigit(currentChar)) {
+                                digits.append(currentChar);
+                        }
+                }
+
+                if (!trimmedValue.isEmpty()) {
+                        OverpunchDigit overpunch = decodeOverpunchDigit(trimmedValue.charAt(trimmedValue.length() - 1));
+                        if (overpunch != null && (digits.length() > 0 || trimmedValue.length() == 1)) {
+                                digits.append((char) ('0' + overpunch.digit));
+                                negative = negative || overpunch.negative;
+                        }
+                }
+
+                if (digits.length() == 0) {
+                        return HostNumber.zero();
+                }
+
+                BigInteger unscaled = new BigInteger(digits.toString());
+                if (negative && unscaled.signum() != 0) {
+                        unscaled = unscaled.negate();
+                }
+                return new HostNumber(unscaled);
+        }
+
+        private String normalizeInput(String value) {
+                if (value == null) {
+                        return null;
+                }
+
+                String trimmedValue = value.trim();
+                return trimmedValue.isEmpty() ? null : trimmedValue;
+        }
+
+        private OverpunchDigit decodeOverpunchDigit(char value) {
+                char normalized = Character.toUpperCase(value);
+                return OVERPUNCH_LOOKUP.get(normalized);
+        }
+
+        private static final class HostNumber {
+                private final BigInteger unscaled;
+
+                private HostNumber(BigInteger unscaled) {
+                        this.unscaled = unscaled;
+                }
+
+                private static HostNumber zero() {
+                        return new HostNumber(BigInteger.ZERO);
+                }
+
+                private boolean isZero() {
+                        return unscaled.signum() == 0;
+                }
+
+                private BigDecimal toBigDecimal(int scale) {
+                        return new BigDecimal(unscaled, scale);
+                }
+
+                private BigDecimal toBigDecimal() {
+                        return new BigDecimal(unscaled);
+                }
+        }
+
+        private static final class OverpunchDigit {
+                private final int digit;
+                private final boolean negative;
+
+                private OverpunchDigit(int digit, boolean negative) {
+                        this.digit = digit;
+                        this.negative = negative;
+                }
+        }
 
 	private String safeSubstring(String value, int beginIndex, int endIndex) {
 		if (value == null || beginIndex < 0 || beginIndex > value.length() || beginIndex > endIndex) {
