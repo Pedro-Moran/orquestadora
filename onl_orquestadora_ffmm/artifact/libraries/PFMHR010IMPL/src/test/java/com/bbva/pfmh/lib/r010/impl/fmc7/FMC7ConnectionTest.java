@@ -23,7 +23,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
 import org.springframework.aop.framework.Advised;
-
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
@@ -301,7 +300,7 @@ public class FMC7ConnectionTest {
 
     @Test
     public void testGetVisible_ReturnsTrueForVisibilityIndicators() {
-        for (String indicator : Arrays.asList("true", "Y", " Si ")) {
+        for (String indicator : Arrays.asList("true", "Y", " Si ", "sí", " Verdadero ")) {
             AliasFavContractEntity entity = new AliasFavContractEntity();
             entity.setgVisibleContractIndType(indicator);
             when(kusuR325.executeGetAliasFavoriteContractsList(any(), Mockito.<AliasFavContractEntity>anyList()))
@@ -312,6 +311,129 @@ public class FMC7ConnectionTest {
 
             Mockito.reset(kusuR325);
             fmc7Connection.setKusuR325(kusuR325);
+        }
+    }
+
+    @Test
+    public void testGetVisible_ReturnsFalseForNegativeIndicators() {
+        for (String indicator : Arrays.asList(null, "", "0", "no", "false")) {
+            AliasFavContractEntity entity = new AliasFavContractEntity();
+            entity.setgVisibleContractIndType(indicator);
+            when(kusuR325.executeGetAliasFavoriteContractsList(any(), Mockito.<AliasFavContractEntity>anyList()))
+                    .thenReturn(Collections.singletonList(entity));
+
+            assertFalse("Expected invisible for indicator: " + indicator,
+                    fmc7Connection.getVisible("PE00112233", "user123"));
+
+            Mockito.reset(kusuR325);
+            fmc7Connection.setKusuR325(kusuR325);
+        }
+    }
+
+    @Test
+    public void testGetVisible_ReturnsTrueWhenMatchingContractHasIndicator() {
+        AliasFavContractEntity nonMatching = new AliasFavContractEntity();
+        nonMatching.setGContractId("PE00000000");
+        nonMatching.setgVisibleContractIndType("N");
+
+        AliasFavContractEntity matching = new AliasFavContractEntity();
+        matching.setGContractId("PE00112233");
+        matching.setgVisibleContractIndType("Y");
+
+        when(kusuR325.executeGetAliasFavoriteContractsList(any(), Mockito.<AliasFavContractEntity>anyList()))
+                .thenReturn(Arrays.asList(nonMatching, matching));
+
+        assertTrue(fmc7Connection.getVisible("PE00112233", "user123"));
+    }
+
+    @Test
+    public void testGetVisible_SupportsBooleanIndicator() {
+        AliasFavContractEntity entity = new BooleanAliasFavContractEntity(Boolean.TRUE);
+        entity.setGContractId("PE00112233");
+
+        when(kusuR325.executeGetAliasFavoriteContractsList(any(), Mockito.<AliasFavContractEntity>anyList()))
+                .thenReturn(Collections.singletonList(entity));
+
+        assertTrue(fmc7Connection.getVisible("PE00112233", "user123"));
+    }
+
+    @Test
+    public void testGetVisibilityIndicator_ReturnsNullWhenEntityIsNull() throws Exception {
+        Method method = FMC7Connection.class.getDeclaredMethod("getVisibilityIndicator", AliasFavContractEntity.class);
+        method.setAccessible(true);
+
+        Object indicator = method.invoke(fmc7Connection, new Object[]{null});
+
+        assertNull(indicator);
+    }
+
+    @Test
+    public void testGetVisibilityIndicator_ReturnsExtractedBoolean() throws Exception {
+        AliasFavContractEntity entity = new AliasFavContractEntity() {
+            @Override
+            public String toString() {
+                return "AliasFavContractEntity [gVisibleContractIndType=true, gContractId=PE00112233]";
+            }
+        };
+        Method method = FMC7Connection.class.getDeclaredMethod("getVisibilityIndicator", AliasFavContractEntity.class);
+        method.setAccessible(true);
+
+        Object indicator = method.invoke(fmc7Connection, entity);
+
+        assertTrue(indicator instanceof Boolean);
+        assertEquals(Boolean.TRUE, indicator);
+    }
+
+    @Test
+    public void testGetVisibilityIndicator_ReturnsNullWhenIndicatorUnavailable() throws Exception {
+        AliasFavContractEntity entity = new AliasFavContractEntity() {
+            @Override
+            public String toString() {
+                return "AliasFavContractEntity [gContractId=PE00112233]";
+            }
+        };
+        Method method = FMC7Connection.class.getDeclaredMethod("getVisibilityIndicator", AliasFavContractEntity.class);
+        method.setAccessible(true);
+
+        Object indicator = method.invoke(fmc7Connection, entity);
+
+        assertNull(indicator);
+    }
+
+    @Test
+    public void testGetVisibilityIndicator_ReturnsNullForExplicitNullValue() throws Exception {
+        AliasFavContractEntity entity = new AliasFavContractEntity() {
+            @Override
+            public String toString() {
+                return "AliasFavContractEntity [gVisibleContractIndType=null, gContractId=PE00112233]";
+            }
+        };
+        Method method = FMC7Connection.class.getDeclaredMethod("getVisibilityIndicator", AliasFavContractEntity.class);
+        method.setAccessible(true);
+
+        Object indicator = method.invoke(fmc7Connection, entity);
+
+        assertNull(indicator);
+    }
+
+    private static final class BooleanAliasFavContractEntity extends AliasFavContractEntity {
+        private final Boolean gVisibleContractIndType;
+
+        private BooleanAliasFavContractEntity(Boolean indicator) {
+            this.gVisibleContractIndType = indicator;
+        }
+
+        @Override
+        public String getgVisibleContractIndType() {
+            throw new ClassCastException("java.lang.Boolean cannot be cast to class java.lang.String");
+        }
+
+        @Override
+        public String toString() {
+            return "AliasFavContractEntity [" +
+                    "gVisibleContractIndType=" + gVisibleContractIndType +
+                    ", gContractId=" + getGContractId() +
+                    "]";
         }
     }
 
@@ -416,5 +538,24 @@ public class FMC7ConnectionTest {
             assertEquals("cursor", outPagination.getPaginationKey());
             assertEquals(Long.valueOf(5), outPagination.getPageSize());
         }
+    }
+
+    @Test
+    public void testToBoolean_WithBooleanValue() throws Exception {
+        Method toBoolean = FMC7Connection.class.getDeclaredMethod("toBoolean", Object.class);
+        toBoolean.setAccessible(true);
+
+        assertTrue((Boolean) toBoolean.invoke(fmc7Connection, Boolean.TRUE));
+        assertFalse((Boolean) toBoolean.invoke(fmc7Connection, Boolean.FALSE));
+    }
+
+    @Test
+    public void testToBoolean_WithNumericValue() throws Exception {
+        Method toBoolean = FMC7Connection.class.getDeclaredMethod("toBoolean", Object.class);
+        toBoolean.setAccessible(true);
+
+        assertTrue((Boolean) toBoolean.invoke(fmc7Connection, 1));
+        assertTrue((Boolean) toBoolean.invoke(fmc7Connection, 2L));
+        assertFalse((Boolean) toBoolean.invoke(fmc7Connection, 0));
     }
 }

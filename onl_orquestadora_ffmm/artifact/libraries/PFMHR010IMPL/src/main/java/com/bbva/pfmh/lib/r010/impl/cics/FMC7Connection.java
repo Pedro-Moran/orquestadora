@@ -32,6 +32,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class FMC7Connection extends AbstractLibrary {
 
@@ -50,6 +52,9 @@ public class FMC7Connection extends AbstractLibrary {
     private static final String FME2060 = "FME2060";
     private static final String FME2100 = "FME2100";
     private static final String FME2092 = "FME2092";
+    private static final String VISIBLE_CONTRACT_INDICATOR_FIELD = "gVisibleContractIndType";
+    private static final Pattern VISIBLE_CONTRACT_INDICATOR_PATTERN = Pattern.compile(
+            VISIBLE_CONTRACT_INDICATOR_FIELD + "=([^,\\]]*)");
 
     public List<OutputInvestmentFundsDTO> executeFMC7Transaction(InputListInvestmentFundsDTO input) {
         List<OutputInvestmentFundsDTO> response = Collections.emptyList();
@@ -174,25 +179,107 @@ public class FMC7Connection extends AbstractLibrary {
         List<AliasFavContractEntity> outKusuR325 = kusuR325.executeGetAliasFavoriteContractsList(profileId, contractEntityListIn);
 
         LOGGER.info("[getVisible] - result of kusu: {}", outKusuR325);
-        if (outKusuR325 != null && !outKusuR325.isEmpty()) {
-            LOGGER.info("[getVisible] - getgVisibleContractIndType: {}", outKusuR325.get(0).getgVisibleContractIndType());
-            return toBoolean(outKusuR325.get(0).getgVisibleContractIndType());
-        } else {
+        if (outKusuR325 == null || outKusuR325.isEmpty()) {
             return false;
         }
+
+        for (AliasFavContractEntity entity : outKusuR325) {
+            if (entity == null) {
+                continue;
+            }
+            if (StringUtils.equalsIgnoreCase(globalContractId, entity.getGContractId())) {
+                Object indicator = getVisibilityIndicator(entity);
+                boolean visible = toBoolean(indicator);
+                LOGGER.info("[getVisible] - matched contract {} with indicator {} => {}",
+                        entity.getGContractId(), indicator, visible);
+                return visible;
+            }
+        }
+
+        LOGGER.warn("[getVisible] - no contract matched {}, falling back to visibility indicator scan", globalContractId);
+        for (AliasFavContractEntity entity : outKusuR325) {
+            if (entity != null) {
+                Object indicator = getVisibilityIndicator(entity);
+                if (toBoolean(indicator)) {
+                    LOGGER.info("[getVisible] - found visible indicator in unmatched contract {}", entity.getGContractId());
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
-    private boolean toBoolean(String value) {
-        if (StringUtils.isBlank(value)) {
+    private Object getVisibilityIndicator(AliasFavContractEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+        Object indicator = extractIndicator(entity.toString());
+        if (indicator == IndicatorExtractionResult.UNAVAILABLE) {
+            LOGGER.warn("[getVisible] - visibility indicator not found in entity representation: {}", entity);
+            return null;
+        }
+        return indicator;
+    }
+
+    private Object extractIndicator(String representation) {
+        if (StringUtils.isBlank(representation)) {
+            return IndicatorExtractionResult.UNAVAILABLE;
+        }
+        Matcher matcher = VISIBLE_CONTRACT_INDICATOR_PATTERN.matcher(representation);
+        if (!matcher.find()) {
+            return IndicatorExtractionResult.UNAVAILABLE;
+        }
+        String raw = StringUtils.trim(matcher.group(1));
+        if (StringUtils.isEmpty(raw) || StringUtils.equalsIgnoreCase(raw, "null")) {
+            return null;
+        }
+        raw = unquote(raw);
+        if (StringUtils.equalsIgnoreCase(raw, "true") || StringUtils.equalsIgnoreCase(raw, "false")) {
+            return Boolean.valueOf(raw);
+        }
+        return raw;
+    }
+
+    private String unquote(String value) {
+        if (value.length() < 2) {
+            return value;
+        }
+        char first = value.charAt(0);
+        char last = value.charAt(value.length() - 1);
+        if ((first == '"' && last == '"') || (first == '\'' && last == '\'')) {
+            return value.substring(1, value.length() - 1);
+        }
+        return value;
+    }
+
+    private enum IndicatorExtractionResult {
+        UNAVAILABLE
+    }
+
+    private boolean toBoolean(Object value) {
+        if (value == null) {
             return false;
         }
-        String normalized = StringUtils.trim(value).toUpperCase(Locale.ROOT);
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).intValue() != 0;
+        }
+        String normalized = StringUtils.trim(value.toString());
+        if (StringUtils.isBlank(normalized)) {
+            return false;
+        }
+        normalized = normalized.toUpperCase(Locale.ROOT);
         return "TRUE".equals(normalized)
                 || "T".equals(normalized)
                 || "Y".equals(normalized)
                 || "YES".equals(normalized)
                 || "S".equals(normalized)
                 || "SI".equals(normalized)
+                || "SÍ".equals(normalized)
+                || "VERDADERO".equals(normalized)
                 || "1".equals(normalized);
     }
 
