@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<artifactId>elara-project</artifactId>
+		<groupId>com.bbva.elara</groupId>
+		<version>8.0.11</version>
+	</parent>
+	<groupId>com.bbva.kusu.dto.mapper</groupId>
+	<artifactId>KUSUC001</artifactId>
+	<version>0.21.3</version>
+	<packaging>bundle</packaging>
+	<description>Deployment unit kusu_c001 of uuaa kusu</description>
+	
+	<properties>
+		<osgi.version.manifest>0.0</osgi.version.manifest>
+		<org.mapstruct.version>1.3.0.Final</org.mapstruct.version>
+		<m2e.apt.activation>jdt_apt</m2e.apt.activation>
+		<sonar.coverage.exclusions>
+			/src/main/java/com/bbva/kusu/dto/**/*.java
+		</sonar.coverage.exclusions>
+		<osgi.version.manifest>0.0</osgi.version.manifest>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>com.bbva.kusu.dto.users</groupId>
+			<artifactId>KUSUC000</artifactId>
+			<version>0.17.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-core-asl</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct-jdk8</artifactId>
+			<!-- use mapstruct-jdk8 for Java 8 or higher -->
+			<version>1.3.0.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.2.2</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Bundle-SymbolicName>${project.artifactId}-${project.version}</Bundle-SymbolicName>
+						<Bundle-Category>dto</Bundle-Category>
+						<Import-Package>
+							*;version="${osgi.version.manifest}"
+						</Import-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

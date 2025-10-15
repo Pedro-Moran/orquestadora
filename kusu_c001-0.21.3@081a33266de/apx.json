@@ -1,0 +1,12 @@
+{
+    "component": "r2artifact",
+    "repoName": "kusu_c001",
+    "uuaa": "kusu",
+    "slave_label": "apx",
+    "extra_properties": null,
+    "apxrepoBranch": "master",
+    "componentPaaSId": "kusu_c001",
+    "appPaaSId": "kusu",
+    "proyectPaaSId": "gl.kusu.app-id-12355.dsg",
+    "resource_type": "dto"
+}

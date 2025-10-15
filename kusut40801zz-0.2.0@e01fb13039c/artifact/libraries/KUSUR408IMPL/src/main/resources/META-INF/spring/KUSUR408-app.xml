@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:osgi="http://www.springframework.org/schema/osgi"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd   http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi.xsd">
+
+	<bean class="com.bbva.kusu.lib.r408.impl.KUSUR408Impl" id="kusuR408" parent="kusuR408Abstract">
+		<property name="kusuR106" ref="kusuR106" />
+		<property name="kusuR121" ref="kusuR121" />
+		<property name="kusuR205" ref="kusuR205" />
+	</bean>
+
+</beans>

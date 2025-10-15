@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<transaction xmlns="http://www.w3schools.com" transactionName="KUSUT408" application="KUSU" version="01" country="ZZ" language="ES">
+
+	<paramsIn>
+		<parameter name="profileId" type="String" size="50" order="1" mandatory="1" />
+	</paramsIn>
+
+	<paramsOut>
+		<dto name="contractsVisibleOperableArray" package="com.bbva.kusu.dto.users.beans.ContractsVisibleOperableArray" artifactId="KUSUC000" mandatory="0" order="1">
+			<list order="1" name="visibleContracts" mandatory="0">
+				<parameter name="id" type="String" size="100" order="1" mandatory="1" />
+			</list>
+			<list order="2" name="noVisibleContracts" mandatory="0">
+				<parameter name="id" type="String" size="100" order="1" mandatory="1" />
+			</list>
+			<list order="3" name="operableContracts" mandatory="0">
+				<parameter name="id" type="String" size="100" order="1" mandatory="1" />
+			</list>
+			<list order="4" name="noOperableContracts" mandatory="0">
+				<parameter name="id" type="String" size="100" order="1" mandatory="1" />
+			</list>
+		</dto>
+	</paramsOut>
+
+	<description>Trx to get two array with a visible contracts list and an operable contract list.</description>
+
+</transaction>
