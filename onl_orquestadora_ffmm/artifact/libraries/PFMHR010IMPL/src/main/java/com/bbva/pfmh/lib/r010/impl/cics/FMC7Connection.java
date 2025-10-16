@@ -1,5 +1,7 @@
 package com.bbva.pfmh.lib.r010.impl.cics;
 
+import com.bbva.elara.domain.transaction.RequestHeaderParamsName;
+import com.bbva.elara.domain.transaction.request.header.CommonRequestHeader;
 import com.bbva.elara.library.AbstractLibrary;
 import com.bbva.kusu.dto.users.entity.AliasFavContractEntity;
 import com.bbva.kusu.lib.r325.KUSUR325;
@@ -172,9 +174,16 @@ public class FMC7Connection extends AbstractLibrary {
             return false;
         }
         LOGGER.info("[getVisible] - globalContractId: {}", globalContractId);
-        LOGGER.info("[getVisible] - profileId: {}", profileId);
+        IdentificationData identificationData = resolveIdentifiers(profileId);
+        LOGGER.info("[getVisible] - resolved userId: {}", identificationData.getUserId());
+        LOGGER.info("[getVisible] - resolved profileId: {}", identificationData.getProfileId());
 
-        List<AliasFavContractEntity> contracts = fetchFavoriteContracts(globalContractId, profileId);
+        if (!identificationData.hasIdentifiers()) {
+            LOGGER.warn("[getVisible] - unable to resolve identifiers, returning invisible by default");
+            return false;
+        }
+
+        List<AliasFavContractEntity> contracts = fetchFavoriteContracts(globalContractId, identificationData);
         if (contracts.isEmpty()) {
             return false;
         }
@@ -201,15 +210,92 @@ public class FMC7Connection extends AbstractLibrary {
         return false;
     }
 
-    private List<AliasFavContractEntity> fetchFavoriteContracts(String globalContractId, String profileId) {
+    private List<AliasFavContractEntity> fetchFavoriteContracts(String globalContractId, IdentificationData identificationData) {
         List<AliasFavContractEntity> contractEntityListIn = new ArrayList<>();
         AliasFavContractEntity contractEntity = new AliasFavContractEntity();
         contractEntity.setGContractId(globalContractId);
         contractEntityListIn.add(contractEntity);
         LOGGER.info("[getVisible] - contractEntityListIn: {}", contractEntityListIn);
-        List<AliasFavContractEntity> result = kusuR325.executeGetAliasFavoriteContractsList(profileId, contractEntityListIn);
+
+        if (!identificationData.hasIdentifiers()) {
+            LOGGER.warn("[getVisible] - identifiers not available to query kusuR325");
+            return Collections.emptyList();
+        }
+
+        List<AliasFavContractEntity> result;
+        if (StringUtils.isNotBlank(identificationData.getProfileId())) {
+            result = kusuR325.executeGetAliasFavoriteContractsList(
+                    identificationData.getUserId(),
+                    identificationData.getProfileId(),
+                    contractEntityListIn);
+        } else {
+            result = kusuR325.executeGetAliasFavoriteContractsList(
+                    identificationData.getUserId(),
+                    contractEntityListIn);
+        }
         LOGGER.info("[getVisible] - result of kusu: {}", result);
         return result == null ? Collections.emptyList() : result;
+    }
+
+    private IdentificationData resolveIdentifiers(String providedProfileId) {
+        String headerUserId = null;
+        String headerProfileId = providedProfileId;
+
+        try {
+            CommonRequestHeader requestHeader = this.getRequestHeader();
+            if (requestHeader != null) {
+                headerUserId = readHeaderParameter(requestHeader,
+                        RequestHeaderParamsName.USERCODE,
+                        RequestHeaderParamsName.USERLOGON,
+                        RequestHeaderParamsName.AGENTUSER,
+                        RequestHeaderParamsName.MANAGERUSER);
+                headerProfileId = readHeaderParameter(requestHeader,
+                        RequestHeaderParamsName.PID);
+            }
+        } catch (Exception exception) {
+            LOGGER.warn("[getVisible] - error resolving identifiers from header", exception);
+        }
+
+        String resolvedProfileId = StringUtils.trimToNull(providedProfileId);
+        if (StringUtils.isNotBlank(headerProfileId)) {
+            resolvedProfileId = headerProfileId;
+        } else if (StringUtils.isBlank(resolvedProfileId)) {
+            resolvedProfileId = headerUserId;
+        }
+
+        String resolvedUserId = headerUserId;
+        if (StringUtils.isBlank(resolvedUserId)) {
+            resolvedUserId = resolvedProfileId;
+        }
+        if (StringUtils.isBlank(resolvedProfileId)) {
+            resolvedProfileId = resolvedUserId;
+        }
+
+        return new IdentificationData(resolvedUserId, resolvedProfileId);
+    }
+
+    private String readHeaderParameter(CommonRequestHeader requestHeader, RequestHeaderParamsName... parameterNames) {
+        if (requestHeader == null || parameterNames == null) {
+            return null;
+        }
+        for (RequestHeaderParamsName parameterName : parameterNames) {
+            if (parameterName == null) {
+                continue;
+            }
+            Object value = requestHeader.getHeaderParameter(parameterName);
+            String normalized = normalizeHeaderValue(value);
+            if (normalized != null) {
+                return normalized;
+            }
+        }
+        return null;
+    }
+
+    private String normalizeHeaderValue(Object value) {
+        if (value == null) {
+            return null;
+        }
+        return StringUtils.trimToNull(value.toString());
     }
 
     private AliasFavContractEntity findMatchingContract(String globalContractId, List<AliasFavContractEntity> contracts) {
@@ -444,6 +530,28 @@ public class FMC7Connection extends AbstractLibrary {
                 || "SÍ".equals(normalized)
                 || "VERDADERO".equals(normalized)
                 || "1".equals(normalized);
+    }
+
+    private static final class IdentificationData {
+        private final String userId;
+        private final String profileId;
+
+        private IdentificationData(String userId, String profileId) {
+            this.userId = userId;
+            this.profileId = profileId;
+        }
+
+        private String getUserId() {
+            return userId;
+        }
+
+        private String getProfileId() {
+            return profileId;
+        }
+
+        private boolean hasIdentifiers() {
+            return StringUtils.isNotBlank(userId) || StringUtils.isNotBlank(profileId);
+        }
     }
 
     public List<Fund> mapOutFunds(FMC7Response response) {

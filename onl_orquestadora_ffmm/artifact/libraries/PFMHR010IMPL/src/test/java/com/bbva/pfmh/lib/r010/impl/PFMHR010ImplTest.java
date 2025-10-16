@@ -67,6 +67,7 @@ public class PFMHR010ImplTest {
 
         Mockito.when(kusuR325.executeGetAliasFavoriteContractsList(
                 Mockito.anyString(),
+                Mockito.anyString(),
                 Mockito.<AliasFavContractEntity>anyList()
         )).thenReturn(new ArrayList<>());
 
@@ -127,6 +128,7 @@ public class PFMHR010ImplTest {
 
         Mockito.when(kusuR325.executeGetAliasFavoriteContractsList(
                 Mockito.anyString(),
+                Mockito.anyString(),
                 Mockito.<AliasFavContractEntity>anyList()
         )).thenReturn(new ArrayList<>());
 
@@ -150,6 +152,7 @@ public class PFMHR010ImplTest {
         AliasFavContractEntity mockAlias = new AliasFavContractEntity();
         mockAlias.setgVisibleContractIndType("true");
         Mockito.when(kusuR325.executeGetAliasFavoriteContractsList(
+                Mockito.anyString(),
                 Mockito.anyString(),
                 Mockito.<AliasFavContractEntity>anyList()
         )).thenReturn(Collections.singletonList(mockAlias));
