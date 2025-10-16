@@ -316,13 +316,29 @@ public class FMC7ConnectionTest {
 
     @Test
     public void testGetVisible_ReturnsFalseForNegativeIndicators() {
-        for (String indicator : Arrays.asList(null, "", "0", "no", "false")) {
+        for (String indicator : Arrays.asList("0", "no", "false")) {
             AliasFavContractEntity entity = new AliasFavContractEntity();
             entity.setgVisibleContractIndType(indicator);
             when(kusuR325.executeGetAliasFavoriteContractsList(any(), Mockito.<AliasFavContractEntity>anyList()))
                     .thenReturn(Collections.singletonList(entity));
 
             assertFalse("Expected invisible for indicator: " + indicator,
+                    fmc7Connection.getVisible("PE00112233", "user123"));
+
+            Mockito.reset(kusuR325);
+            fmc7Connection.setKusuR325(kusuR325);
+        }
+    }
+
+    @Test
+    public void testGetVisible_DefaultsToTrueWhenIndicatorMissing() {
+        for (String indicator : Arrays.asList(null, "", "   ")) {
+            AliasFavContractEntity entity = new AliasFavContractEntity();
+            entity.setgVisibleContractIndType(indicator);
+            when(kusuR325.executeGetAliasFavoriteContractsList(any(), Mockito.<AliasFavContractEntity>anyList()))
+                    .thenReturn(Collections.singletonList(entity));
+
+            assertTrue("Expected visible when indicator is missing: " + indicator,
                     fmc7Connection.getVisible("PE00112233", "user123"));
 
             Mockito.reset(kusuR325);
