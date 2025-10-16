@@ -186,37 +186,11 @@ public class FMC7Connection extends AbstractLibrary {
 
         LOGGER.warn("[getVisible] - no contract matched {}, falling back to visibility indicator scan", globalContractId);
 
-        VisibilityFallbackState fallbackState = VisibilityFallbackState.NONE;
-
-        for (AliasFavContractEntity entity : contracts) {
-            Boolean visibility = interpretVisibility(entity);
-            if (Boolean.TRUE.equals(visibility)) {
-                LOGGER.info("[getVisible] - found visible indicator in unmatched contract {}", entity.getGContractId());
-                return true;
-            }
-            if (Boolean.FALSE.equals(visibility)) {
-                LOGGER.info("[getVisible] - found explicit invisible indicator in contract {}", entity.getGContractId());
-                fallbackState = VisibilityFallbackState.EXPLICIT_INVISIBLE;
-            } else if (visibility == null) {
-                LOGGER.info("[getVisible] - contract {} has no indicator", entity != null ? entity.getGContractId() : null);
-                if (fallbackState != VisibilityFallbackState.EXPLICIT_INVISIBLE) {
-                    fallbackState = VisibilityFallbackState.MISSING_INDICATOR;
-                }
-            }
+        VisibilityEvaluation evaluation = evaluateVisibilityFallback(contracts);
+        if (evaluation.hasDecision()) {
+            return evaluation.getDecision();
         }
-
-        if (fallbackState == VisibilityFallbackState.EXPLICIT_INVISIBLE) {
-            LOGGER.info("[getVisible] - returning invisible due to explicit indicator");
-            return false;
-        }
-
-        if (fallbackState == VisibilityFallbackState.MISSING_INDICATOR) {
-            LOGGER.info("[getVisible] - defaulting to visible because indicators are missing");
-            return true;
-        }
-
-        LOGGER.info("[getVisible] - no indicator information available, returning invisible by default");
-        return false;
+        return applyFallbackDecision(evaluation.getFallbackState());
     }
 
     private boolean isKusuConfigured() {
@@ -287,15 +261,15 @@ public class FMC7Connection extends AbstractLibrary {
         return extracted;
     }
 
-    private Boolean interpretVisibility(AliasFavContractEntity entity) {
+    private VisibilityIndicator interpretVisibility(AliasFavContractEntity entity) {
         if (entity == null) {
-            return null;
+            return VisibilityIndicator.UNKNOWN;
         }
         Object indicator = getVisibilityIndicator(entity);
         if (indicator == null || indicator == IndicatorExtractionResult.UNAVAILABLE) {
-            return null;
+            return VisibilityIndicator.UNKNOWN;
         }
-        return toBoolean(indicator);
+        return toBoolean(indicator) ? VisibilityIndicator.VISIBLE : VisibilityIndicator.INVISIBLE;
     }
 
     private Object invokeVisibilityIndicatorGetter(AliasFavContractEntity entity) {
@@ -362,10 +336,88 @@ public class FMC7Connection extends AbstractLibrary {
         UNAVAILABLE
     }
 
+    private enum VisibilityIndicator {
+        VISIBLE,
+        INVISIBLE,
+        UNKNOWN
+    }
+
     private enum VisibilityFallbackState {
         NONE,
         MISSING_INDICATOR,
         EXPLICIT_INVISIBLE
+    }
+
+    private static final class VisibilityEvaluation {
+        private final Boolean decision;
+        private final VisibilityFallbackState fallbackState;
+
+        private VisibilityEvaluation(Boolean decision, VisibilityFallbackState fallbackState) {
+            this.decision = decision;
+            this.fallbackState = fallbackState;
+        }
+
+        private static VisibilityEvaluation decision(boolean decision) {
+            return new VisibilityEvaluation(decision, VisibilityFallbackState.NONE);
+        }
+
+        private static VisibilityEvaluation withFallback(VisibilityFallbackState fallbackState) {
+            return new VisibilityEvaluation(null, fallbackState);
+        }
+
+        private boolean hasDecision() {
+            return decision != null;
+        }
+
+        private boolean getDecision() {
+            return Boolean.TRUE.equals(decision);
+        }
+
+        private VisibilityFallbackState getFallbackState() {
+            return fallbackState;
+        }
+    }
+
+    private VisibilityEvaluation evaluateVisibilityFallback(List<AliasFavContractEntity> contracts) {
+        VisibilityFallbackState fallbackState = VisibilityFallbackState.NONE;
+
+        for (AliasFavContractEntity entity : contracts) {
+            VisibilityIndicator visibility = interpretVisibility(entity);
+            String contractId = entity != null ? entity.getGContractId() : null;
+            switch (visibility) {
+                case VISIBLE:
+                    LOGGER.info("[getVisible] - found visible indicator in unmatched contract {}", contractId);
+                    return VisibilityEvaluation.decision(true);
+                case INVISIBLE:
+                    LOGGER.info("[getVisible] - found explicit invisible indicator in contract {}", contractId);
+                    fallbackState = VisibilityFallbackState.EXPLICIT_INVISIBLE;
+                    break;
+                case UNKNOWN:
+                    LOGGER.info("[getVisible] - contract {} has no indicator", contractId);
+                    if (fallbackState != VisibilityFallbackState.EXPLICIT_INVISIBLE) {
+                        fallbackState = VisibilityFallbackState.MISSING_INDICATOR;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return VisibilityEvaluation.withFallback(fallbackState);
+    }
+
+    private boolean applyFallbackDecision(VisibilityFallbackState fallbackState) {
+        switch (fallbackState) {
+            case EXPLICIT_INVISIBLE:
+                LOGGER.info("[getVisible] - returning invisible due to explicit indicator");
+                return false;
+            case MISSING_INDICATOR:
+                LOGGER.info("[getVisible] - defaulting to visible because indicators are missing");
+                return true;
+            default:
+                LOGGER.info("[getVisible] - no indicator information available, returning invisible by default");
+                return false;
+        }
     }
 
     private boolean toBoolean(Object value) {
