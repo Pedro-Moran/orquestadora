@@ -168,49 +168,96 @@ public class FMC7Connection extends AbstractLibrary {
     }
 
     public boolean getVisible(String globalContractId, String profileId) {
-        if (kusuR325 == null) {
-            LOGGER.warn("[getVisible] - kusur325 no configurado");
+        if (!isKusuConfigured()) {
             return false;
         }
         LOGGER.info("[getVisible] - globalContractId: {}", globalContractId);
         LOGGER.info("[getVisible] - profileId: {}", profileId);
+
+        List<AliasFavContractEntity> contracts = fetchFavoriteContracts(globalContractId, profileId);
+        if (contracts.isEmpty()) {
+            return false;
+        }
+
+        AliasFavContractEntity matchedContract = findMatchingContract(globalContractId, contracts);
+        if (matchedContract != null) {
+            return resolveVisibilityFromIndicator(matchedContract);
+        }
+
+        LOGGER.warn("[getVisible] - no contract matched {}, falling back to visibility indicator scan", globalContractId);
+
+        VisibilityFallbackState fallbackState = VisibilityFallbackState.NONE;
+
+        for (AliasFavContractEntity entity : contracts) {
+            Boolean visibility = interpretVisibility(entity);
+            if (Boolean.TRUE.equals(visibility)) {
+                LOGGER.info("[getVisible] - found visible indicator in unmatched contract {}", entity.getGContractId());
+                return true;
+            }
+            if (Boolean.FALSE.equals(visibility)) {
+                LOGGER.info("[getVisible] - found explicit invisible indicator in contract {}", entity.getGContractId());
+                fallbackState = VisibilityFallbackState.EXPLICIT_INVISIBLE;
+            } else if (visibility == null) {
+                LOGGER.info("[getVisible] - contract {} has no indicator", entity != null ? entity.getGContractId() : null);
+                if (fallbackState != VisibilityFallbackState.EXPLICIT_INVISIBLE) {
+                    fallbackState = VisibilityFallbackState.MISSING_INDICATOR;
+                }
+            }
+        }
+
+        if (fallbackState == VisibilityFallbackState.EXPLICIT_INVISIBLE) {
+            LOGGER.info("[getVisible] - returning invisible due to explicit indicator");
+            return false;
+        }
+
+        if (fallbackState == VisibilityFallbackState.MISSING_INDICATOR) {
+            LOGGER.info("[getVisible] - defaulting to visible because indicators are missing");
+            return true;
+        }
+
+        LOGGER.info("[getVisible] - no indicator information available, returning invisible by default");
+        return false;
+    }
+
+    private boolean isKusuConfigured() {
+        if (kusuR325 != null) {
+            return true;
+        }
+        LOGGER.warn("[getVisible] - kusur325 no configurado");
+        return false;
+    }
+
+    private List<AliasFavContractEntity> fetchFavoriteContracts(String globalContractId, String profileId) {
         List<AliasFavContractEntity> contractEntityListIn = new ArrayList<>();
         AliasFavContractEntity contractEntity = new AliasFavContractEntity();
         contractEntity.setGContractId(globalContractId);
         contractEntityListIn.add(contractEntity);
         LOGGER.info("[getVisible] - contractEntityListIn: {}", contractEntityListIn);
-        List<AliasFavContractEntity> outKusuR325 = kusuR325.executeGetAliasFavoriteContractsList(profileId, contractEntityListIn);
+        List<AliasFavContractEntity> result = kusuR325.executeGetAliasFavoriteContractsList(profileId, contractEntityListIn);
+        LOGGER.info("[getVisible] - result of kusu: {}", result);
+        return result == null ? Collections.emptyList() : result;
+    }
 
-        LOGGER.info("[getVisible] - result of kusu: {}", outKusuR325);
-        if (outKusuR325 == null || outKusuR325.isEmpty()) {
-            return false;
-        }
-
-        for (AliasFavContractEntity entity : outKusuR325) {
-            if (entity == null) {
-                continue;
-            }
-            if (StringUtils.equalsIgnoreCase(globalContractId, entity.getGContractId())) {
-                Object indicator = getVisibilityIndicator(entity);
-                boolean visible = toBoolean(indicator);
-                LOGGER.info("[getVisible] - matched contract {} with indicator {} => {}",
-                        entity.getGContractId(), indicator, visible);
-                return visible;
+    private AliasFavContractEntity findMatchingContract(String globalContractId, List<AliasFavContractEntity> contracts) {
+        for (AliasFavContractEntity entity : contracts) {
+            if (entity != null && StringUtils.equalsIgnoreCase(globalContractId, entity.getGContractId())) {
+                return entity;
             }
         }
+        return null;
+    }
 
-        LOGGER.warn("[getVisible] - no contract matched {}, falling back to visibility indicator scan", globalContractId);
-        for (AliasFavContractEntity entity : outKusuR325) {
-            if (entity != null) {
-                Object indicator = getVisibilityIndicator(entity);
-                if (toBoolean(indicator)) {
-                    LOGGER.info("[getVisible] - found visible indicator in unmatched contract {}", entity.getGContractId());
-                    return true;
-                }
-            }
+    private boolean resolveVisibilityFromIndicator(AliasFavContractEntity entity) {
+        Object indicator = getVisibilityIndicator(entity);
+        if (indicator == null) {
+            LOGGER.info("[getVisible] - matched contract {} has no explicit indicator, defaulting to visible",
+                    entity.getGContractId());
+            return true;
         }
-
-        return false;
+        boolean visible = toBoolean(indicator);
+        LOGGER.info("[getVisible] - matched contract {} with indicator {} => {}",
+                entity.getGContractId(), indicator, visible);
+        return visible;
     }
 
     private Object getVisibilityIndicator(AliasFavContractEntity entity) {
@@ -238,6 +285,17 @@ public class FMC7Connection extends AbstractLibrary {
             return null;
         }
         return extracted;
+    }
+
+    private Boolean interpretVisibility(AliasFavContractEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+        Object indicator = getVisibilityIndicator(entity);
+        if (indicator == null || indicator == IndicatorExtractionResult.UNAVAILABLE) {
+            return null;
+        }
+        return toBoolean(indicator);
     }
 
     private Object invokeVisibilityIndicatorGetter(AliasFavContractEntity entity) {
@@ -302,6 +360,12 @@ public class FMC7Connection extends AbstractLibrary {
 
     private enum IndicatorExtractionResult {
         UNAVAILABLE
+    }
+
+    private enum VisibilityFallbackState {
+        NONE,
+        MISSING_INDICATOR,
+        EXPLICIT_INVISIBLE
     }
 
     private boolean toBoolean(Object value) {
