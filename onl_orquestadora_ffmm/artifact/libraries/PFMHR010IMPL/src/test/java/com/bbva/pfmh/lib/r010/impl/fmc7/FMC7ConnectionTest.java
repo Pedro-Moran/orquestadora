@@ -1,7 +1,10 @@
 package com.bbva.pfmh.lib.r010.impl.fmc7;
 
 import com.bbva.elara.domain.transaction.Context;
+import com.bbva.elara.domain.transaction.RequestHeaderParamsName;
 import com.bbva.elara.domain.transaction.ThreadContext;
+import com.bbva.elara.domain.transaction.request.TransactionRequest;
+import com.bbva.elara.domain.transaction.request.header.CommonRequestHeader;
 
 import com.bbva.ksan.dto.c101.ContractDetail;
 import com.bbva.ksan.dto.c101.ContractsOut;
@@ -46,6 +49,12 @@ public class FMC7ConnectionTest {
     @Mock
     private KUSUR325 kusuR325;
 
+    @Mock
+    private TransactionRequest transactionRequest;
+
+    @Mock
+    private CommonRequestHeader requestHeader;
+
     @InjectMocks
     private FMC7Connection fmc7Connection;
 
@@ -55,6 +64,8 @@ public class FMC7ConnectionTest {
         MockitoAnnotations.initMocks(this);
         context = new Context();
         ThreadContext.set(context);
+        context.setTransactionRequest(transactionRequest);
+        when(transactionRequest.getHeader()).thenReturn(requestHeader);
         getObjectIntrospection();
         fmc7Connection.setPfmhR015(pfmhR015);
         fmc7Connection.setKusuR325(kusuR325);
@@ -282,7 +293,7 @@ public class FMC7ConnectionTest {
 
     @Test
     public void testGetVisible_Exception() {
-        when(kusuR325.executeGetAliasFavoriteContractsList(any(), Mockito.<AliasFavContractEntity>anyList()))
+        when(kusuR325.executeGetAliasFavoriteContractsList(anyString(), anyString(), Mockito.<AliasFavContractEntity>anyList()))
                 .thenThrow(new RuntimeException("err"));
 
         assertThrows(RuntimeException.class,
@@ -291,7 +302,7 @@ public class FMC7ConnectionTest {
 
     @Test
     public void testGetVisible_EmptyList() {
-        when(kusuR325.executeGetAliasFavoriteContractsList(any(), Mockito.<AliasFavContractEntity>anyList())).thenReturn(Collections.emptyList());
+        when(kusuR325.executeGetAliasFavoriteContractsList(anyString(), anyString(), Mockito.<AliasFavContractEntity>anyList())).thenReturn(Collections.emptyList());
 
         boolean result = fmc7Connection.getVisible("PE00112233", "user123");
 
@@ -303,7 +314,7 @@ public class FMC7ConnectionTest {
         for (String indicator : Arrays.asList("true", "Y", " Si ", "sí", " Verdadero ")) {
             AliasFavContractEntity entity = new AliasFavContractEntity();
             entity.setgVisibleContractIndType(indicator);
-            when(kusuR325.executeGetAliasFavoriteContractsList(any(), Mockito.<AliasFavContractEntity>anyList()))
+            when(kusuR325.executeGetAliasFavoriteContractsList(anyString(), anyString(), Mockito.<AliasFavContractEntity>anyList()))
                     .thenReturn(Collections.singletonList(entity));
 
             assertTrue("Expected visible for indicator: " + indicator,
@@ -319,7 +330,7 @@ public class FMC7ConnectionTest {
         for (String indicator : Arrays.asList("0", "no", "false")) {
             AliasFavContractEntity entity = new AliasFavContractEntity();
             entity.setgVisibleContractIndType(indicator);
-            when(kusuR325.executeGetAliasFavoriteContractsList(any(), Mockito.<AliasFavContractEntity>anyList()))
+            when(kusuR325.executeGetAliasFavoriteContractsList(anyString(), anyString(), Mockito.<AliasFavContractEntity>anyList()))
                     .thenReturn(Collections.singletonList(entity));
 
             assertFalse("Expected invisible for indicator: " + indicator,
@@ -331,11 +342,26 @@ public class FMC7ConnectionTest {
     }
 
     @Test
+    public void testGetVisible_ResolvesIdentifiersFromHeader() {
+        when(requestHeader.getHeaderParameter(RequestHeaderParamsName.USERCODE)).thenReturn("headerUser");
+        when(requestHeader.getHeaderParameter(RequestHeaderParamsName.PID)).thenReturn("headerProfile");
+
+        AliasFavContractEntity entity = new AliasFavContractEntity();
+        entity.setgVisibleContractIndType("Y");
+        when(kusuR325.executeGetAliasFavoriteContractsList(anyString(), anyString(), Mockito.<AliasFavContractEntity>anyList()))
+                .thenReturn(Collections.singletonList(entity));
+
+        assertTrue(fmc7Connection.getVisible("PE00112233", null));
+
+        verify(kusuR325).executeGetAliasFavoriteContractsList(eq("headerUser"), eq("headerProfile"), Mockito.<AliasFavContractEntity>anyList());
+    }
+
+    @Test
     public void testGetVisible_DefaultsToTrueWhenIndicatorMissing() {
         for (String indicator : Arrays.asList(null, "", "   ")) {
             AliasFavContractEntity entity = new AliasFavContractEntity();
             entity.setgVisibleContractIndType(indicator);
-            when(kusuR325.executeGetAliasFavoriteContractsList(any(), Mockito.<AliasFavContractEntity>anyList()))
+            when(kusuR325.executeGetAliasFavoriteContractsList(anyString(), anyString(), Mockito.<AliasFavContractEntity>anyList()))
                     .thenReturn(Collections.singletonList(entity));
 
             assertTrue("Expected visible when indicator is missing: " + indicator,
@@ -356,7 +382,7 @@ public class FMC7ConnectionTest {
         matching.setGContractId("PE00112233");
         matching.setgVisibleContractIndType("Y");
 
-        when(kusuR325.executeGetAliasFavoriteContractsList(any(), Mockito.<AliasFavContractEntity>anyList()))
+        when(kusuR325.executeGetAliasFavoriteContractsList(anyString(), anyString(), Mockito.<AliasFavContractEntity>anyList()))
                 .thenReturn(Arrays.asList(nonMatching, matching));
 
         assertTrue(fmc7Connection.getVisible("PE00112233", "user123"));
@@ -367,7 +393,7 @@ public class FMC7ConnectionTest {
         AliasFavContractEntity entity = new BooleanAliasFavContractEntity(Boolean.TRUE);
         entity.setGContractId("PE00112233");
 
-        when(kusuR325.executeGetAliasFavoriteContractsList(any(), Mockito.<AliasFavContractEntity>anyList()))
+        when(kusuR325.executeGetAliasFavoriteContractsList(anyString(), anyString(), Mockito.<AliasFavContractEntity>anyList()))
                 .thenReturn(Collections.singletonList(entity));
 
         assertTrue(fmc7Connection.getVisible("PE00112233", "user123"));
