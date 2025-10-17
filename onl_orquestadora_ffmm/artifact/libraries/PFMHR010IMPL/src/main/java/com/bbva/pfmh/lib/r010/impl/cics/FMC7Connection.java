@@ -244,14 +244,13 @@ public class FMC7Connection extends AbstractLibrary {
         try {
             CommonRequestHeader requestHeader = this.getRequestHeader();
             if (requestHeader != null) {
-                Object userHeader = requestHeader.getHeaderParameter(RequestHeaderParamsName.USER_ID);
-                if (userHeader != null) {
-                    headerUserId = StringUtils.trimToNull(userHeader.toString());
-                }
-                Object profileHeader = requestHeader.getHeaderParameter(RequestHeaderParamsName.PROFILE_ID);
-                if (profileHeader != null) {
-                    headerProfileId = StringUtils.trimToNull(profileHeader.toString());
-                }
+                headerUserId = readHeaderParameter(requestHeader,
+                        RequestHeaderParamsName.USERCODE,
+                        RequestHeaderParamsName.USERLOGON,
+                        RequestHeaderParamsName.AGENTUSER,
+                        RequestHeaderParamsName.MANAGERUSER);
+                headerProfileId = readHeaderParameter(requestHeader,
+                        RequestHeaderParamsName.PID);
             }
         } catch (Exception exception) {
             LOGGER.warn("[getVisible] - error resolving identifiers from header", exception);
@@ -260,6 +259,8 @@ public class FMC7Connection extends AbstractLibrary {
         String resolvedProfileId = StringUtils.trimToNull(providedProfileId);
         if (StringUtils.isNotBlank(headerProfileId)) {
             resolvedProfileId = headerProfileId;
+        } else if (StringUtils.isBlank(resolvedProfileId)) {
+            resolvedProfileId = headerUserId;
         }
 
         String resolvedUserId = headerUserId;
@@ -273,6 +274,29 @@ public class FMC7Connection extends AbstractLibrary {
         return new IdentificationData(resolvedUserId, resolvedProfileId);
     }
 
+    private String readHeaderParameter(CommonRequestHeader requestHeader, RequestHeaderParamsName... parameterNames) {
+        if (requestHeader == null || parameterNames == null) {
+            return null;
+        }
+        for (RequestHeaderParamsName parameterName : parameterNames) {
+            if (parameterName == null) {
+                continue;
+            }
+            Object value = requestHeader.getHeaderParameter(parameterName);
+            String normalized = normalizeHeaderValue(value);
+            if (normalized != null) {
+                return normalized;
+            }
+        }
+        return null;
+    }
+
+    private String normalizeHeaderValue(Object value) {
+        if (value == null) {
+            return null;
+        }
+        return StringUtils.trimToNull(value.toString());
+    }
     private AliasFavContractEntity findMatchingContract(String globalContractId, List<AliasFavContractEntity> contracts) {
         for (AliasFavContractEntity entity : contracts) {
             if (entity != null && StringUtils.equalsIgnoreCase(globalContractId, entity.getGContractId())) {
