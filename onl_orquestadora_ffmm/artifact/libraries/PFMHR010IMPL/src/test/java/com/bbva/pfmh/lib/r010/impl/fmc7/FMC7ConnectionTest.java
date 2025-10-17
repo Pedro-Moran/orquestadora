@@ -1,7 +1,10 @@
 package com.bbva.pfmh.lib.r010.impl.fmc7;
 
 import com.bbva.elara.domain.transaction.Context;
+import com.bbva.elara.domain.transaction.RequestHeaderParamsName;
 import com.bbva.elara.domain.transaction.ThreadContext;
+import com.bbva.elara.domain.transaction.request.TransactionRequest;
+import com.bbva.elara.domain.transaction.request.header.CommonRequestHeader;
 
 import com.bbva.ksan.dto.c101.ContractDetail;
 import com.bbva.ksan.dto.c101.ContractsOut;
@@ -46,6 +49,12 @@ public class FMC7ConnectionTest {
     @Mock
     private KUSUR325 kusuR325;
 
+    @Mock
+    private TransactionRequest transactionRequest;
+
+    @Mock
+    private CommonRequestHeader requestHeader;
+
     @InjectMocks
     private FMC7Connection fmc7Connection;
 
@@ -55,6 +64,8 @@ public class FMC7ConnectionTest {
         MockitoAnnotations.initMocks(this);
         context = new Context();
         ThreadContext.set(context);
+        context.setTransactionRequest(transactionRequest);
+        when(transactionRequest.getHeader()).thenReturn(requestHeader);
         getObjectIntrospection();
         fmc7Connection.setPfmhR015(pfmhR015);
         fmc7Connection.setKusuR325(kusuR325);
@@ -328,6 +339,21 @@ public class FMC7ConnectionTest {
             Mockito.reset(kusuR325);
             fmc7Connection.setKusuR325(kusuR325);
         }
+    }
+
+    @Test
+    public void testGetVisible_ResolvesIdentifiersFromHeader() {
+        when(requestHeader.getHeaderParameter(RequestHeaderParamsName.USERCODE)).thenReturn("headerUser");
+        when(requestHeader.getHeaderParameter(RequestHeaderParamsName.PID)).thenReturn("headerProfile");
+
+        AliasFavContractEntity entity = new AliasFavContractEntity();
+        entity.setgVisibleContractIndType("Y");
+        when(kusuR325.executeGetAliasFavoriteContractsList(anyString(), anyString(), Mockito.<AliasFavContractEntity>anyList()))
+                .thenReturn(Collections.singletonList(entity));
+
+        assertTrue(fmc7Connection.getVisible("PE00112233", null));
+
+        verify(kusuR325).executeGetAliasFavoriteContractsList(eq("headerUser"), eq("headerProfile"), Mockito.<AliasFavContractEntity>anyList());
     }
 
     @Test

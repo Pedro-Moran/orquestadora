@@ -1,6 +1,9 @@
 package com.bbva.pfmh.lib.r010.impl.cics;
 
+import com.bbva.elara.domain.transaction.Context;
 import com.bbva.elara.domain.transaction.RequestHeaderParamsName;
+import com.bbva.elara.domain.transaction.ThreadContext;
+import com.bbva.elara.domain.transaction.request.TransactionRequest;
 import com.bbva.elara.domain.transaction.request.header.CommonRequestHeader;
 import com.bbva.elara.library.AbstractLibrary;
 import com.bbva.kusu.dto.users.entity.AliasFavContractEntity;
@@ -238,40 +241,49 @@ public class FMC7Connection extends AbstractLibrary {
     }
 
     private IdentificationData resolveIdentifiers(String providedProfileId) {
+        CommonRequestHeader requestHeader = resolveRequestHeader();
         String headerUserId = null;
-        String headerProfileId = providedProfileId;
+        String headerProfileId = null;
 
-        try {
-            CommonRequestHeader requestHeader = this.getRequestHeader();
-            if (requestHeader != null) {
-                headerUserId = readHeaderParameter(requestHeader,
-                        RequestHeaderParamsName.USERCODE,
-                        RequestHeaderParamsName.USERLOGON,
-                        RequestHeaderParamsName.AGENTUSER,
-                        RequestHeaderParamsName.MANAGERUSER);
-                headerProfileId = readHeaderParameter(requestHeader,
-                        RequestHeaderParamsName.PID);
-            }
-        } catch (Exception exception) {
-            LOGGER.warn("[getVisible] - error resolving identifiers from header", exception);
+        if (requestHeader != null) {
+            headerUserId = readHeaderParameter(requestHeader,
+                    RequestHeaderParamsName.USERCODE,
+                    RequestHeaderParamsName.USERLOGON,
+                    RequestHeaderParamsName.AGENTUSER,
+                    RequestHeaderParamsName.MANAGERUSER);
+            headerProfileId = readHeaderParameter(requestHeader, RequestHeaderParamsName.PID);
         }
 
-        String resolvedProfileId = StringUtils.trimToNull(providedProfileId);
-        if (StringUtils.isNotBlank(headerProfileId)) {
-            resolvedProfileId = headerProfileId;
-        } else if (StringUtils.isBlank(resolvedProfileId)) {
-            resolvedProfileId = headerUserId;
-        }
+        String resolvedProfileId = firstNonBlank(headerProfileId, providedProfileId, headerUserId);
+        String resolvedUserId = firstNonBlank(headerUserId, resolvedProfileId);
 
-        String resolvedUserId = headerUserId;
-        if (StringUtils.isBlank(resolvedUserId)) {
-            resolvedUserId = resolvedProfileId;
-        }
         if (StringUtils.isBlank(resolvedProfileId)) {
             resolvedProfileId = resolvedUserId;
         }
 
         return new IdentificationData(resolvedUserId, resolvedProfileId);
+    }
+
+    private CommonRequestHeader resolveRequestHeader() {
+        Context context = ThreadContext.get();
+        if (context == null) {
+            LOGGER.debug("[getVisible] - request context unavailable while resolving identifiers");
+            return null;
+        }
+
+        TransactionRequest transactionRequest = context.getTransactionRequest();
+        if (transactionRequest == null) {
+            LOGGER.debug("[getVisible] - transaction request unavailable while resolving identifiers");
+            return null;
+        }
+
+        Object header = transactionRequest.getHeader();
+        if (!(header instanceof CommonRequestHeader)) {
+            LOGGER.debug("[getVisible] - request header unavailable or incompatible while resolving identifiers");
+            return null;
+        }
+
+        return (CommonRequestHeader) header;
     }
 
     private String readHeaderParameter(CommonRequestHeader requestHeader, RequestHeaderParamsName... parameterNames) {
@@ -291,12 +303,26 @@ public class FMC7Connection extends AbstractLibrary {
         return null;
     }
 
+    private String firstNonBlank(String... values) {
+        if (values == null) {
+            return null;
+        }
+        for (String value : values) {
+            String normalized = StringUtils.trimToNull(value);
+            if (normalized != null) {
+                return normalized;
+            }
+        }
+        return null;
+    }
+
     private String normalizeHeaderValue(Object value) {
         if (value == null) {
             return null;
         }
         return StringUtils.trimToNull(value.toString());
     }
+  
     private AliasFavContractEntity findMatchingContract(String globalContractId, List<AliasFavContractEntity> contracts) {
         for (AliasFavContractEntity entity : contracts) {
             if (entity != null && StringUtils.equalsIgnoreCase(globalContractId, entity.getGContractId())) {
