@@ -322,7 +322,7 @@ public class FMC7Connection extends AbstractLibrary {
         }
         return StringUtils.trimToNull(value.toString());
     }
-
+  
     private AliasFavContractEntity findMatchingContract(String globalContractId, List<AliasFavContractEntity> contracts) {
         for (AliasFavContractEntity entity : contracts) {
             if (entity != null && StringUtils.equalsIgnoreCase(globalContractId, entity.getGContractId())) {
