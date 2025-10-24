@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:osgi="http://www.springframework.org/schema/osgi" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi.xsd">
+	<osgi:reference id="kbtqR404" interface="com.bbva.kbtq.lib.r404.KBTQR404"/>
+	<osgi:reference id="kbtqR110" interface="com.bbva.kbtq.lib.r110.KBTQR110"/>
+	<osgi:reference id="kbtqR718" interface="com.bbva.kbtq.lib.r718.KBTQR718"/>
+	<osgi:reference id="kbtqR115" interface="com.bbva.kbtq.lib.r115.KBTQR115"/>
+	<osgi:reference id="kbtqR410" interface="com.bbva.kbtq.lib.r410.KBTQR410"/>
+	<osgi:reference id="kbtqR807" interface="com.bbva.kbtq.lib.r807.KBTQR807"/>
+</beans>

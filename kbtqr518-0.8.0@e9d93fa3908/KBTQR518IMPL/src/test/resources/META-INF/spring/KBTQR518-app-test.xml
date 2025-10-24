@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jdbc="http://www.springframework.org/schema/jdbc" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
+	<bean id="kbtqR404" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.bbva.kbtq.lib.r404.KBTQR404"/>
+	</bean>
+	<bean id="kbtqR110" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.bbva.kbtq.lib.r110.KBTQR110"/>
+	</bean>
+	<bean id="kbtqR718" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.bbva.kbtq.lib.r718.KBTQR718"/>
+	</bean>
+	<bean id="podamFactory" class="uk.co.jemos.podam.api.PodamFactoryImpl"/>
+	<bean id="kbtqR115" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.bbva.kbtq.lib.r115.KBTQR115"/>
+	</bean>
+	<bean id="kbtqR410" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.bbva.kbtq.lib.r410.KBTQR410"/>
+	</bean>
+	<bean id="kbtqR807" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.bbva.kbtq.lib.r807.KBTQR807"/>
+	</bean>
+</beans>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:osgi="http://www.springframework.org/schema/osgi"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi.xsd">
+
+	<osgi:reference id="kusuR183" interface="com.bbva.kusu.lib.r183.KUSUR183"/>
+	<osgi:reference id="kusuR205" interface="com.bbva.kusu.lib.r205.KUSUR205"/>
+	<osgi:reference id="kusuRF82" interface="com.bbva.kusu.lib.rf82.KUSURF82"/>
+	<osgi:reference id="kbtqR504" interface="com.bbva.kbtq.lib.r504.KBTQR504"/>
+	<osgi:reference id="kusuR216" interface="com.bbva.kusu.lib.r216.KUSUR216"/>
+	
+</beans>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jdbc="http://www.springframework.org/schema/jdbc" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
+	<bean id="propertiesLoadedTest" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="locations">
+			<list>
+				<value>classpath:/database.properties</value>
+				<value>classpath:/database-passw.properties</value>
+				<value>classpath:/properties-test.properties</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="configurationArchitecture" class="com.bbva.elara.test.TestConfiguration">
+		<property name="properties" ref="propertiesLoadedTest"/>
+	</bean>
+	<bean id="dataSource" class="com.bbva.elara.test.TestDataSource">
+		<property name="driverClassName" value="#{configurationArchitecture.getProperty(&apos;database.driverClassName&apos;)}"/>
+		<property name="url" value="#{configurationArchitecture.getProperty(&apos;database.url&apos;)}"/>
+		<property name="password" value="#{configurationArchitecture.getProperty(&apos;database.password&apos;)}"/>
+		<property name="username" value="#{configurationArchitecture.getProperty(&apos;database.username&apos;)}"/>
+	</bean>
+	<!-- Uncomment for Transactional testing-->
+	<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	<jdbc:embedded-database id="dataSource" type="H2">
+		<jdbc:script location="classpath:kusu-ddl.sql"/>
+		<jdbc:script location="classpath:kusu-dml.sql"/>
+	</jdbc:embedded-database>
+	
+	<bean id="kusuR183" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.bbva.kusu.lib.r183.KUSUR183"/>
+	</bean>
+	<bean id="kusuR205" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.bbva.kusu.lib.r205.KUSUR205"/>
+	</bean>
+	<bean id="kusuRF82" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.bbva.kusu.lib.rf82.KUSURF82"/>
+	</bean>
+	<bean id="kbtqR504" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.bbva.kbtq.lib.r504.KBTQR504"/>
+	</bean>
+	<bean id="kusuR216" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.bbva.kusu.lib.r216.KUSUR216"/>
+	</bean>
+	
+</beans>

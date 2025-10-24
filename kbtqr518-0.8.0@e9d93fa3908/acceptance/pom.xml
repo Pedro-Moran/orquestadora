@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>acceptance</artifactId>
+	<groupId>com.bbva.kbtq</groupId>
+	<version>1.0.0</version>
+
+	<properties>
+		<junit.version>4.12</junit.version>
+		<backend-testing.version>RELEASE</backend-testing.version>
+		<jakarta.activation.version>1.2.1</jakarta.activation.version>
+	</properties>
+
+	<dependencies>
+		<!-- this is the backend-testing dependency -->
+		<dependency>
+			<groupId>com.bbva.arch.qe.backend</groupId>
+			<artifactId>backend-testing-runner-all</artifactId>
+			<version>${backend-testing.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- junit is used as test harness -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- In JDK >= 9 you might have to add also this dependency -->
+		<dependency>
+			<groupId>com.sun.activation</groupId>
+			<artifactId>jakarta.activation</artifactId>
+			<version>${jakarta.activation.version}</version>
+		</dependency>
+
+		<!-- Alpha Testing Utils -->
+		<dependency>
+			<groupId>com.bbva.testing</groupId>
+			<artifactId>test-manager-utils</artifactId>
+			<version>1.5.2</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<!-- Compilation settings -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<target>1.8</target>
+					<source>1.8</source>
+				</configuration>
+			</plugin>
+			<!-- We skip unit testing phase -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.0.0-M4</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+			<!-- We add backend-testing execution on verify stage -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>3.0.0-M4</version>
+				<configuration>
+					<!-- This is the file we will be creating later on to host our test 
+						suite settings -->
+					<includes>**/IntegrationTest.java</includes>
+					<argLine></argLine>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>integration-test</phase>
+						<goals>
+							<goal>integration-test</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

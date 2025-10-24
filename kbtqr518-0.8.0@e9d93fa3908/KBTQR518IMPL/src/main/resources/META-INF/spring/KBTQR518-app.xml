@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:osgi="http://www.springframework.org/schema/osgi" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi.xsd">
+	<bean id="kbtqR518" class="com.bbva.kbtq.lib.r518.impl.KBTQR518Impl" parent="kbtqR518Abstract">
+		<property name="kbtqR404" ref="kbtqR404"/>
+		<property name="kbtqR110" ref="kbtqR110"/>
+		<property name="kbtqR718" ref="kbtqR718"/>
+		<property name="kbtqR115" ref="kbtqR115"/>
+		<property name="kbtqR410" ref="kbtqR410"/>
+		<property name="kbtqR807" ref="kbtqR807"/>
+	</bean>
+</beans>

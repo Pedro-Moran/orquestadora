@@ -1,0 +1,12 @@
+{
+    "component": "r2artifact",
+    "repoName": "kbtqr518",
+    "uuaa": "kbtq",
+    "slave_label": "apx",
+    "extra_properties": null,
+    "apxrepoBranch": "master",
+    "componentPaaSId": "kbtqr518",
+    "appPaaSId": "kbtq",
+    "proyectPaaSId": "gl.kbtq.app-id-12852.dsg",
+    "resource_type": "lib"
+}

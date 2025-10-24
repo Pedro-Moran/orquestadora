@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
+
+	<bean id="bundleContext" class="com.bbva.kusu.mock.MockBundleContext">
+		<constructor-arg>
+			<list value-type="java.lang.String">
+			</list>
+		</constructor-arg>
+		<property name="bundleName" value="KUSUR382IMPL-0.0.1" />
+		<property name="bundleVersion" value="0.0.1" />
+	</bean>
+
+	<bean id="jdbcUtilsFactory" class="com.bbva.kusu.lib.r382.factory.JdbcUtilsFactory">
+		<property name="sqlLocation" value="/sql-KUSUR382IMPL.properties" />
+		<property name="uuaa" value="kusu" />
+		<property name="database" value="db2" />
+	</bean>
+	
+	<bean id="applicationConfigurationServiceFactory" class="com.bbva.kusu.mock.ConfigurationFactoryMock" />
+
+	<bean id="libraryMonitorizationAspect" class="com.bbva.kusu.mock.LibraryMonitorizationAspectMock" />
+
+	<bean id="jdbcManager" class="com.bbva.kusu.mock.JdbcManagerMock" />
+
+	<bean id="jdbcTemplateTest" class="org.springframework.jdbc.core.JdbcTemplate">
+		<constructor-arg ref="dataSource" />
+	</bean>
+
+</beans>

@@ -1,0 +1,4 @@
+{    
+	"documentId": "$testCase.documentId",
+    "rolePersonId": "$testCase.rolePersonId"
+}
