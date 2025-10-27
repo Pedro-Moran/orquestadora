@@ -13,12 +13,19 @@ public class ValidationUtils {
     }
 
     public static boolean validationInputIsNullOrEmpty(InputListInvestmentFundsDTO input) {
-        return input == null
-                || Objects.isNull(input.getCustomerId()) || input.getCustomerId().isEmpty();
+        if (input == null) {
+            return true;
+        }
+
+        return isBlank(input.getCustomerId()) || isBlank(input.getProfileId());
     }
 
     public static boolean validationResponseIsNullOrEmpty(OutputInvestmentFundsDTO response) {
         return Objects.nonNull(response) && Objects.nonNull(response.getData()) && !response.getData().isEmpty();
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 
 }

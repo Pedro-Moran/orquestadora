@@ -36,9 +36,18 @@ public class ValidationUtilsTest {
     }
 
     @Test
+    public void testValidationInputIsNullOrEmpty_EmptyProfileId() {
+        InputListInvestmentFundsDTO input = new InputListInvestmentFundsDTO();
+        input.setCustomerId("00001171");
+        input.setProfileId("   ");
+        assertTrue(ValidationUtils.validationInputIsNullOrEmpty(input));
+    }
+
+    @Test
     public void testValidationInputIsNullOrEmpty_ValidInput() {
         InputListInvestmentFundsDTO input = new InputListInvestmentFundsDTO();
         input.setCustomerId("00001171");
+        input.setProfileId("PROFILE-01");
         assertFalse(ValidationUtils.validationInputIsNullOrEmpty(input));
     }
 

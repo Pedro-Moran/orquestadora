@@ -69,6 +69,7 @@ public class FMC7Connection extends AbstractLibrary {
         if (!ValidationUtils.validationInputIsNullOrEmpty(input)) {
             LOGGER.info("***** PFMH010Impl - input: {} *****", input);
             LOGGER.info("***** PFMH010Impl - participantDTO: {} *****", input.getCustomerId());
+            LOGGER.info("***** PFMH010Impl - profileId: {} *****", input.getProfileId());
             response = executeFMC7Input(input);
         } else {
             this.addAdviceWithDescription(" PFMH", PFMHCUSTOMERID);
@@ -160,7 +161,12 @@ public class FMC7Connection extends AbstractLibrary {
         OutputInvestmentFundsDTO output = new OutputInvestmentFundsDTO();
         output.setData(Collections.singletonList(investmentFund));
         if (validarContratoEnKsanYHost("PE" + ffmm7.getIdContr(), output)) {
-            investmentFund.setIsVisible(getVisible("PE" + ffmm7.getIdContr(), input.getCustomerId()));
+            String profileId = StringUtils.trimToNull(input.getProfileId());
+            if (profileId == null) {
+                profileId = StringUtils.trimToNull(input.getCustomerId());
+                LOGGER.debug("[buildOutputInvestmentFund] - profileId no informado, usando customerId como respaldo");
+            }
+            investmentFund.setIsVisible(getVisible("PE" + ffmm7.getIdContr(), profileId));
             return output;
         }
         return null;
