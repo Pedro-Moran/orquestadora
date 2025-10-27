@@ -31,10 +31,12 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         String customerId = input.getCustomerId();
         String paginationKey = input.getPaginationKey();
         Integer pageSize = input.getPageSize();
+        String profileId = input.getProfileId();
 
         LOGGER.info("customerId: {}", customerId);
         LOGGER.info("paginationKey: {}", paginationKey);
         LOGGER.info("pageSize: {}", pageSize);
+        LOGGER.info("profileId: {}", profileId);
 
         LOGGER.info("RBVDT30301PETransaction - START");
 

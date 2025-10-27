@@ -221,6 +221,7 @@ public class FMC7ConnectionTest {
         input.setCustomerId("00001171");
         input.setPaginationKey("");
         input.setPageSize(10);
+        input.setProfileId("PROFILE-01");
 
 
         FFMM7 ffmm7 = new FFMM7();
@@ -248,6 +249,7 @@ public class FMC7ConnectionTest {
         input.setCustomerId("00001171");
         input.setPaginationKey("");
         input.setPageSize(10);
+        input.setProfileId("PROFILE-01");
 
         FMC7Response mockResponse = new FMC7Response();
         mockResponse.setFfmm7(Collections.emptyList());
@@ -267,6 +269,7 @@ public class FMC7ConnectionTest {
 
         InputListInvestmentFundsDTO input = new InputListInvestmentFundsDTO();
         input.setCustomerId("123");
+        input.setProfileId("PROFILE-01");
 
         List<OutputInvestmentFundsDTO> result = fmc7Connection.mapFMC7ouput(response, input);
 
@@ -476,6 +479,7 @@ public class FMC7ConnectionTest {
         input.setCustomerId("00001171");
         input.setPaginationKey("key123");
         input.setPageSize(10);
+        input.setProfileId("PROFILE-01");
 
         FMC7Response mockResponse = new FMC7Response();
         mockResponse.setHostAdviceCode("2026");
@@ -753,6 +757,7 @@ public class FMC7ConnectionTest {
 
         InputListInvestmentFundsDTO input = new InputListInvestmentFundsDTO();
         input.setCustomerId("123");
+        input.setProfileId("PROFILE-01");
 
         List<OutputInvestmentFundsDTO> result = fmc7Connection.mapFMC7ouput(response, input);
 
@@ -778,6 +783,7 @@ public class FMC7ConnectionTest {
 
         InputListInvestmentFundsDTO input = new InputListInvestmentFundsDTO();
         input.setCustomerId("123");
+        input.setProfileId("PROFILE-01");
 
         List<OutputInvestmentFundsDTO> result = fmc7Connection.mapFMC7ouput(response, input);
 
@@ -805,6 +811,7 @@ public class FMC7ConnectionTest {
         response.setPagination(pagination);
         InputListInvestmentFundsDTO input = new InputListInvestmentFundsDTO();
         input.setCustomerId("123");
+        input.setProfileId("PROFILE-01");
         List<OutputInvestmentFundsDTO> result = fmc7Connection.mapFMC7ouput(response, input);
         assertEquals(2, result.size());
         for (OutputInvestmentFundsDTO dto : result) {

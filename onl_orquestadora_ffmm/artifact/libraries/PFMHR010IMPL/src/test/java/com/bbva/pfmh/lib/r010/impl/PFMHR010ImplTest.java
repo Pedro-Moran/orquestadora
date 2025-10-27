@@ -62,6 +62,7 @@ public class PFMHR010ImplTest {
         input.setCustomerId("00001171");
         input.setPageSize(10);
         input.setPaginationKey("");
+        input.setProfileId("PROFILE-01");
 
         Mockito.when(pfmhR015.executeFMC7(Mockito.any())).thenReturn(ouputFMC7());
 
@@ -84,6 +85,7 @@ public class PFMHR010ImplTest {
         input.setCustomerId("00001171");
         input.setPageSize(10);
         input.setPaginationKey("");
+        input.setProfileId("PROFILE-01");
 
         FMC7Response mockResponse = Mockito.mock(FMC7Response.class);
         Mockito.when(pfmhR015.executeFMC7(Mockito.any())).thenReturn(mockResponse);
@@ -123,6 +125,7 @@ public class PFMHR010ImplTest {
         input.setCustomerId("00001171");
         input.setPageSize(10);
         input.setPaginationKey("");
+        input.setProfileId("PROFILE-01");
 
         Mockito.when(pfmhR015.executeFMC7(Mockito.any())).thenReturn(outputFMC7WithoutContract());
 
@@ -145,6 +148,7 @@ public class PFMHR010ImplTest {
         input.setCustomerId("00001171");
         input.setPageSize(10);
         input.setPaginationKey("");
+        input.setProfileId("PROFILE-01");
 
         Mockito.when(pfmhR015.executeFMC7(Mockito.any()))
                 .thenReturn(ouputFMC7());
@@ -171,6 +175,7 @@ public class PFMHR010ImplTest {
         input.setCustomerId("00001171");
         input.setPageSize(10);
         input.setPaginationKey("");
+        input.setProfileId("PROFILE-01");
 
         Mockito.when(pfmhR015.executeFMC7(Mockito.any())).thenReturn(ouputFMC7());
 

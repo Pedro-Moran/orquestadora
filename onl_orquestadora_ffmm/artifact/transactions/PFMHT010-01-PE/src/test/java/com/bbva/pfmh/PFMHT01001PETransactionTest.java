@@ -95,6 +95,7 @@ public class PFMHT01001PETransactionTest {
         when(inputListInvestmentFundsDTO.getCustomerId()).thenReturn("L40632175");
         when(inputListInvestmentFundsDTO.getPaginationKey()).thenReturn("key");
         when(inputListInvestmentFundsDTO.getPageSize()).thenReturn(10);
+        when(inputListInvestmentFundsDTO.getProfileId()).thenReturn("PROFILE-01");
 
     }
 

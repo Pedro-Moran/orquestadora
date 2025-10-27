@@ -2,9 +2,10 @@
 <transaction xmlns="http://www.w3schools.com" transactionName="PFMHT010" application="PFMH" version="01" country="PE" language="ES">
 	<paramsIn>
 		<dto order="1" name="InputListInvestmentFundsDTO" mandatory="0" package="com.bbva.pfmh.dto.jcisconnector.ffmm.commons.InputListInvestmentFundsDTO" artifactId="PFMHC010">
-			<parameter order="1" name="customerId" mandatory="0" type="String" size="8"/>
-			<parameter order="2" name="paginationKey" mandatory="0" type="String" size="35"/>
-			<parameter order="3" name="pageSize" mandatory="0" type="Long" size="3"/>
+                        <parameter order="1" name="customerId" mandatory="0" type="String" size="8"/>
+                        <parameter order="2" name="paginationKey" mandatory="0" type="String" size="35"/>
+                        <parameter order="3" name="pageSize" mandatory="0" type="Long" size="3"/>
+                        <parameter order="4" name="profileId" mandatory="0" type="String" size="20"/>
 		</dto>
 	</paramsIn>
 	<paramsOut>
