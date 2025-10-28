@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertFalse;
@@ -68,7 +69,7 @@ public class ValidationUtilsTest {
         OutputInvestmentFundsDTO response = new OutputInvestmentFundsDTO();
         InvestmentFund fund1 = new InvestmentFund();
         InvestmentFund fund2 = new InvestmentFund();
-        response.setData(List.of(fund1, fund2));
+        response.setData(Arrays.asList(fund1, fund2));
         assertTrue(ValidationUtils.validationResponseIsNullOrEmpty(response));
     }
 }
