@@ -7,6 +7,8 @@ import com.bbva.elara.domain.transaction.Severity;
 import com.bbva.elara.domain.transaction.request.header.CommonRequestHeader;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,6 +97,7 @@ public class PFMHT01001PETransactionTest {
         when(inputListInvestmentFundsDTO.getCustomerId()).thenReturn("L40632175");
         when(inputListInvestmentFundsDTO.getPaginationKey()).thenReturn("key");
         when(inputListInvestmentFundsDTO.getPageSize()).thenReturn(10);
+        when(inputListInvestmentFundsDTO.getProfileId()).thenReturn("PROFILE-01");
 
     }
 
@@ -120,7 +123,7 @@ public class PFMHT01001PETransactionTest {
         intPag.setPageSize(10L);
         OutputInvestmentFundsDTO output = new OutputInvestmentFundsDTO();
         output.setDTOIntPagination(intPag);
-        List<OutputInvestmentFundsDTO> response = List.of(output);
+        List<OutputInvestmentFundsDTO> response = Collections.singletonList(output);
         PFMHT01001PETransaction spyTransaction = spy(transaction);
 
         doNothing().when(spyTransaction).setResponseOut(any());
@@ -157,7 +160,7 @@ public class PFMHT01001PETransactionTest {
 
         assertEquals(Severity.ENR, spyTransaction.getSeverity());
         verify(pfmhR010, times(1)).executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class));
-        verify(spyTransaction, times(1)).setResponseOut(List.of());
+        verify(spyTransaction, times(1)).setResponseOut(Collections.emptyList());
         verify(spyTransaction, times(0)).setDTOIntPagination(any());
         verify(spyTransaction, times(0)).setPagination(any());
     }
@@ -220,7 +223,7 @@ public class PFMHT01001PETransactionTest {
         subFund.setManagerCompany(null);
         subFund.setAvailableFundPosition(availableFundPosition);
 
-        List<Fund> subFunds = List.of(subFund);
+        List<Fund> subFunds = Collections.singletonList(subFund);
 
         // Poblar InvestmentFund principal
         InvestmentFund fund = new InvestmentFund();
@@ -232,13 +235,13 @@ public class PFMHT01001PETransactionTest {
 
         // Poblar OutputInvestmentFundsDTO
         OutputInvestmentFundsDTO output = new OutputInvestmentFundsDTO();
-        output.setData(List.of(fund));
+        output.setData(Collections.singletonList(fund));
         IntPaginationDTO intPag = new IntPaginationDTO();
         intPag.setPaginationKey("0");
         intPag.setPageSize(10L);
         output.setDTOIntPagination(intPag);
 
-        List<OutputInvestmentFundsDTO> response = List.of(output);
+        List<OutputInvestmentFundsDTO> response = Collections.singletonList(output);
 
         PFMHT01001PETransaction spyTransaction = spy(transaction);
 
@@ -270,7 +273,7 @@ public class PFMHT01001PETransactionTest {
 
         assertEquals(Severity.ENR, spyTransaction.getSeverity());
         verify(pfmhR010, times(1)).executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class));
-        verify(spyTransaction, times(1)).setResponseOut(List.of());
+        verify(spyTransaction, times(1)).setResponseOut(Collections.emptyList());
         verify(spyTransaction, times(0)).setDTOIntPagination(any());
         verify(spyTransaction, times(0)).setPagination(any());
     }
@@ -284,7 +287,7 @@ public class PFMHT01001PETransactionTest {
         out1.setDTOIntPagination(intPag);
         OutputInvestmentFundsDTO out2 = new OutputInvestmentFundsDTO();
 
-        List<OutputInvestmentFundsDTO> response = List.of(out1, out2);
+        List<OutputInvestmentFundsDTO> response = Arrays.asList(out1, out2);
 
         PFMHT01001PETransaction spyTransaction = spy(transaction);
         doNothing().when(spyTransaction).setResponseOut(any());
@@ -312,7 +315,7 @@ public class PFMHT01001PETransactionTest {
         out1.setDTOIntPagination(intPag);
         OutputInvestmentFundsDTO out2 = new OutputInvestmentFundsDTO();
 
-        List<OutputInvestmentFundsDTO> response = List.of(out1, out2);
+        List<OutputInvestmentFundsDTO> response = Arrays.asList(out1, out2);
 
         PFMHT01001PETransaction spyTransaction = spy(transaction);
         doNothing().when(spyTransaction).setResponseOut(any());
@@ -340,7 +343,7 @@ public class PFMHT01001PETransactionTest {
         out1.setDTOIntPagination(intPag);
         OutputInvestmentFundsDTO out2 = new OutputInvestmentFundsDTO();
 
-        List<OutputInvestmentFundsDTO> response = List.of(out1, out2);
+        List<OutputInvestmentFundsDTO> response = Arrays.asList(out1, out2);
 
         PFMHT01001PETransaction spyTransaction = spy(transaction);
         doNothing().when(spyTransaction).setResponseOut(any());
@@ -367,7 +370,7 @@ public class PFMHT01001PETransactionTest {
         out1.setDTOIntPagination(intPag);
         OutputInvestmentFundsDTO out2 = new OutputInvestmentFundsDTO();
 
-        List<OutputInvestmentFundsDTO> response = List.of(out1, out2);
+        List<OutputInvestmentFundsDTO> response = Arrays.asList(out1, out2);
 
         PFMHT01001PETransaction spyTransaction = spy(transaction);
         doNothing().when(spyTransaction).setResponseOut(any());

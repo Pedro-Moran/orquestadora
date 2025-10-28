@@ -8,7 +8,6 @@ import com.bbva.elara.domain.transaction.request.header.CommonRequestHeader;
 import com.bbva.elara.library.AbstractLibrary;
 import com.bbva.kusu.dto.users.entity.AliasFavContractEntity;
 import com.bbva.kusu.lib.r325.KUSUR325;
-import com.bbva.kusu.dto.users.entity.commons.AliasFavCommons;
 import com.bbva.pfmh.dto.fmc7.ffmm.FFMM7;
 import com.bbva.pfmh.dto.fmc7.pague.FFMMPagination;
 import com.bbva.pfmh.dto.fmc7.request.FMC7Request;
@@ -33,7 +32,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -60,7 +58,6 @@ public class FMC7Connection extends AbstractLibrary {
     private static final String FME2100 = "FME2100";
     private static final String FME2092 = "FME2092";
     private static final String VISIBLE_CONTRACT_INDICATOR_FIELD = "gVisibleContractIndType";
-    private static final String VISIBLE_CONTRACT_INDICATOR_GETTER = "getgVisibleContractIndType";
     private static final Pattern VISIBLE_CONTRACT_INDICATOR_PATTERN = Pattern.compile(
             VISIBLE_CONTRACT_INDICATOR_FIELD + "=([^,\\]]*)");
 
@@ -69,6 +66,7 @@ public class FMC7Connection extends AbstractLibrary {
         if (!ValidationUtils.validationInputIsNullOrEmpty(input)) {
             LOGGER.info("***** PFMH010Impl - input: {} *****", input);
             LOGGER.info("***** PFMH010Impl - participantDTO: {} *****", input.getCustomerId());
+            LOGGER.info("***** PFMH010Impl - profileId: {} *****", input.getProfileId());
             response = executeFMC7Input(input);
         } else {
             this.addAdviceWithDescription(" PFMH", PFMHCUSTOMERID);
@@ -160,7 +158,12 @@ public class FMC7Connection extends AbstractLibrary {
         OutputInvestmentFundsDTO output = new OutputInvestmentFundsDTO();
         output.setData(Collections.singletonList(investmentFund));
         if (validarContratoEnKsanYHost("PE" + ffmm7.getIdContr(), output)) {
-            investmentFund.setIsVisible(getVisible("PE" + ffmm7.getIdContr(), input.getCustomerId()));
+            String profileId = StringUtils.trimToNull(input.getProfileId());
+            if (profileId == null) {
+                profileId = StringUtils.trimToNull(input.getCustomerId());
+                LOGGER.debug("[buildOutputInvestmentFund] - profileId no informado, usando customerId como respaldo");
+            }
+            investmentFund.setIsVisible(getVisible("PE" + ffmm7.getIdContr(), profileId));
             return output;
         }
         return null;
@@ -349,19 +352,19 @@ public class FMC7Connection extends AbstractLibrary {
         if (entity == null) {
             return null;
         }
-        Object indicator = invokeVisibilityIndicatorGetter(entity);
+
+        Object indicator = safelyReadVisibilityIndicator(entity);
         if (indicator == IndicatorExtractionResult.UNAVAILABLE) {
             indicator = null;
         }
-        if (indicator != null) {
-            if (indicator instanceof CharSequence) {
-                String stringIndicator = StringUtils.trim(indicator.toString());
-                if (StringUtils.isNotBlank(stringIndicator)) {
-                    return stringIndicator;
-                }
-            } else {
-                return indicator;
+
+        if (indicator instanceof CharSequence) {
+            String normalized = StringUtils.trimToNull(indicator.toString());
+            if (normalized != null) {
+                return normalized;
             }
+        } else if (indicator != null) {
+            return indicator;
         }
 
         Object extracted = extractIndicator(entity.toString());
@@ -370,6 +373,15 @@ public class FMC7Connection extends AbstractLibrary {
             return null;
         }
         return extracted;
+    }
+
+    private Object safelyReadVisibilityIndicator(AliasFavContractEntity entity) {
+        try {
+            return entity.getgVisibleContractIndType();
+        } catch (RuntimeException ex) {
+            LOGGER.debug("[getVisible] - unable to obtain visibility indicator from getter", ex);
+            return IndicatorExtractionResult.UNAVAILABLE;
+        }
     }
 
     private VisibilityIndicator interpretVisibility(AliasFavContractEntity entity) {
@@ -381,35 +393,6 @@ public class FMC7Connection extends AbstractLibrary {
             return VisibilityIndicator.UNKNOWN;
         }
         return toBoolean(indicator) ? VisibilityIndicator.VISIBLE : VisibilityIndicator.INVISIBLE;
-    }
-
-    private Object invokeVisibilityIndicatorGetter(AliasFavContractEntity entity) {
-        if (entity == null) {
-            return IndicatorExtractionResult.UNAVAILABLE;
-        }
-        Method getter = findVisibilityIndicatorGetter(entity.getClass());
-        if (getter == null) {
-            LOGGER.debug("[getVisible] - visibility indicator getter not found on {}", entity.getClass().getName());
-            return IndicatorExtractionResult.UNAVAILABLE;
-        }
-        if (!AliasFavCommons.class.equals(getter.getDeclaringClass())) {
-            LOGGER.debug("[getVisible] - skipping overridden visibility indicator getter on {}", entity.getClass().getName());
-            return IndicatorExtractionResult.UNAVAILABLE;
-        }
-        return entity.getgVisibleContractIndType();
-    }
-
-    private Method findVisibilityIndicatorGetter(Class<?> type) {
-        Class<?> current = type;
-        while (current != null) {
-            for (Method method : current.getDeclaredMethods()) {
-                if (VISIBLE_CONTRACT_INDICATOR_GETTER.equals(method.getName()) && method.getParameterCount() == 0) {
-                    return method;
-                }
-            }
-            current = current.getSuperclass();
-        }
-        return null;
     }
 
     private Object extractIndicator(String representation) {

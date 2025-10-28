@@ -1,11 +1,10 @@
 package com.bbva.pfmh;
 
-
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.InputListInvestmentFundsDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.IntPaginationDTO;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.LinksDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.OutputInvestmentFundsDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.PaginationDTO;
-import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.LinksDTO;
 import com.bbva.pfmh.lib.r010.PFMHR010;
 import com.bbva.elara.domain.transaction.Severity;
 import org.slf4j.Logger;
@@ -13,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestClientException;
 
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -31,36 +31,43 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         String customerId = input.getCustomerId();
         String paginationKey = input.getPaginationKey();
         Integer pageSize = input.getPageSize();
+        String profileId = input.getProfileId();
 
         LOGGER.info("customerId: {}", customerId);
         LOGGER.info("paginationKey: {}", paginationKey);
         LOGGER.info("pageSize: {}", pageSize);
+        LOGGER.info("profileId: {}", profileId);
 
         LOGGER.info("RBVDT30301PETransaction - START");
 
         try {
-            List<OutputInvestmentFundsDTO> responseOut = pfmhR010.executeGetFFMMStatements(input);
-            LOGGER.info("responseOut -> {}", responseOut);
-            if (responseOut != null && !responseOut.isEmpty()) {
-                this.setResponseOut(responseOut);
-                IntPaginationDTO intPag = responseOut.get(0).getDTOIntPagination();
+            List<OutputInvestmentFundsDTO> response = pfmhR010.executeGetFFMMStatements(input);
+            if (response == null) {
+                LOGGER.warn("PFMHR010 service returned a null body. Falling back to an empty list");
+                response = Collections.emptyList();
+            }
+            LOGGER.info("response size -> {}", response.size());
+            LOGGER.debug("response detail -> {}", response);
+            if (!response.isEmpty()) {
+                this.setResponseOut(response);
+                IntPaginationDTO intPag = response.get(0).getDTOIntPagination();
                 if (intPag != null) {
                     this.setDTOIntPagination(intPag);
                     if (intPag.getPaginationKey() != null && intPag.getPageSize() != null) {
                         BigInteger currentKey = safeParse(intPag.getPaginationKey());
                         int size = intPag.getPageSize().intValue();
-                        PaginationDTO pagination = mapPagination(currentKey, size, responseOut.size());
+                        PaginationDTO pagination = mapPagination(currentKey, size, response.size());
                         this.setPagination(pagination);
                     }
                 }
                 this.setSeverity(Severity.OK);
             } else {
-                this.setResponseOut(List.of());
+                this.setResponseOut(Collections.emptyList());
                 this.setSeverity(Severity.ENR);
             }
         } catch (RestClientException e) {
             LOGGER.error("Error executing PFMHR010 service: {}", e.getMessage());
-            this.setResponseOut(List.of());
+            this.setResponseOut(Collections.emptyList());
             this.setSeverity(Severity.ENR);
         }
     }
@@ -69,6 +76,11 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         PaginationDTO pagination = new PaginationDTO();
         if (total <= 0) {
             return pagination;
+        }
+
+        if (pageSize <= 0) {
+            LOGGER.warn("Invalid page size {}. Falling back to the current result size {}", pageSize, total);
+            pageSize = Math.max(total, 1);
         }
 
         int totalPages = (int) Math.ceil((double) total / pageSize);
