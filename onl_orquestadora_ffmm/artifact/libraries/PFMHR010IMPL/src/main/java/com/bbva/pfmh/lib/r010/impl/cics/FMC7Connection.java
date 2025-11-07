@@ -7,7 +7,6 @@ import com.bbva.elara.domain.transaction.request.TransactionRequest;
 import com.bbva.elara.domain.transaction.request.header.CommonRequestHeader;
 import com.bbva.elara.library.AbstractLibrary;
 import com.bbva.kusu.dto.users.entity.AliasFavContractEntity;
-import com.bbva.kusu.dto.users.entity.commons.AliasFavCommons;
 import com.bbva.kusu.lib.r325.KUSUR325;
 import com.bbva.pfmh.dto.fmc7.ffmm.FFMM7;
 import com.bbva.pfmh.dto.fmc7.pague.FFMMPagination;
@@ -33,7 +32,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
