@@ -41,7 +41,7 @@ public class ValidationUtilsTest {
         InputListInvestmentFundsDTO input = new InputListInvestmentFundsDTO();
         input.setCustomerId("00001171");
         input.setProfileId("   ");
-        assertTrue(ValidationUtils.validationInputIsNullOrEmpty(input));
+        assertFalse(ValidationUtils.validationInputIsNullOrEmpty(input));
     }
 
     @Test

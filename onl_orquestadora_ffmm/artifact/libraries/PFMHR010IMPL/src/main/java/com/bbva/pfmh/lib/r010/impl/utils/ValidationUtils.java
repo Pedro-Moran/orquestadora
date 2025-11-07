@@ -17,7 +17,7 @@ public class ValidationUtils {
             return true;
         }
 
-        return isBlank(input.getCustomerId()) || isBlank(input.getProfileId());
+        return isBlank(input.getCustomerId());
     }
 
     public static boolean validationResponseIsNullOrEmpty(OutputInvestmentFundsDTO response) {

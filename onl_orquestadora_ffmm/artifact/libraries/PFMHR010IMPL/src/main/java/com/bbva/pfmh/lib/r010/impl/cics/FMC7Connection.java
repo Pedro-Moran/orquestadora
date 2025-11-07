@@ -58,6 +58,8 @@ public class FMC7Connection extends AbstractLibrary {
     private static final String FME2100 = "FME2100";
     private static final String FME2092 = "FME2092";
     private static final String VISIBLE_CONTRACT_INDICATOR_FIELD = "gVisibleContractIndType";
+    private static final String VISIBLE_CONTRACT_INDICATOR_GETTER = "get" +
+            StringUtils.capitalize(VISIBLE_CONTRACT_INDICATOR_FIELD);
     private static final Pattern VISIBLE_CONTRACT_INDICATOR_PATTERN = Pattern.compile(
             VISIBLE_CONTRACT_INDICATOR_FIELD + "=([^,\\]]*)");
 
@@ -228,22 +230,25 @@ public class FMC7Connection extends AbstractLibrary {
             return Collections.emptyList();
         }
 
-        List<AliasFavContractEntity> result;
-        if (StringUtils.isNotBlank(identificationData.getProfileId())) {
-            result = kusuR325.executeGetAliasFavoriteContractsList(
-                    identificationData.getUserId(),
-                    identificationData.getProfileId(),
-                    contractEntityListIn);
-        } else {
-            result = kusuR325.executeGetAliasFavoriteContractsList(
-                    identificationData.getUserId(),
-                    contractEntityListIn);
+        String resolvedProfileId = StringUtils.trimToNull(identificationData.getProfileId());
+        if (resolvedProfileId == null) {
+            return Collections.emptyList();
         }
+
+        List<AliasFavContractEntity> result = kusuR325.executeGetAliasFavoriteContractsList(
+                resolvedProfileId,
+                resolvedProfileId,
+                contractEntityListIn);
         LOGGER.info("[getVisible] - result of kusu: {}", result);
         return result == null ? Collections.emptyList() : result;
     }
 
     private IdentificationData resolveIdentifiers(String providedProfileId) {
+        String normalizedProvided = StringUtils.trimToNull(providedProfileId);
+        if (normalizedProvided != null) {
+            return new IdentificationData(normalizedProvided, normalizedProvided);
+        }
+
         CommonRequestHeader requestHeader = resolveRequestHeader();
         String headerUserId = null;
         String headerProfileId = null;
@@ -257,14 +262,8 @@ public class FMC7Connection extends AbstractLibrary {
             headerProfileId = readHeaderParameter(requestHeader, RequestHeaderParamsName.PID);
         }
 
-        String resolvedProfileId = firstNonBlank(headerProfileId, providedProfileId, headerUserId);
-        String resolvedUserId = firstNonBlank(headerUserId, resolvedProfileId);
-
-        if (StringUtils.isBlank(resolvedProfileId)) {
-            resolvedProfileId = resolvedUserId;
-        }
-
-        return new IdentificationData(resolvedUserId, resolvedProfileId);
+        String resolvedProfileId = firstNonBlank(headerProfileId, headerUserId);
+        return new IdentificationData(resolvedProfileId, resolvedProfileId);
     }
 
     private CommonRequestHeader resolveRequestHeader() {
@@ -376,12 +375,29 @@ public class FMC7Connection extends AbstractLibrary {
     }
 
     private Object safelyReadVisibilityIndicator(AliasFavContractEntity entity) {
-        try {
-            return entity.getgVisibleContractIndType();
-        } catch (RuntimeException ex) {
-            LOGGER.debug("[getVisible] - unable to obtain visibility indicator from getter", ex);
+        Method getter = findVisibilityIndicatorGetter(entity.getClass());
+        if (getter == null) {
             return IndicatorExtractionResult.UNAVAILABLE;
         }
+        Class<?> declaringClass = getter.getDeclaringClass();
+        if (!AliasFavCommons.class.equals(declaringClass)
+                && !AliasFavContractEntity.class.equals(declaringClass)) {
+            LOGGER.debug("[getVisible] - skipping visibility getter declared in {}", declaringClass.getName());
+            return IndicatorExtractionResult.UNAVAILABLE;
+        }
+        return entity.getgVisibleContractIndType();
+    }
+
+    private Method findVisibilityIndicatorGetter(Class<?> type) {
+        Method[] methods = type.getMethods();
+        for (Method method : methods) {
+            if (method != null
+                    && method.getParameterCount() == 0
+                    && VISIBLE_CONTRACT_INDICATOR_GETTER.equals(method.getName())) {
+                return method;
+            }
+        }
+        return null;
     }
 
     private VisibilityIndicator interpretVisibility(AliasFavContractEntity entity) {
@@ -545,8 +561,12 @@ public class FMC7Connection extends AbstractLibrary {
         private final String profileId;
 
         private IdentificationData(String userId, String profileId) {
-            this.userId = userId;
-            this.profileId = profileId;
+            String normalizedProfileId = StringUtils.trimToNull(profileId);
+            if (normalizedProfileId == null) {
+                normalizedProfileId = StringUtils.trimToNull(userId);
+            }
+            this.profileId = normalizedProfileId;
+            this.userId = normalizedProfileId;
         }
 
         private String getUserId() {
@@ -640,7 +660,7 @@ public class FMC7Connection extends AbstractLibrary {
     public boolean validateContractHostLocal(OutputInvestmentFundsDTO dto, String contratoGlobal) {
         LOGGER.info("***** PFMHR010Impl - validateContractHostLocal - Start *****");
         if (dto == null || dto.getData() == null || dto.getData().isEmpty()) {
-            LOGGER.error("El DTO de fondos de inversión no contiene contratos");
+            LOGGER.warn("[validateContractHostLocal] - el DTO de fondos de inversión no contiene contratos");
             return false;
         }
         String contratoHost = contratoGlobal.substring(2); // Elimina "PE"

@@ -382,7 +382,7 @@ public class FMC7ConnectionTest {
         List<AliasFavContractEntity> contracts = new ArrayList<>();
         contracts.add(aliasContract("PE00112233", "Y"));
 
-        when(kusuR325.executeGetAliasFavoriteContractsList(eq("user123"), eq("profileABC"), anyList()))
+        when(kusuR325.executeGetAliasFavoriteContractsList(eq("profileABC"), eq("profileABC"), anyList()))
                 .thenReturn(contracts);
 
         boolean visible = fmc7Connection.getVisible("PE00112233", null);
@@ -398,7 +398,7 @@ public class FMC7ConnectionTest {
         List<AliasFavContractEntity> contracts = new ArrayList<>();
         contracts.add(aliasContract("PE00999999", "N"));
 
-        when(kusuR325.executeGetAliasFavoriteContractsList(eq("user999"), eq("profile999"), anyList()))
+        when(kusuR325.executeGetAliasFavoriteContractsList(eq("profile999"), eq("profile999"), anyList()))
                 .thenReturn(contracts);
 
         boolean visible = fmc7Connection.getVisible("PE00112233", null);
@@ -414,7 +414,7 @@ public class FMC7ConnectionTest {
         List<AliasFavContractEntity> contracts = new ArrayList<>();
         contracts.add(aliasContract("PE00999999", null));
 
-        when(kusuR325.executeGetAliasFavoriteContractsList(eq("user456"), eq("profile456"), anyList()))
+        when(kusuR325.executeGetAliasFavoriteContractsList(eq("profile456"), eq("profile456"), anyList()))
                 .thenReturn(contracts);
 
         boolean visible = fmc7Connection.getVisible("PE00112233", null);
@@ -584,6 +584,22 @@ public class FMC7ConnectionTest {
         AliasFavContractEntity entity = new AliasFavContractEntity();
         entity.setgVisibleContractIndType("Y");
 
+        when(kusuR325.executeGetAliasFavoriteContractsList(eq("providedProfile"), eq("providedProfile"),
+                Mockito.<AliasFavContractEntity>anyList())).thenReturn(Collections.singletonList(entity));
+
+        assertTrue(fmc7Connection.getVisible("PE00112233", "providedProfile"));
+
+        verify(kusuR325).executeGetAliasFavoriteContractsList(eq("providedProfile"), eq("providedProfile"),
+                Mockito.<AliasFavContractEntity>anyList());
+    }
+
+    @Test
+    public void testGetVisible_PrefersProvidedProfileOverHeader() {
+        reset(kusuR325);
+        CommonRequestHeader header = headerWithIdentifiers("headerUser", "headerProfile");
+        assignTransactionRequestHeader(header);
+
+        AliasFavContractEntity entity = aliasContract("PE00112233", "Y");
         when(kusuR325.executeGetAliasFavoriteContractsList(eq("providedProfile"), eq("providedProfile"),
                 Mockito.<AliasFavContractEntity>anyList())).thenReturn(Collections.singletonList(entity));
 
@@ -850,6 +866,90 @@ public class FMC7ConnectionTest {
         assertEquals("valor", unquote.invoke(fmc7Connection, "'valor'"));
         assertEquals("\"noMatch'", unquote.invoke(fmc7Connection, "\"noMatch'"));
         assertEquals("x", unquote.invoke(fmc7Connection, "x"));
+    }
+
+    @Test
+    public void testFetchFavoriteContracts_ReusesUserWhenProfileBlank() throws Exception {
+        reset(kusuR325);
+        Class<?> identificationClass = Class.forName("com.bbva.pfmh.lib.r010.impl.cics.FMC7Connection$IdentificationData");
+        Constructor<?> constructor = identificationClass.getDeclaredConstructor(String.class, String.class);
+        constructor.setAccessible(true);
+        Object identification = constructor.newInstance("userOnly", "");
+
+        Method fetchFavoriteContracts = FMC7Connection.class.getDeclaredMethod("fetchFavoriteContracts", String.class,
+                identificationClass);
+        fetchFavoriteContracts.setAccessible(true);
+
+        AliasFavContractEntity entity = aliasContract("PE00112233", "Y");
+        when(kusuR325.executeGetAliasFavoriteContractsList(eq("userOnly"), eq("userOnly"),
+                Mockito.<AliasFavContractEntity>anyList()))
+                .thenReturn(Collections.singletonList(entity));
+
+        @SuppressWarnings("unchecked")
+        List<AliasFavContractEntity> result = (List<AliasFavContractEntity>) fetchFavoriteContracts.invoke(fmc7Connection,
+                "PE00112233", identification);
+
+        assertEquals(1, result.size());
+        verify(kusuR325).executeGetAliasFavoriteContractsList(eq("userOnly"), eq("userOnly"),
+                Mockito.<AliasFavContractEntity>anyList());
+    }
+
+    @Test
+    public void testFetchFavoriteContracts_ReturnsEmptyWhenIdentifiersMissing() throws Exception {
+        reset(kusuR325);
+        Class<?> identificationClass = Class.forName("com.bbva.pfmh.lib.r010.impl.cics.FMC7Connection$IdentificationData");
+        Constructor<?> constructor = identificationClass.getDeclaredConstructor(String.class, String.class);
+        constructor.setAccessible(true);
+        Object identification = constructor.newInstance(null, "  ");
+
+        Method fetchFavoriteContracts = FMC7Connection.class.getDeclaredMethod("fetchFavoriteContracts", String.class,
+                identificationClass);
+        fetchFavoriteContracts.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        List<AliasFavContractEntity> result = (List<AliasFavContractEntity>) fetchFavoriteContracts.invoke(fmc7Connection,
+                "PE00112233", identification);
+
+        assertTrue(result.isEmpty());
+        verify(kusuR325, never()).executeGetAliasFavoriteContractsList(anyString(), anyString(),
+                Mockito.<AliasFavContractEntity>anyList());
+    }
+
+    @Test
+    public void testFetchFavoriteContracts_NormalizesNullResult() throws Exception {
+        reset(kusuR325);
+        Class<?> identificationClass = Class.forName("com.bbva.pfmh.lib.r010.impl.cics.FMC7Connection$IdentificationData");
+        Constructor<?> constructor = identificationClass.getDeclaredConstructor(String.class, String.class);
+        constructor.setAccessible(true);
+        Object identification = constructor.newInstance("userOnly", "profileId");
+
+        when(kusuR325.executeGetAliasFavoriteContractsList(eq("profileId"), eq("profileId"),
+                Mockito.<AliasFavContractEntity>anyList())).thenReturn(null);
+
+        Method fetchFavoriteContracts = FMC7Connection.class.getDeclaredMethod("fetchFavoriteContracts", String.class,
+                identificationClass);
+        fetchFavoriteContracts.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        List<AliasFavContractEntity> result = (List<AliasFavContractEntity>) fetchFavoriteContracts.invoke(fmc7Connection,
+                "PE00112233", identification);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(kusuR325).executeGetAliasFavoriteContractsList(eq("profileId"), eq("profileId"),
+                Mockito.<AliasFavContractEntity>anyList());
+    }
+
+    @Test
+    public void testApplyFallbackDecision_DefaultsToInvisibleWhenNoIndicatorInformation() throws Exception {
+        Class<?> fallbackClass = Class.forName("com.bbva.pfmh.lib.r010.impl.cics.FMC7Connection$VisibilityFallbackState");
+        Object none = Enum.valueOf((Class<Enum>) fallbackClass, "NONE");
+        Method applyFallbackDecision = FMC7Connection.class.getDeclaredMethod("applyFallbackDecision", fallbackClass);
+        applyFallbackDecision.setAccessible(true);
+
+        boolean decision = (Boolean) applyFallbackDecision.invoke(fmc7Connection, none);
+
+        assertFalse(decision);
     }
 
 
