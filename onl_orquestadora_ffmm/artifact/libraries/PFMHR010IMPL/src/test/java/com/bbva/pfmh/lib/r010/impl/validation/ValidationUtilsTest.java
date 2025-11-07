@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertFalse;
@@ -36,9 +37,18 @@ public class ValidationUtilsTest {
     }
 
     @Test
+    public void testValidationInputIsNullOrEmpty_EmptyProfileId() {
+        InputListInvestmentFundsDTO input = new InputListInvestmentFundsDTO();
+        input.setCustomerId("00001171");
+        input.setProfileId("   ");
+        assertFalse(ValidationUtils.validationInputIsNullOrEmpty(input));
+    }
+
+    @Test
     public void testValidationInputIsNullOrEmpty_ValidInput() {
         InputListInvestmentFundsDTO input = new InputListInvestmentFundsDTO();
         input.setCustomerId("00001171");
+        input.setProfileId("PROFILE-01");
         assertFalse(ValidationUtils.validationInputIsNullOrEmpty(input));
     }
 
@@ -59,7 +69,7 @@ public class ValidationUtilsTest {
         OutputInvestmentFundsDTO response = new OutputInvestmentFundsDTO();
         InvestmentFund fund1 = new InvestmentFund();
         InvestmentFund fund2 = new InvestmentFund();
-        response.setData(List.of(fund1, fund2));
+        response.setData(Arrays.asList(fund1, fund2));
         assertTrue(ValidationUtils.validationResponseIsNullOrEmpty(response));
     }
 }

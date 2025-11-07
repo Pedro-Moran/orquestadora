@@ -1,11 +1,11 @@
 package com.bbva.pfmh;
 
-
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.InputListInvestmentFundsDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.IntPaginationDTO;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.LinksDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.OutputInvestmentFundsDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.PaginationDTO;
-import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.LinksDTO;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.InvestmentFund;
 import com.bbva.pfmh.lib.r010.PFMHR010;
 import com.bbva.elara.domain.transaction.Severity;
 import org.slf4j.Logger;
@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestClientException;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -31,36 +33,55 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         String customerId = input.getCustomerId();
         String paginationKey = input.getPaginationKey();
         Integer pageSize = input.getPageSize();
+        String profileId = input.getProfileId();
 
         LOGGER.info("customerId: {}", customerId);
         LOGGER.info("paginationKey: {}", paginationKey);
         LOGGER.info("pageSize: {}", pageSize);
+        LOGGER.info("profileId: {}", profileId);
 
         LOGGER.info("RBVDT30301PETransaction - START");
 
         try {
-            List<OutputInvestmentFundsDTO> responseOut = pfmhR010.executeGetFFMMStatements(input);
-            LOGGER.info("responseOut -> {}", responseOut);
-            if (responseOut != null && !responseOut.isEmpty()) {
-                this.setResponseOut(responseOut);
-                IntPaginationDTO intPag = responseOut.get(0).getDTOIntPagination();
-                if (intPag != null) {
-                    this.setDTOIntPagination(intPag);
-                    if (intPag.getPaginationKey() != null && intPag.getPageSize() != null) {
-                        BigInteger currentKey = safeParse(intPag.getPaginationKey());
-                        int size = intPag.getPageSize().intValue();
-                        PaginationDTO pagination = mapPagination(currentKey, size, responseOut.size());
-                        this.setPagination(pagination);
-                    }
-                }
-                this.setSeverity(Severity.OK);
-            } else {
-                this.setResponseOut(List.of());
-                this.setSeverity(Severity.ENR);
+            List<OutputInvestmentFundsDTO> rawResponse = pfmhR010.executeGetFFMMStatements(input);
+            if (rawResponse == null) {
+                LOGGER.warn("PFMHR010 service returned a null body. Falling back to an empty list");
+                rawResponse = Collections.emptyList();
             }
+
+            IntPaginationDTO paginationNode = extractPagination(rawResponse);
+            List<OutputInvestmentFundsDTO> sanitizedResponse = sanitizeResponse(rawResponse);
+            boolean hasFunds = !sanitizedResponse.isEmpty();
+
+            List<OutputInvestmentFundsDTO> payload = hasFunds
+                    ? sanitizedResponse
+                    : buildEmptyEnvelope(paginationNode);
+
+            this.setResponseOut(payload);
+
+            LOGGER.info("response envelopes -> {}, investment funds -> {}", payload.size(), countFunds(payload));
+            LOGGER.debug("response detail -> {}", payload);
+
+            if (paginationNode != null) {
+                this.setDTOIntPagination(paginationNode);
+            }
+
+            if (!hasFunds) {
+                this.setSeverity(Severity.ENR);
+                return;
+            }
+
+            if (paginationNode != null && paginationNode.getPaginationKey() != null && paginationNode.getPageSize() != null) {
+                BigInteger currentKey = safeParse(paginationNode.getPaginationKey());
+                int size = paginationNode.getPageSize().intValue();
+                PaginationDTO pagination = mapPagination(currentKey, size, payload.size());
+                this.setPagination(pagination);
+            }
+
+            this.setSeverity(Severity.OK);
         } catch (RestClientException e) {
             LOGGER.error("Error executing PFMHR010 service: {}", e.getMessage());
-            this.setResponseOut(List.of());
+            this.setResponseOut(buildEmptyEnvelope(null));
             this.setSeverity(Severity.ENR);
         }
     }
@@ -69,6 +90,11 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         PaginationDTO pagination = new PaginationDTO();
         if (total <= 0) {
             return pagination;
+        }
+
+        if (pageSize <= 0) {
+            LOGGER.warn("Invalid page size {}. Falling back to the current result size {}", pageSize, total);
+            pageSize = Math.max(total, 1);
         }
 
         int totalPages = (int) Math.ceil((double) total / pageSize);
@@ -122,5 +148,71 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         }
 
         return new BigInteger(trimmed);
+    }
+
+    private List<OutputInvestmentFundsDTO> sanitizeResponse(List<OutputInvestmentFundsDTO> response) {
+        if (response.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<OutputInvestmentFundsDTO> sanitized = new ArrayList<>(response.size());
+        for (OutputInvestmentFundsDTO dto : response) {
+            OutputInvestmentFundsDTO cleanedDto = sanitizeInvestmentFund(dto);
+            if (cleanedDto != null) {
+                sanitized.add(cleanedDto);
+            }
+        }
+
+        return sanitized.isEmpty() ? Collections.emptyList() : sanitized;
+    }
+
+    private OutputInvestmentFundsDTO sanitizeInvestmentFund(OutputInvestmentFundsDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+
+        dto.setData(sanitizeFunds(dto.getData()));
+        return dto;
+    }
+
+    private List<InvestmentFund> sanitizeFunds(List<InvestmentFund> funds) {
+        if (funds == null || funds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<InvestmentFund> cleanedFunds = new ArrayList<>(funds.size());
+        for (InvestmentFund fund : funds) {
+            if (fund != null) {
+                cleanedFunds.add(fund);
+            }
+        }
+
+        return cleanedFunds.isEmpty() ? Collections.emptyList() : cleanedFunds;
+    }
+
+    private IntPaginationDTO extractPagination(List<OutputInvestmentFundsDTO> response) {
+        for (OutputInvestmentFundsDTO dto : response) {
+            if (dto != null && dto.getDTOIntPagination() != null) {
+                return dto.getDTOIntPagination();
+            }
+        }
+        return null;
+    }
+
+    private List<OutputInvestmentFundsDTO> buildEmptyEnvelope(IntPaginationDTO pagination) {
+        OutputInvestmentFundsDTO emptyEnvelope = new OutputInvestmentFundsDTO();
+        emptyEnvelope.setData(Collections.emptyList());
+        emptyEnvelope.setDTOIntPagination(pagination);
+        return Collections.singletonList(emptyEnvelope);
+    }
+
+    private int countFunds(List<OutputInvestmentFundsDTO> response) {
+        int total = 0;
+        for (OutputInvestmentFundsDTO dto : response) {
+            if (dto != null && dto.getData() != null) {
+                total += dto.getData().size();
+            }
+        }
+        return total;
     }
 }
