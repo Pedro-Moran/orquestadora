@@ -32,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -147,13 +148,18 @@ public class FMC7Connection extends AbstractLibrary {
         InvestmentFund investmentFund = new InvestmentFund();
         investmentFund.setNumber(ffmm7.getIdContr());
         investmentFund.setInvestmentFundId(ffmm7.getIdContr());
-        investmentFund.setNumberType(mapOutNumberType(ffmm7.getcTipNum(), ffmm7.getdTipNum()));
+        InvestmentFundNumberType numberType = mapOutNumberType(ffmm7.getcTipNum(), ffmm7.getdTipNum());
+        if (numberType == null) {
+            LOGGER.warn("[buildOutputInvestmentFund] - contrato {} sin numberType, se descarta del resultado", ffmm7.getIdContr());
+            return null;
+        }
+        investmentFund.setNumberType(numberType);
         InvestmentFundType type = new InvestmentFundType();
         type.setId(INVESTMENT_FUND_TYPE_SIMPLE);
         type.setName(INVESTMENT_FUND_TYPE_SIMPLE);
         investmentFund.setInvestmentFundType(type);
 
-        if (hasFundData(ffmm7)) {
+        if (hasFundData(ffmm7) && fund != null) {
             investmentFund.setFunds(Collections.singletonList(fund));
         }
 
@@ -172,9 +178,48 @@ public class FMC7Connection extends AbstractLibrary {
     }
 
     private boolean hasFundData(FFMM7 ffmm7) {
-        return ffmm7.getIdSubPr() != null || ffmm7.getNumCuot() != null || ffmm7.getSalCont() != null ||
-                ffmm7.getdMonEsd() != null || ffmm7.getdSubPro() != null || ffmm7.getIdMonFn() != null ||
-                ffmm7.getSalDisp() != null || ffmm7.getValCuot() != null;
+        if (!hasMandatoryFundFields(ffmm7)) {
+            String contractId = ffmm7 != null ? ffmm7.getIdContr() : null;
+            LOGGER.warn("[hasFundData] - se omite la sección funds para el contrato {} por datos obligatorios incompletos", contractId);
+            return false;
+        }
+        return true;
+    }
+
+    private boolean hasMandatoryFundFields(FFMM7 ffmm7) {
+        if (ffmm7 == null) {
+            return false;
+        }
+        return StringUtils.isNotBlank(ffmm7.getIdSubPr())
+                && ffmm7.getNumCuot() != null
+                && ffmm7.getSalCont() != null
+                && StringUtils.isNotBlank(resolveCurrencyId(ffmm7))
+                && ffmm7.getValCuot() != null
+                && resolveAvailableAmount(ffmm7) != null;
+    }
+
+    private BigDecimal resolveAvailableAmount(FFMM7 ffmm7) {
+        if (ffmm7 == null) {
+            return null;
+        }
+        if (ffmm7.getSalDisp() != null) {
+            return ffmm7.getSalDisp();
+        }
+        return ffmm7.getSalCont();
+    }
+
+    private String resolveCurrencyId(FFMM7 ffmm7) {
+        if (ffmm7 == null) {
+            return null;
+        }
+        String currencyId = StringUtils.trimToNull(ffmm7.getdMonEsd());
+        if (currencyId == null) {
+            currencyId = StringUtils.trimToNull(ffmm7.getIdMonFn());
+            if (currencyId != null) {
+                LOGGER.warn("[mapOutFunds] - código de moneda ausente, se usará el identificador informado por el host");
+            }
+        }
+        return currencyId;
     }
 
     public boolean getVisible(String globalContractId, String profileId) {
@@ -586,51 +631,121 @@ public class FMC7Connection extends AbstractLibrary {
         LOGGER.info("***** PFMH010Impl - mapOutFunds - Start FMC7Response: {} *****", response);
         List<Fund> dtoOutList = new ArrayList<>();
 
-        if (response.getFfmm7() == null || response.getFfmm7().isEmpty()) {
+        if (response == null || response.getFfmm7() == null || response.getFfmm7().isEmpty()) {
             LOGGER.warn("La lista FFMM7  está vacía o es nula.");
             return dtoOutList;
         }
-        for (FFMM7 ffmm7 : response.getFfmm7()){
-            Fund fund = new Fund();
-            fund.setFundId(ffmm7.getIdSubPr());
-            fund.setOwnedShares(ffmm7.getNumCuot());
-            FundPosition fundPosition = new FundPosition();
-            fundPosition.setAmount(ffmm7.getSalCont());
-            fundPosition.setCurrency(ffmm7.getdMonEsd());
-            fund.setFundPosition(fundPosition);
-            Title title = new Title();
-            title.setId(ffmm7.getIdSubPr());
-            title.setName(ffmm7.getdSubPro());
-            fund.setTitle(title);
-            FundCurrency currency = new FundCurrency();
-            currency.setId(ffmm7.getdMonEsd());
-            currency.setName(ffmm7.getIdMonFn());
-            fund.setCurrency(currency);
-            AvailableFundPosition availableFundPosition = new AvailableFundPosition();
-            availableFundPosition.setAmount(ffmm7.getSalDisp());
-            availableFundPosition.setCurrency(ffmm7.getdMonEsd());
-            fund.setAvailableFundPosition(availableFundPosition);
-            NetAssetValue netAssetValue = new NetAssetValue();
-            netAssetValue.setAmount(ffmm7.getValCuot());
-            netAssetValue.setCurrency(ffmm7.getdMonEsd());
-            fund.setNetAssetValue(netAssetValue);
-            dtoOutList.add(fund);
+
+        for (FFMM7 ffmm7 : response.getFfmm7()) {
+            dtoOutList.add(buildFund(ffmm7));
         }
 
         LOGGER.info("***** PFMH010Impl - mapOutFunds - Start dtoOutList: {} *****", dtoOutList);
         return dtoOutList;
     }
 
-    public InvestmentFundNumberType mapOutNumberType(final String ctipnum, final String dtipnum) {
-        if (StringUtils.isEmpty(ctipnum) && StringUtils.isEmpty(dtipnum)) {
+    private Fund buildFund(FFMM7 ffmm7) {
+        if (!hasMandatoryFundFields(ffmm7)) {
+            String contractId = ffmm7 != null ? ffmm7.getIdContr() : null;
+            LOGGER.warn("[mapOutFunds] - no se generará fund para el contrato {} por información incompleta", contractId);
             return null;
         }
-        InvestmentFundNumberType dtoOut = new InvestmentFundNumberType();
-        if (!StringUtils.isEmpty(ctipnum)) {
-            String id = FundsNumberTypeIdOutputEnum.getValueFromKey(ctipnum);
-            dtoOut.setId(id != null ? id : ctipnum);
+
+        Fund fund = new Fund();
+        String fundId = StringUtils.trimToNull(ffmm7.getIdSubPr());
+        fund.setFundId(fundId);
+        fund.setOwnedShares(ffmm7.getNumCuot());
+        fund.setFundPosition(buildFundPosition(ffmm7));
+        fund.setTitle(buildTitle(ffmm7, fundId));
+        fund.setCurrency(buildCurrency(ffmm7));
+        fund.setAvailableFundPosition(buildAvailablePosition(ffmm7));
+        fund.setNetAssetValue(buildNetAssetValue(ffmm7));
+        return fund;
+    }
+
+    private FundPosition buildFundPosition(FFMM7 ffmm7) {
+        FundPosition fundPosition = new FundPosition();
+        fundPosition.setAmount(ffmm7.getSalCont());
+        fundPosition.setCurrency(resolveCurrencyId(ffmm7));
+        return fundPosition;
+    }
+
+    private Title buildTitle(FFMM7 ffmm7, String fallbackId) {
+        Title title = new Title();
+        title.setId(fallbackId);
+        String titleName = StringUtils.trimToNull(ffmm7.getdSubPro());
+        if (titleName == null) {
+            titleName = fallbackId;
+            LOGGER.warn("[mapOutFunds] - título ausente para el contrato {}, se usará el identificador del fondo", ffmm7.getIdContr());
         }
-        dtoOut.setName(dtipnum);
+        title.setName(titleName);
+        return title;
+    }
+
+    private FundCurrency buildCurrency(FFMM7 ffmm7) {
+        FundCurrency currency = new FundCurrency();
+        String currencyId = resolveCurrencyId(ffmm7);
+        currency.setId(currencyId);
+        String currencyName = StringUtils.trimToNull(ffmm7.getIdMonFn());
+        if (currencyName == null) {
+            currencyName = currencyId;
+            LOGGER.warn("[mapOutFunds] - nombre de moneda ausente para el contrato {}, se usará el código", ffmm7.getIdContr());
+        }
+        currency.setName(currencyName);
+        return currency;
+    }
+
+    private AvailableFundPosition buildAvailablePosition(FFMM7 ffmm7) {
+        if (ffmm7 == null) {
+            LOGGER.warn("[mapOutFunds] - no es posible construir availableFundPosition sin información del contrato");
+            return null;
+        }
+        AvailableFundPosition availableFundPosition = new AvailableFundPosition();
+        BigDecimal availableAmount = resolveAvailableAmount(ffmm7);
+        if (ffmm7.getSalDisp() == null && availableAmount != null) {
+            LOGGER.warn("[mapOutFunds] - monto disponible ausente para el contrato {}, se usará el saldo contable", ffmm7.getIdContr());
+        }
+        availableFundPosition.setAmount(availableAmount);
+        availableFundPosition.setCurrency(resolveCurrencyId(ffmm7));
+        return availableFundPosition;
+    }
+
+    private NetAssetValue buildNetAssetValue(FFMM7 ffmm7) {
+        NetAssetValue netAssetValue = new NetAssetValue();
+        netAssetValue.setAmount(ffmm7.getValCuot());
+        netAssetValue.setCurrency(resolveCurrencyId(ffmm7));
+        return netAssetValue;
+    }
+
+    public InvestmentFundNumberType mapOutNumberType(final String ctipnum, final String dtipnum) {
+        String code = StringUtils.trimToNull(ctipnum);
+        String description = StringUtils.trimToNull(dtipnum);
+
+        if (StringUtils.isBlank(code) && StringUtils.isBlank(description)) {
+            return null;
+        }
+
+        if (StringUtils.isBlank(description)) {
+            description = code;
+            LOGGER.warn("[mapOutNumberType] - descripción ausente para el tipo {}, se usará el código como nombre", code);
+        }
+
+        String resolvedId = FundsNumberTypeIdOutputEnum.getValueFromKey(code);
+        if (StringUtils.isBlank(resolvedId)) {
+            resolvedId = code;
+        }
+        if (StringUtils.isBlank(resolvedId)) {
+            resolvedId = description;
+        }
+
+        if (StringUtils.isBlank(resolvedId) || StringUtils.isBlank(description)) {
+            LOGGER.warn("[mapOutNumberType] - no es posible construir numberType con código '{}' y descripción '{}'", code, description);
+            return null;
+        }
+
+        InvestmentFundNumberType dtoOut = new InvestmentFundNumberType();
+        dtoOut.setId(resolvedId);
+        dtoOut.setName(description);
         return dtoOut;
     }
 

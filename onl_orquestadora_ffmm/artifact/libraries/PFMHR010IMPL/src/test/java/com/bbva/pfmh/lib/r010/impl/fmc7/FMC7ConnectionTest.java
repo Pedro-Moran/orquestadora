@@ -314,6 +314,7 @@ public class FMC7ConnectionTest {
         var result = fmc7Connection.mapOutNumberType(ctipnum, dtipnum);
 
         assertEquals("Tipo", result.getName());
+        assertEquals("Tipo", result.getId());
     }
 
     @Test
@@ -321,6 +322,18 @@ public class FMC7ConnectionTest {
         var result = fmc7Connection.mapOutNumberType(null, null);
 
         assertNull(result);
+    }
+
+    @Test
+    public void testMapOutNumberType_FallbacksWhenDescriptionMissing() {
+        String ctipnum = "L";
+        String dtipnum = null;
+
+        var result = fmc7Connection.mapOutNumberType(ctipnum, dtipnum);
+
+        assertNotNull(result);
+        assertEquals("L", result.getId());
+        assertEquals("L", result.getName());
     }
 
     @Test
@@ -422,6 +435,50 @@ public class FMC7ConnectionTest {
     }
 
     @Test
+    public void testGetVisible_ReturnsFalseWhenKusuResponseEmpty() {
+        reset(kusuR325);
+        CommonRequestHeader header = headerWithIdentifiers("user777", "profile777");
+        assignTransactionRequestHeader(header);
+
+        when(kusuR325.executeGetAliasFavoriteContractsList(eq("profile777"), eq("profile777"), anyList()))
+                .thenReturn(Collections.emptyList());
+
+        boolean visible = fmc7Connection.getVisible("PE00112233", null);
+        assertFalse(visible);
+    }
+
+    @Test
+    public void testGetVisible_MatchingContractWithoutIndicatorDefaultsVisible() {
+        reset(kusuR325);
+        CommonRequestHeader header = headerWithIdentifiers("user888", "profile888");
+        assignTransactionRequestHeader(header);
+
+        AliasFavContractEntity entity = aliasContract("PE00112233", null);
+
+        when(kusuR325.executeGetAliasFavoriteContractsList(eq("profile888"), eq("profile888"), anyList()))
+                .thenReturn(Collections.singletonList(entity));
+
+        boolean visible = fmc7Connection.getVisible("PE00112233", null);
+        assertTrue(visible);
+    }
+
+    @Test
+    public void testGetVisible_ExtractsIndicatorFromRepresentationWhenGetterIgnored() {
+        reset(kusuR325);
+        CommonRequestHeader header = headerWithIdentifiers("user999", "profile999");
+        assignTransactionRequestHeader(header);
+
+        BooleanAliasFavContractEntity entity = new BooleanAliasFavContractEntity(Boolean.TRUE);
+        entity.setGContractId("PE00112233");
+
+        when(kusuR325.executeGetAliasFavoriteContractsList(eq("profile999"), eq("profile999"), anyList()))
+                .thenReturn(Collections.singletonList(entity));
+
+        boolean visible = fmc7Connection.getVisible("PE00112233", null);
+        assertTrue(visible);
+    }
+
+    @Test
     public void testMatchErrorCodeHost_ValidCode() {
         FMC7Response response = new FMC7Response();
         response.setHostAdviceCode("FME2026");
@@ -471,6 +528,71 @@ public class FMC7ConnectionTest {
         assertEquals("USD", fund.getCurrency().getId());
         assertEquals(2000.0, fund.getAvailableFundPosition().getAmount().doubleValue(), 0.01);
         assertEquals(50.0, fund.getNetAssetValue().getAmount().doubleValue(), 0.01);
+    }
+
+    @Test
+    public void testMapOutFunds_IncompleteFundProducesNullEntry() {
+        FMC7Response response = new FMC7Response();
+        FFMM7 ffmm7 = buildCompleteFfmm7("00110122998000000412", "FUND-012");
+        ffmm7.setValCuot(null);
+        response.setFfmm7(Collections.singletonList(ffmm7));
+
+        List<Fund> result = fmc7Connection.mapOutFunds(response);
+
+        assertEquals(1, result.size());
+        assertNull(result.get(0));
+    }
+
+    @Test
+    public void testMapOutFunds_UsesFallbacksForTitleAndCurrency() {
+        FMC7Response response = new FMC7Response();
+        FFMM7 ffmm7 = buildCompleteFfmm7("00110122998000000412", "FUND-017");
+        ffmm7.setdSubPro("   ");
+        ffmm7.setIdMonFn(null);
+        response.setFfmm7(Collections.singletonList(ffmm7));
+
+        List<Fund> result = fmc7Connection.mapOutFunds(response);
+
+        assertEquals(1, result.size());
+        Fund fund = result.get(0);
+        assertNotNull(fund);
+        assertEquals("FUND-017", fund.getTitle().getName());
+        assertEquals("USD", fund.getCurrency().getName());
+    }
+
+    @Test
+    public void testMapOutFunds_UsesCurrencyCodeWhenDescriptionMissing() {
+        FMC7Response response = new FMC7Response();
+        FFMM7 ffmm7 = buildCompleteFfmm7("00110122998000000412", "FUND-019");
+        ffmm7.setdMonEsd("   ");
+        ffmm7.setIdMonFn("PEN");
+        response.setFfmm7(Collections.singletonList(ffmm7));
+
+        List<Fund> result = fmc7Connection.mapOutFunds(response);
+
+        assertEquals(1, result.size());
+        Fund fund = result.get(0);
+        assertNotNull(fund);
+        assertEquals("PEN", fund.getCurrency().getId());
+        assertEquals("PEN", fund.getFundPosition().getCurrency());
+        assertEquals("PEN", fund.getAvailableFundPosition().getCurrency());
+        assertEquals("PEN", fund.getNetAssetValue().getCurrency());
+    }
+
+    @Test
+    public void testMapOutFunds_UsesSaldoContableWhenAvailableAmountMissing() {
+        FMC7Response response = new FMC7Response();
+        FFMM7 ffmm7 = buildCompleteFfmm7("00110122998000000413", "FUND-018");
+        ffmm7.setSalDisp(null);
+        response.setFfmm7(Collections.singletonList(ffmm7));
+
+        List<Fund> result = fmc7Connection.mapOutFunds(response);
+
+        assertEquals(1, result.size());
+        Fund fund = result.get(0);
+        assertNotNull(fund);
+        assertNotNull(fund.getAvailableFundPosition());
+        assertEquals(ffmm7.getSalCont(), fund.getAvailableFundPosition().getAmount());
     }
 
     @Test
@@ -763,8 +885,7 @@ public class FMC7ConnectionTest {
     @Test
     public void testMapFMC7ouput_PaginationMapped() {
         FMC7Response response = new FMC7Response();
-        FFMM7 ffmm7 = new FFMM7();
-        ffmm7.setIdContr("00110122998000000412");
+        FFMM7 ffmm7 = buildCompleteFfmm7("00110122998000000412", "FUND-001");
         response.setFfmm7(Collections.singletonList(ffmm7));
         FFMMPagination pagination = new FFMMPagination();
         pagination.setIdpagin("nextKey");
@@ -790,8 +911,7 @@ public class FMC7ConnectionTest {
     @Test
     public void testMapFMC7ouput_PaginationWithoutPageSize() {
         FMC7Response response = new FMC7Response();
-        FFMM7 ffmm7 = new FFMM7();
-        ffmm7.setIdContr("00110122998000000412");
+        FFMM7 ffmm7 = buildCompleteFfmm7("00110122998000000412", "FUND-002");
         response.setFfmm7(Collections.singletonList(ffmm7));
         FFMMPagination pagination = new FFMMPagination();
         pagination.setIdpagin("nextKey");
@@ -816,10 +936,8 @@ public class FMC7ConnectionTest {
     @Test
     public void testMapFMC7ouput_PaginationPropagatedToAllItems() {
         FMC7Response response = new FMC7Response();
-        FFMM7 ffmm1 = new FFMM7();
-        ffmm1.setIdContr("001");
-        FFMM7 ffmm2 = new FFMM7();
-        ffmm2.setIdContr("002");
+        FFMM7 ffmm1 = buildCompleteFfmm7("001", "FUND-003");
+        FFMM7 ffmm2 = buildCompleteFfmm7("002", "FUND-004");
         response.setFfmm7(Arrays.asList(ffmm1, ffmm2));
         FFMMPagination pagination = new FFMMPagination();
         pagination.setIdpagin("cursor");
@@ -839,6 +957,99 @@ public class FMC7ConnectionTest {
     }
 
     @Test
+    public void testMapFMC7ouput_SkipsContractsWithoutNumberType() {
+        FMC7Response response = new FMC7Response();
+        FFMM7 ffmm7 = buildCompleteFfmm7("00110122998000000412", "FUND-010");
+        ffmm7.setcTipNum(null);
+        ffmm7.setdTipNum(null);
+        response.setFfmm7(Collections.singletonList(ffmm7));
+
+        InputListInvestmentFundsDTO input = new InputListInvestmentFundsDTO();
+        input.setCustomerId("123");
+        input.setProfileId("PROFILE-01");
+
+        List<OutputInvestmentFundsDTO> result = fmc7Connection.mapFMC7ouput(response, input);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void testMapFMC7ouput_PreservesContractWhenFundsIncomplete() {
+        FMC7Response response = new FMC7Response();
+        FFMM7 ffmm7 = buildCompleteFfmm7("00110122998000000412", "FUND-011");
+        ffmm7.setIdSubPr(null);
+        response.setFfmm7(Collections.singletonList(ffmm7));
+
+        InputListInvestmentFundsDTO input = new InputListInvestmentFundsDTO();
+        input.setCustomerId("123");
+        input.setProfileId("PROFILE-01");
+
+        List<OutputInvestmentFundsDTO> result = fmc7Connection.mapFMC7ouput(response, input);
+
+        assertEquals(1, result.size());
+        OutputInvestmentFundsDTO dto = result.get(0);
+        assertNotNull(dto.getData());
+        assertEquals(1, dto.getData().size());
+        InvestmentFund investmentFund = dto.getData().get(0);
+        assertNull(investmentFund.getFunds());
+    }
+
+    private FFMM7 buildCompleteFfmm7(String contractId, String fundId) {
+        FFMM7 ffmm7 = new FFMM7();
+        ffmm7.setIdContr(contractId);
+        ffmm7.setIdSubPr(fundId);
+        ffmm7.setdSubPro("MULT.EST.CONS.S");
+        ffmm7.setNumCuot(BigDecimal.ONE);
+        ffmm7.setSalCont(BigDecimal.TEN);
+        ffmm7.setSalDisp(BigDecimal.ZERO);
+        ffmm7.setdMonEsd("USD");
+        ffmm7.setIdMonFn("USD");
+        ffmm7.setValCuot(BigDecimal.ONE);
+        ffmm7.setcTipNum("L");
+        ffmm7.setdTipNum("CODIGO INTERNO DEL BBVA");
+        return ffmm7;
+    }
+
+    @Test
+    public void testHasMandatoryFundFields_CoversPositiveAndNegativeCases() throws Exception {
+        Method hasMandatoryFundFields = FMC7Connection.class.getDeclaredMethod("hasMandatoryFundFields", FFMM7.class);
+        hasMandatoryFundFields.setAccessible(true);
+
+        FFMM7 valid = buildCompleteFfmm7("001", "FUND-013");
+        boolean validResult = (Boolean) hasMandatoryFundFields.invoke(fmc7Connection, valid);
+        assertTrue(validResult);
+
+        FFMM7 fallback = buildCompleteFfmm7("002", "FUND-014");
+        fallback.setSalDisp(null);
+        boolean fallbackResult = (Boolean) hasMandatoryFundFields.invoke(fmc7Connection, fallback);
+        assertTrue(fallbackResult);
+
+        FFMM7 missing = buildCompleteFfmm7("003", "FUND-015");
+        missing.setIdSubPr(null);
+        boolean missingResult = (Boolean) hasMandatoryFundFields.invoke(fmc7Connection, missing);
+        assertFalse(missingResult);
+
+        FFMM7 missingAvailable = buildCompleteFfmm7("004", "FUND-016");
+        missingAvailable.setSalDisp(null);
+        missingAvailable.setSalCont(null);
+        boolean missingAvailableResult = (Boolean) hasMandatoryFundFields.invoke(fmc7Connection, missingAvailable);
+        assertFalse(missingAvailableResult);
+    }
+
+    @Test
+    public void testHasFundData_ReturnsFalseWhenMandatoryMissing() throws Exception {
+        Method hasFundData = FMC7Connection.class.getDeclaredMethod("hasFundData", FFMM7.class);
+        hasFundData.setAccessible(true);
+
+        FFMM7 valid = buildCompleteFfmm7("003", "FUND-015");
+        assertTrue((Boolean) hasFundData.invoke(fmc7Connection, valid));
+
+        FFMM7 incomplete = buildCompleteFfmm7("004", "FUND-016");
+        incomplete.setNumCuot(null);
+        assertFalse((Boolean) hasFundData.invoke(fmc7Connection, incomplete));
+    }
+
+    @Test
     public void testToBoolean_WithBooleanValue() throws Exception {
         Method toBoolean = FMC7Connection.class.getDeclaredMethod("toBoolean", Object.class);
         toBoolean.setAccessible(true);
@@ -855,6 +1066,16 @@ public class FMC7ConnectionTest {
         assertTrue((Boolean) toBoolean.invoke(fmc7Connection, 1));
         assertTrue((Boolean) toBoolean.invoke(fmc7Connection, 2L));
         assertFalse((Boolean) toBoolean.invoke(fmc7Connection, 0));
+    }
+
+    @Test
+    public void testToBoolean_WithAffirmativeStrings() throws Exception {
+        Method toBoolean = FMC7Connection.class.getDeclaredMethod("toBoolean", Object.class);
+        toBoolean.setAccessible(true);
+
+        assertTrue((Boolean) toBoolean.invoke(fmc7Connection, "  sí  "));
+        assertTrue((Boolean) toBoolean.invoke(fmc7Connection, "Y"));
+        assertFalse((Boolean) toBoolean.invoke(fmc7Connection, "no"));
     }
 
     @Test
@@ -950,6 +1171,59 @@ public class FMC7ConnectionTest {
         boolean decision = (Boolean) applyFallbackDecision.invoke(fmc7Connection, none);
 
         assertFalse(decision);
+    }
+
+    @Test
+    public void testApplyFallbackDecision_DefaultsToVisibleWhenIndicatorsMissing() throws Exception {
+        Class<?> fallbackClass = Class.forName("com.bbva.pfmh.lib.r010.impl.cics.FMC7Connection$VisibilityFallbackState");
+        Object missing = Enum.valueOf((Class<Enum>) fallbackClass, "MISSING_INDICATOR");
+        Method applyFallbackDecision = FMC7Connection.class.getDeclaredMethod("applyFallbackDecision", fallbackClass);
+        applyFallbackDecision.setAccessible(true);
+
+        boolean decision = (Boolean) applyFallbackDecision.invoke(fmc7Connection, missing);
+
+        assertTrue(decision);
+    }
+
+    @Test
+    public void testApplyFallbackDecision_ExplicitInvisibleOverridesFallback() throws Exception {
+        Class<?> fallbackClass = Class.forName("com.bbva.pfmh.lib.r010.impl.cics.FMC7Connection$VisibilityFallbackState");
+        Object invisible = Enum.valueOf((Class<Enum>) fallbackClass, "EXPLICIT_INVISIBLE");
+        Method applyFallbackDecision = FMC7Connection.class.getDeclaredMethod("applyFallbackDecision", fallbackClass);
+        applyFallbackDecision.setAccessible(true);
+
+        boolean decision = (Boolean) applyFallbackDecision.invoke(fmc7Connection, invisible);
+
+        assertFalse(decision);
+    }
+
+    @Test
+    public void testMapFMC7ouput_OmitsContractWhenValidationFails() {
+        FMC7Connection rejectingConnection = new RejectingFMC7Connection();
+        rejectingConnection.initializeErrorCodeList();
+
+        FMC7Response response = new FMC7Response();
+        response.setFfmm7(Collections.singletonList(buildCompleteFfmm7("00110122998000000412", "FUND-020")));
+
+        InputListInvestmentFundsDTO input = new InputListInvestmentFundsDTO();
+        input.setCustomerId("123");
+        input.setProfileId("PROFILE-01");
+
+        List<OutputInvestmentFundsDTO> result = rejectingConnection.mapFMC7ouput(response, input);
+
+        assertTrue(result.isEmpty());
+    }
+
+    private static final class RejectingFMC7Connection extends FMC7Connection {
+        @Override
+        public boolean validarContratoEnKsanYHost(String contratoGlobal, OutputInvestmentFundsDTO dto) {
+            return false;
+        }
+
+        @Override
+        public boolean getVisible(String globalContractId, String profileId) {
+            return true;
+        }
     }
 
 
