@@ -22,6 +22,8 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PFMHT01001PETransaction.class);
+    private static final String LINKS_BASE_PATH_PROPERTY = "pfmht01001pe.links.base-path";
+    private static final String DEFAULT_LINKS_BASE_PATH = "/investment-funds/v0/investment-funds";
     // Los enlaces de paginación solo exponen el índice de página
 
     @Override
@@ -51,15 +53,18 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
             IntPaginationDTO paginationNode = extractPagination(rawResponse);
             List<OutputInvestmentFundsDTO> sanitizedResponse = sanitizeResponse(rawResponse);
-            boolean hasFunds = !sanitizedResponse.isEmpty();
 
-            List<OutputInvestmentFundsDTO> payload = hasFunds
-                    ? sanitizedResponse
-                    : buildEmptyEnvelope(paginationNode);
+            List<OutputInvestmentFundsDTO> payload = sanitizedResponse.isEmpty()
+                    ? buildEmptyEnvelope(paginationNode)
+                    : sanitizedResponse;
 
             this.setResponseOut(payload);
+            List<InvestmentFund> aggregatedFunds = extractFunds(payload);
+            this.setData(aggregatedFunds);
 
-            LOGGER.info("response envelopes -> {}, investment funds -> {}", payload.size(), countFunds(payload));
+            boolean hasFunds = !aggregatedFunds.isEmpty();
+
+            LOGGER.info("response envelopes -> {}, investment funds -> {}", payload.size(), aggregatedFunds.size());
             LOGGER.debug("response detail -> {}", payload);
 
             if (paginationNode != null) {
@@ -67,68 +72,156 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
             }
 
             if (!hasFunds) {
+                this.setDTOLinks(null);
                 this.setSeverity(Severity.ENR);
                 return;
             }
 
-            if (paginationNode != null && paginationNode.getPaginationKey() != null && paginationNode.getPageSize() != null) {
-                BigInteger currentKey = safeParse(paginationNode.getPaginationKey());
-                int size = paginationNode.getPageSize().intValue();
-                PaginationDTO pagination = mapPagination(currentKey, size, payload.size());
+            if (paginationNode != null) {
+                Integer normalizedPageSize = resolvePageSize(paginationNode, input);
+                LinksDTO links = buildLinks(paginationNode, input, normalizedPageSize, aggregatedFunds.size());
+                PaginationDTO pagination = mapPagination(aggregatedFunds.size(), links, normalizedPageSize, input);
                 this.setPagination(pagination);
+                this.setDTOPagination(pagination);
+                this.setDTOLinks(links);
+            } else {
+                this.setDTOLinks(null);
             }
 
             this.setSeverity(Severity.OK);
         } catch (RestClientException e) {
             LOGGER.error("Error executing PFMHR010 service: {}", e.getMessage());
             this.setResponseOut(buildEmptyEnvelope(null));
+            this.setData(Collections.emptyList());
+            this.setDTOLinks(null);
             this.setSeverity(Severity.ENR);
         }
     }
 
-    private PaginationDTO mapPagination(BigInteger paginationKey, int pageSize, int total) {
+    private PaginationDTO mapPagination(int totalElements,
+                                        LinksDTO links,
+                                        Integer normalizedPageSize,
+                                        InputListInvestmentFundsDTO input) {
         PaginationDTO pagination = new PaginationDTO();
-        if (total <= 0) {
-            return pagination;
+
+        if (links != null) {
+            pagination.setLinks(links);
         }
 
-        if (pageSize <= 0) {
-            LOGGER.warn("Invalid page size {}. Falling back to the current result size {}", pageSize, total);
-            pageSize = Math.max(total, 1);
+        if (normalizedPageSize != null) {
+            pagination.setPageSize(normalizedPageSize);
+            if (normalizedPageSize > 0) {
+                pagination.setTotalPages((int) Math.ceil((double) totalElements / normalizedPageSize));
+            }
         }
 
-        int totalPages = (int) Math.ceil((double) total / pageSize);
-        int current = normalize(paginationKey);
-
-        LinksDTO links = new LinksDTO();
-        links.setFirst("0");
-        links.setLast(String.valueOf(totalPages - 1));
-        if (current > 0 && current <= totalPages - 1) {
-            links.setPrevious(String.valueOf(current - 1));
-        }
-        if (current < totalPages - 1) {
-            links.setNext(String.valueOf(current + 1));
-        }
-
-        pagination.setLinks(links);
-        pagination.setPage(current);
-        pagination.setTotalPages(totalPages);
-        pagination.setTotalElements(total);
-        pagination.setPageSize(pageSize);
+        pagination.setTotalElements(totalElements);
+        pagination.setPage(resolveCurrentPage(input));
         return pagination;
     }
 
-    private int normalize(BigInteger key) {
-        if (key == null || key.signum() < 0) {
+    private LinksDTO buildLinks(IntPaginationDTO paginationNode,
+                                InputListInvestmentFundsDTO input,
+                                Integer normalizedPageSize,
+                                int totalElements) {
+        String basePath = resolveLinksBasePath();
+        LinksDTO links = new LinksDTO();
+
+        boolean hasLinks = appendStaticLinks(links, normalizedPageSize, totalElements, basePath);
+        hasLinks |= appendPreviousLink(links, input, normalizedPageSize, basePath);
+        hasLinks |= appendNextLink(links, paginationNode, normalizedPageSize, basePath);
+
+        return hasLinks ? links : null;
+    }
+
+    private boolean appendStaticLinks(LinksDTO links,
+                                      Integer normalizedPageSize,
+                                      int totalElements,
+                                      String basePath) {
+        if (normalizedPageSize == null) {
+            return false;
+        }
+
+        String first = buildPageLink(basePath, 0, normalizedPageSize);
+        links.setFirst(first);
+
+        if (normalizedPageSize <= 0) {
+            links.setLast(first);
+            return first != null;
+        }
+
+        int totalPages = (int) Math.ceil((double) totalElements / normalizedPageSize);
+        int lastPage = Math.max(totalPages - 1, 0);
+        links.setLast(buildPageLink(basePath, lastPage, normalizedPageSize));
+
+        return first != null || links.getLast() != null;
+    }
+
+    private boolean appendPreviousLink(LinksDTO links,
+                                       InputListInvestmentFundsDTO input,
+                                       Integer normalizedPageSize,
+                                       String basePath) {
+        String previousKey = sanitizeKey(input != null ? input.getPaginationKey() : null);
+        if (previousKey == null) {
+            return false;
+        }
+
+        links.setPrevious(buildKeyLink(basePath, previousKey, normalizedPageSize,
+                input != null ? input.getPageSize() : null));
+        return true;
+    }
+
+    private boolean appendNextLink(LinksDTO links,
+                                   IntPaginationDTO paginationNode,
+                                   Integer normalizedPageSize,
+                                   String basePath) {
+        String nextKey = sanitizeKey(paginationNode != null ? paginationNode.getPaginationKey() : null);
+        if (nextKey == null) {
+            return false;
+        }
+
+        links.setNext(buildKeyLink(basePath, nextKey, normalizedPageSize,
+                paginationNode != null ? toInteger(paginationNode.getPageSize()) : null));
+        return true;
+    }
+
+    private String resolveLinksBasePath() {
+        String configured = sanitizeKey(this.getProperty(LINKS_BASE_PATH_PROPERTY));
+        return configured != null ? configured : DEFAULT_LINKS_BASE_PATH;
+    }
+
+    private Integer normalizePageSize(Long pageSize) {
+        if (pageSize == null || pageSize <= 0) {
+            return null;
+        }
+
+        if (pageSize > Integer.MAX_VALUE) {
+            LOGGER.warn("Page size {} exceeds Integer.MAX_VALUE. Capping value to {}", pageSize, Integer.MAX_VALUE);
+            return Integer.MAX_VALUE;
+        }
+
+        return pageSize.intValue();
+    }
+
+    private Integer resolvePageSize(IntPaginationDTO paginationNode, InputListInvestmentFundsDTO input) {
+        Integer normalized = paginationNode != null ? normalizePageSize(paginationNode.getPageSize()) : null;
+        if (normalized != null) {
+            return normalized;
+        }
+
+        if (input != null && input.getPageSize() != null) {
+            return normalizePageSize(input.getPageSize().longValue());
+        }
+
+        return null;
+    }
+
+    private int resolveCurrentPage(InputListInvestmentFundsDTO input) {
+        if (input == null) {
             return 0;
         }
 
-        BigInteger maxInt = BigInteger.valueOf(Integer.MAX_VALUE);
-        if (key.compareTo(maxInt) > 0) {
-            return 0;
-        }
-
-        return key.intValue();
+        return normalize(safeParse(input.getPaginationKey()));
     }
 
     private BigInteger safeParse(String value) {
@@ -148,6 +241,80 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         }
 
         return new BigInteger(trimmed);
+    }
+
+    private int normalize(BigInteger key) {
+        if (key == null || key.signum() < 0) {
+            return 0;
+        }
+
+        BigInteger maxInt = BigInteger.valueOf(Integer.MAX_VALUE);
+        if (key.compareTo(maxInt) > 0) {
+            return 0;
+        }
+
+        return key.intValue();
+    }
+
+    private String buildKeyLink(String basePath,
+                                String paginationKey,
+                                Integer normalizedPageSize,
+                                Integer fallbackPageSize) {
+        if (paginationKey == null) {
+            return null;
+        }
+
+        StringBuilder builder = new StringBuilder(basePath)
+                .append("?paginationKey=")
+                .append(paginationKey);
+
+        Integer pageSize = normalizedPageSize != null ? normalizedPageSize : fallbackPageSize;
+        if (pageSize != null && pageSize > 0) {
+            builder.append("&pageSize=").append(pageSize);
+        }
+
+        return builder.toString();
+    }
+
+    private String buildPageLink(String basePath, Integer page, Integer pageSize) {
+        if (page == null) {
+            return null;
+        }
+
+        StringBuilder builder = new StringBuilder(basePath)
+                .append("?page=")
+                .append(page);
+
+        if (pageSize != null && pageSize > 0) {
+            builder.append("&pageSize=").append(pageSize);
+        }
+
+        return builder.toString();
+    }
+
+    private String sanitizeKey(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private Integer toInteger(Long value) {
+        if (value == null) {
+            return null;
+        }
+
+        if (value > Integer.MAX_VALUE) {
+            return Integer.MAX_VALUE;
+        }
+
+        if (value <= 0) {
+            return null;
+        }
+
+        return value.intValue();
     }
 
     private List<OutputInvestmentFundsDTO> sanitizeResponse(List<OutputInvestmentFundsDTO> response) {
@@ -206,13 +373,19 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         return Collections.singletonList(emptyEnvelope);
     }
 
-    private int countFunds(List<OutputInvestmentFundsDTO> response) {
-        int total = 0;
+    private List<InvestmentFund> extractFunds(List<OutputInvestmentFundsDTO> response) {
+        if (response == null || response.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<InvestmentFund> funds = new ArrayList<>();
         for (OutputInvestmentFundsDTO dto : response) {
-            if (dto != null && dto.getData() != null) {
-                total += dto.getData().size();
+            if (dto != null && dto.getData() != null && !dto.getData().isEmpty()) {
+                funds.addAll(dto.getData());
             }
         }
-        return total;
+
+        return funds.isEmpty() ? Collections.emptyList() : funds;
     }
+
 }

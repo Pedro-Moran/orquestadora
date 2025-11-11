@@ -2,9 +2,11 @@ package com.bbva.pfmh;
 
 import com.bbva.elara.transaction.AbstractTransaction;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.InputListInvestmentFundsDTO;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.IntPaginationDTO;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.LinksDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.OutputInvestmentFundsDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.PaginationDTO;
-import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.IntPaginationDTO;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.InvestmentFund;
 
 import java.util.List;
 
@@ -25,6 +27,13 @@ public abstract class AbstractPFMHT01001PETransaction extends AbstractTransactio
         }
 
         /**
+         * Set value for List<InvestmentFund> output parameter data
+         */
+        protected void setData(final List<InvestmentFund> field){
+                this.addParameter("data", field);
+        }
+
+        /**
          * Set value for List<OutputInvestmentFundsDTO> output parameter responseOut
          */
         protected void setResponseOut(final List<OutputInvestmentFundsDTO> field){
@@ -36,6 +45,20 @@ public abstract class AbstractPFMHT01001PETransaction extends AbstractTransactio
          */
         protected void setPagination(final PaginationDTO field){
                 this.addParameter("pagination", field);
+        }
+
+        /**
+         * Set value for LinksDTO output parameter DTOLinks
+         */
+        protected void setDTOLinks(final LinksDTO field){
+                this.addParameter("DTOLinks", field);
+        }
+
+        /**
+         * Set value for PaginationDTO output parameter DTOPagination
+         */
+        protected void setDTOPagination(final PaginationDTO field){
+                this.addParameter("DTOPagination", field);
         }
 
         /**
