@@ -26,6 +26,9 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PFMHT01001PETransaction.class);
     private static final String LINKS_BASE_PATH_PROPERTY = "pfmht01001pe.links.base-path";
+    private static final String LINKS_BASE_PATH_RUNTIME_PROPERTY = "pfmht01001pe.links.base-path.default";
+    private static final String LINKS_BASE_PATH_ENVIRONMENT_VARIABLE = "PFMHT01001PE_LINKS_BASE_PATH";
+    private static final String LINKS_BASE_PATH_PARAMETER = "pfmht01001pe.links.base-path.inline";
     // Los enlaces de paginación solo exponen el índice de página
 
     @Override
@@ -223,8 +226,6 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
                                 int totalElements) {
         String basePath = resolveLinksBasePath();
         if (basePath == null) {
-            LOGGER.warn("Property {} is not configured. Pagination links will be omitted.",
-                    LINKS_BASE_PATH_PROPERTY);
             return null;
         }
         LinksDTO links = new LinksDTO();
@@ -294,7 +295,56 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
     }
 
     private String resolveLinksBasePath() {
-        return sanitizeKey(this.getProperty(LINKS_BASE_PATH_PROPERTY));
+        String configuredBasePath = sanitizeKey(this.getProperty(LINKS_BASE_PATH_PROPERTY));
+        if (configuredBasePath != null) {
+            return configuredBasePath;
+        }
+
+        String inlineBasePath = sanitizeKey(asStringParameter(LINKS_BASE_PATH_PARAMETER));
+        if (inlineBasePath != null) {
+            LOGGER.info("Property {} is not configured. Using transaction parameter {} as pagination base path.",
+                    LINKS_BASE_PATH_PROPERTY, LINKS_BASE_PATH_PARAMETER);
+            return inlineBasePath;
+        }
+
+        String runtimeBasePath = sanitizeKey(System.getProperty(LINKS_BASE_PATH_RUNTIME_PROPERTY));
+        if (runtimeBasePath != null) {
+            LOGGER.info("Property {} is not configured. Using system property {} as pagination base path.",
+                    LINKS_BASE_PATH_PROPERTY, LINKS_BASE_PATH_RUNTIME_PROPERTY);
+            return runtimeBasePath;
+        }
+
+        String environmentBasePath = sanitizeKey(System.getenv(LINKS_BASE_PATH_ENVIRONMENT_VARIABLE));
+        if (environmentBasePath != null) {
+            LOGGER.info("Property {} is not configured. Using environment variable {} as pagination base path.",
+                    LINKS_BASE_PATH_PROPERTY, LINKS_BASE_PATH_ENVIRONMENT_VARIABLE);
+            return environmentBasePath;
+        }
+
+        String fallbackBasePath = sanitizeKey(buildDefaultLinksBasePath());
+        if (fallbackBasePath != null) {
+            LOGGER.info("Property {} is not configured. Using default pagination base path {}.",
+                    LINKS_BASE_PATH_PROPERTY, fallbackBasePath);
+            return fallbackBasePath;
+        }
+
+        LOGGER.warn("Property {} is not configured and no runtime override was provided. Pagination links will be omitted.",
+                LINKS_BASE_PATH_PROPERTY);
+        return null;
+    }
+
+    private String asStringParameter(String parameterName) {
+        Object parameterValue = this.getParameter(parameterName);
+        return parameterValue == null ? null : parameterValue.toString();
+    }
+
+    private String buildDefaultLinksBasePath() {
+        return new StringBuilder()
+                .append('/')
+                .append("investment-funds")
+                .append("/v0")
+                .append("/investment-funds")
+                .toString();
     }
 
     private Integer normalizePageSize(Long pageSize) {
