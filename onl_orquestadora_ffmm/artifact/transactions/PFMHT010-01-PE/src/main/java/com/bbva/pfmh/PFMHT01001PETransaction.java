@@ -23,7 +23,6 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PFMHT01001PETransaction.class);
     private static final String LINKS_BASE_PATH_PROPERTY = "pfmht01001pe.links.base-path";
-    private static final String DEFAULT_LINKS_BASE_PATH = "/investment-funds/v0/investment-funds";
     // Los enlaces de paginación solo exponen el índice de página
 
     @Override
@@ -63,12 +62,29 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
             this.setData(aggregatedFunds);
 
             boolean hasFunds = !aggregatedFunds.isEmpty();
+            int totalElements = hasFunds ? aggregatedFunds.size() : payload.size();
 
             LOGGER.info("response envelopes -> {}, investment funds -> {}", payload.size(), aggregatedFunds.size());
             LOGGER.debug("response detail -> {}", payload);
 
             if (paginationNode != null) {
                 this.setDTOIntPagination(paginationNode);
+                Long servicePageSize = paginationNode.getPageSize();
+                boolean missingPageSize = servicePageSize == null || servicePageSize <= 0;
+                Integer normalizedPageSize = resolvePageSize(paginationNode, input);
+                boolean shouldMapPagination = hasFunds || missingPageSize;
+                LinksDTO links = hasFunds
+                        ? buildLinks(paginationNode, input, normalizedPageSize, totalElements)
+                        : null;
+
+                if (shouldMapPagination) {
+                    PaginationDTO pagination = mapPagination(totalElements, links, normalizedPageSize, input, missingPageSize);
+                    this.setPagination(pagination);
+                    this.setDTOPagination(pagination);
+                }
+                this.setDTOLinks(links);
+            } else {
+                this.setDTOLinks(null);
             }
 
             if (!hasFunds) {
@@ -77,31 +93,28 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
                 return;
             }
 
-            if (paginationNode != null) {
-                Integer normalizedPageSize = resolvePageSize(paginationNode, input);
-                LinksDTO links = buildLinks(paginationNode, input, normalizedPageSize, aggregatedFunds.size());
-                PaginationDTO pagination = mapPagination(aggregatedFunds.size(), links, normalizedPageSize, input);
-                this.setPagination(pagination);
-                this.setDTOPagination(pagination);
-                this.setDTOLinks(links);
-            } else {
-                this.setDTOLinks(null);
-            }
-
             this.setSeverity(Severity.OK);
         } catch (RestClientException e) {
-            LOGGER.error("Error executing PFMHR010 service: {}", e.getMessage());
-            this.setResponseOut(buildEmptyEnvelope(null));
-            this.setData(Collections.emptyList());
-            this.setDTOLinks(null);
-            this.setSeverity(Severity.ENR);
+            LOGGER.error("Error executing PFMHR010 service", e);
+            handleFailure();
+        } catch (RuntimeException e) {
+            LOGGER.error("Unexpected error executing PFMHT01001PETransaction", e);
+            handleFailure();
         }
+    }
+
+    private void handleFailure() {
+        this.setResponseOut(buildEmptyEnvelope(null));
+        this.setData(Collections.emptyList());
+        this.setDTOLinks(null);
+        this.setSeverity(Severity.ENR);
     }
 
     private PaginationDTO mapPagination(int totalElements,
                                         LinksDTO links,
                                         Integer normalizedPageSize,
-                                        InputListInvestmentFundsDTO input) {
+                                        InputListInvestmentFundsDTO input,
+                                        boolean missingPageSize) {
         PaginationDTO pagination = new PaginationDTO();
 
         if (links != null) {
@@ -116,7 +129,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         }
 
         pagination.setTotalElements(totalElements);
-        pagination.setPage(resolveCurrentPage(input));
+        pagination.setPage(missingPageSize ? 0 : resolveCurrentPage(input, normalizedPageSize));
         return pagination;
     }
 
@@ -125,6 +138,11 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
                                 Integer normalizedPageSize,
                                 int totalElements) {
         String basePath = resolveLinksBasePath();
+        if (basePath == null) {
+            LOGGER.warn("Property {} is not configured. Pagination links will be omitted.",
+                    LINKS_BASE_PATH_PROPERTY);
+            return null;
+        }
         LinksDTO links = new LinksDTO();
 
         boolean hasLinks = appendStaticLinks(links, normalizedPageSize, totalElements, basePath);
@@ -161,13 +179,16 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
                                        InputListInvestmentFundsDTO input,
                                        Integer normalizedPageSize,
                                        String basePath) {
-        String previousKey = sanitizeKey(input != null ? input.getPaginationKey() : null);
-        if (previousKey == null) {
+        if (input == null) {
             return false;
         }
 
-        links.setPrevious(buildKeyLink(basePath, previousKey, normalizedPageSize,
-                input != null ? input.getPageSize() : null));
+        String previousKey = sanitizeKey(input.getPaginationKey());
+        if (!isDigits(previousKey)) {
+            return false;
+        }
+
+        links.setPrevious(buildKeyLink(basePath, previousKey, normalizedPageSize, input.getPageSize()));
         return true;
     }
 
@@ -175,19 +196,21 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
                                    IntPaginationDTO paginationNode,
                                    Integer normalizedPageSize,
                                    String basePath) {
-        String nextKey = sanitizeKey(paginationNode != null ? paginationNode.getPaginationKey() : null);
+        if (paginationNode == null) {
+            return false;
+        }
+
+        String nextKey = sanitizeKey(paginationNode.getPaginationKey());
         if (nextKey == null) {
             return false;
         }
 
-        links.setNext(buildKeyLink(basePath, nextKey, normalizedPageSize,
-                paginationNode != null ? toInteger(paginationNode.getPageSize()) : null));
+        links.setNext(buildKeyLink(basePath, nextKey, normalizedPageSize, toInteger(paginationNode.getPageSize())));
         return true;
     }
 
     private String resolveLinksBasePath() {
-        String configured = sanitizeKey(this.getProperty(LINKS_BASE_PATH_PROPERTY));
-        return configured != null ? configured : DEFAULT_LINKS_BASE_PATH;
+        return sanitizeKey(this.getProperty(LINKS_BASE_PATH_PROPERTY));
     }
 
     private Integer normalizePageSize(Long pageSize) {
@@ -204,20 +227,19 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
     }
 
     private Integer resolvePageSize(IntPaginationDTO paginationNode, InputListInvestmentFundsDTO input) {
-        Integer normalized = paginationNode != null ? normalizePageSize(paginationNode.getPageSize()) : null;
-        if (normalized != null) {
-            return normalized;
+        if (paginationNode == null) {
+            return input != null ? normalizePageSize(asLong(input.getPageSize())) : null;
         }
 
-        if (input != null && input.getPageSize() != null) {
-            return normalizePageSize(input.getPageSize().longValue());
-        }
-
-        return null;
+        return normalizePageSize(paginationNode.getPageSize());
     }
 
-    private int resolveCurrentPage(InputListInvestmentFundsDTO input) {
-        if (input == null) {
+    private Long asLong(Integer value) {
+        return value == null ? null : value.longValue();
+    }
+
+    private int resolveCurrentPage(InputListInvestmentFundsDTO input, Integer normalizedPageSize) {
+        if (input == null || normalizedPageSize == null || normalizedPageSize <= 0) {
             return 0;
         }
 
@@ -299,6 +321,20 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private boolean isDigits(String value) {
+        if (value == null) {
+            return false;
+        }
+
+        for (int i = 0; i < value.length(); i++) {
+            if (!Character.isDigit(value.charAt(i))) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private Integer toInteger(Long value) {
