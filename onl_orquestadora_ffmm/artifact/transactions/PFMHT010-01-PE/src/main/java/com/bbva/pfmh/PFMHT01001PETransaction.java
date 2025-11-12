@@ -1,5 +1,6 @@
 package com.bbva.pfmh;
 
+import com.bbva.elara.domain.transaction.Severity;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.InputListInvestmentFundsDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.IntPaginationDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.LinksDTO;
@@ -7,7 +8,6 @@ import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.OutputInvestmentFundsDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.PaginationDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.InvestmentFund;
 import com.bbva.pfmh.lib.r010.PFMHR010;
-import com.bbva.elara.domain.transaction.Severity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestClientException;
@@ -16,6 +16,9 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
@@ -43,64 +46,57 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
         LOGGER.info("RBVDT30301PETransaction - START");
 
-        try {
-            List<OutputInvestmentFundsDTO> rawResponse = pfmhR010.executeGetFFMMStatements(input);
-            if (rawResponse == null) {
-                LOGGER.warn("PFMHR010 service returned a null body. Falling back to an empty list");
-                rawResponse = Collections.emptyList();
-            }
+        InvocationOutcome outcome = invokeLibrary(pfmhR010, input);
 
-            IntPaginationDTO paginationNode = extractPagination(rawResponse);
-            List<OutputInvestmentFundsDTO> sanitizedResponse = sanitizeResponse(rawResponse);
-
-            List<OutputInvestmentFundsDTO> payload = sanitizedResponse.isEmpty()
-                    ? buildEmptyEnvelope(paginationNode)
-                    : sanitizedResponse;
-
-            this.setResponseOut(payload);
-            List<InvestmentFund> aggregatedFunds = extractFunds(payload);
-            this.setData(aggregatedFunds);
-
-            boolean hasFunds = !aggregatedFunds.isEmpty();
-            int totalElements = hasFunds ? aggregatedFunds.size() : payload.size();
-
-            LOGGER.info("response envelopes -> {}, investment funds -> {}", payload.size(), aggregatedFunds.size());
-            LOGGER.debug("response detail -> {}", payload);
-
-            if (paginationNode != null) {
-                this.setDTOIntPagination(paginationNode);
-                Long servicePageSize = paginationNode.getPageSize();
-                boolean missingPageSize = servicePageSize == null || servicePageSize <= 0;
-                Integer normalizedPageSize = resolvePageSize(paginationNode, input);
-                boolean shouldMapPagination = hasFunds || missingPageSize;
-                LinksDTO links = hasFunds
-                        ? buildLinks(paginationNode, input, normalizedPageSize, totalElements)
-                        : null;
-
-                if (shouldMapPagination) {
-                    PaginationDTO pagination = mapPagination(totalElements, links, normalizedPageSize, input, missingPageSize);
-                    this.setPagination(pagination);
-                    this.setDTOPagination(pagination);
-                }
-                this.setDTOLinks(links);
-            } else {
-                this.setDTOLinks(null);
-            }
-
-            if (!hasFunds) {
-                this.setDTOLinks(null);
-                this.setSeverity(Severity.ENR);
-                return;
-            }
-
-            this.setSeverity(Severity.OK);
-        } catch (RestClientException e) {
-            LOGGER.error("Error executing PFMHR010 service", e);
-            handleFailure();
-        } catch (RuntimeException e) {
-            LOGGER.error("Unexpected error executing PFMHT01001PETransaction", e);
-            handleFailure();
+        if (outcome.isFailureHandled()) {
+            return;
         }
+
+        List<OutputInvestmentFundsDTO> rawResponse = outcome.getPayload();
+
+        IntPaginationDTO paginationNode = extractPagination(rawResponse);
+        List<OutputInvestmentFundsDTO> sanitizedResponse = sanitizeResponse(rawResponse);
+
+        List<OutputInvestmentFundsDTO> payload = sanitizedResponse.isEmpty()
+                ? buildEmptyEnvelope(paginationNode)
+                : sanitizedResponse;
+
+        this.setResponseOut(payload);
+        List<InvestmentFund> aggregatedFunds = extractFunds(payload);
+        this.setData(aggregatedFunds);
+
+        boolean hasFunds = !aggregatedFunds.isEmpty();
+        int totalElements = hasFunds ? aggregatedFunds.size() : payload.size();
+
+        LOGGER.info("response envelopes -> {}, investment funds -> {}", payload.size(), aggregatedFunds.size());
+        LOGGER.debug("response detail -> {}", payload);
+
+        LinksDTO links = null;
+        if (paginationNode != null) {
+            this.setDTOIntPagination(paginationNode);
+            Long servicePageSize = paginationNode.getPageSize();
+            boolean missingPageSize = servicePageSize == null || servicePageSize <= 0;
+            Integer normalizedPageSize = resolvePageSize(paginationNode, input);
+            boolean shouldMapPagination = hasFunds || missingPageSize;
+
+            if (hasFunds) {
+                links = buildLinks(paginationNode, input, normalizedPageSize, totalElements);
+            }
+
+            if (shouldMapPagination) {
+                PaginationDTO pagination = mapPagination(totalElements, links, normalizedPageSize, input, missingPageSize);
+                this.setPagination(pagination);
+                this.setDTOPagination(pagination);
+            }
+        }
+        this.setDTOLinks(links);
+
+        if (!hasFunds) {
+            this.setSeverity(Severity.ENR);
+            return;
+        }
+
+        this.setSeverity(Severity.OK);
     }
 
     private void handleFailure() {
@@ -108,6 +104,94 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         this.setData(Collections.emptyList());
         this.setDTOLinks(null);
         this.setSeverity(Severity.ENR);
+    }
+
+    private InvocationOutcome invokeLibrary(PFMHR010 pfmhR010,
+                                            InputListInvestmentFundsDTO input) {
+        AtomicBoolean failureHandled = new AtomicBoolean(false);
+
+        List<OutputInvestmentFundsDTO> response = CompletableFuture.completedFuture(input)
+                .thenApply(pfmhR010::executeGetFFMMStatements)
+                .handle((result, throwable) -> {
+                    if (throwable != null) {
+                        Throwable cause = unwrap(throwable);
+                        if (handleKnownFailure(cause)) {
+                            failureHandled.set(true);
+                            return Collections.emptyList();
+                        }
+                        return propagate(cause);
+                    }
+
+                    if (result == null) {
+                        LOGGER.warn("PFMHR010 service returned a null body. Falling back to an empty list");
+                        return Collections.emptyList();
+                    }
+
+                    return result;
+                })
+                .join();
+
+        return failureHandled.get()
+                ? InvocationOutcome.failure()
+                : InvocationOutcome.success(response);
+    }
+
+    private boolean handleKnownFailure(Throwable cause) {
+        if (cause instanceof RestClientException) {
+            LOGGER.error("Error executing PFMHR010 service", cause);
+        } else if (cause instanceof IllegalArgumentException
+                || cause instanceof IllegalStateException
+                || cause instanceof NullPointerException) {
+            LOGGER.error("Unexpected error executing PFMHR010 service", cause);
+        } else {
+            return false;
+        }
+
+        handleFailure();
+        return true;
+    }
+
+    private Throwable unwrap(Throwable throwable) {
+        if (throwable instanceof CompletionException && throwable.getCause() != null) {
+            return throwable.getCause();
+        }
+        return throwable;
+    }
+
+    private List<OutputInvestmentFundsDTO> propagate(Throwable throwable) {
+        if (throwable instanceof RuntimeException) {
+            throw (RuntimeException) throwable;
+        }
+        if (throwable instanceof Error) {
+            throw (Error) throwable;
+        }
+        throw new IllegalStateException(throwable);
+    }
+
+    private static final class InvocationOutcome {
+        private final List<OutputInvestmentFundsDTO> payload;
+        private final boolean failureHandled;
+
+        private InvocationOutcome(List<OutputInvestmentFundsDTO> payload, boolean failureHandled) {
+            this.payload = payload;
+            this.failureHandled = failureHandled;
+        }
+
+        static InvocationOutcome success(List<OutputInvestmentFundsDTO> payload) {
+            return new InvocationOutcome(payload, false);
+        }
+
+        static InvocationOutcome failure() {
+            return new InvocationOutcome(Collections.emptyList(), true);
+        }
+
+        List<OutputInvestmentFundsDTO> getPayload() {
+            return payload;
+        }
+
+        boolean isFailureHandled() {
+            return failureHandled;
+        }
     }
 
     private PaginationDTO mapPagination(int totalElements,
