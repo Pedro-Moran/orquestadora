@@ -88,6 +88,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
             }
 
             if (!hasFunds) {
+                this.setDTOLinks(null);
                 this.setSeverity(Severity.ENR);
                 return;
             }
