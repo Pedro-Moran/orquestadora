@@ -45,9 +45,6 @@ public class PFMHT01001PETransactionTest {
 
     private Map<Class<?>, Object> serviceLibraries;
 
-    private static final String LINKS_BASE_PATH = "/investment-funds/v0/investment-funds";
-    private static final String LINKS_BASE_PATH_PARAMETER = "pfmht01001pe.links.base-path.inline";
-
     @Mock
     private ApplicationConfigurationService applicationConfigurationService;
 
@@ -104,8 +101,6 @@ public class PFMHT01001PETransactionTest {
         when(inputListInvestmentFundsDTO.getPaginationKey()).thenReturn(null);
         when(inputListInvestmentFundsDTO.getPageSize()).thenReturn(10);
         when(inputListInvestmentFundsDTO.getProfileId()).thenReturn("PROFILE-01");
-        when(applicationConfigurationService.getProperty("pfmht01001pe.links.base-path"))
-                .thenReturn(LINKS_BASE_PATH);
 
     }
 
@@ -117,6 +112,12 @@ public class PFMHT01001PETransactionTest {
 
     private void setServiceLibrary(Class<?> clasz, Object mockObject) {
         serviceLibraries.put(clasz, mockObject);
+    }
+
+    private InvestmentFund createFund(String id) {
+        InvestmentFund fund = new InvestmentFund();
+        fund.setInvestmentFundId(id);
+        return fund;
     }
 
     private void setParameterToTransaction(String parameter, Object value) {
@@ -306,9 +307,9 @@ public class PFMHT01001PETransactionTest {
         verify(spyTransaction, times(1)).setDTOLinks(any());
         LinksDTO links = linksCaptor.getValue();
         assertNotNull(links);
-        assertEquals("/investment-funds/v0/investment-funds?paginationKey=0&pageSize=10", links.getNext());
-        assertEquals("/investment-funds/v0/investment-funds?page=0&pageSize=10", links.getFirst());
-        assertEquals("/investment-funds/v0/investment-funds?page=0&pageSize=10", links.getLast());
+        assertEquals(fund.getInvestmentFundId(), links.getFirst());
+        assertEquals(fund.getInvestmentFundId(), links.getLast());
+        assertNull(links.getNext());
         assertNull(links.getPrevious());
         verify(spyTransaction, times(1)).setData(any());
         List<InvestmentFund> aggregatedFunds = dataCaptor.getValue();
@@ -383,11 +384,16 @@ public class PFMHT01001PETransactionTest {
         intPag.setPaginationKey("0");
         intPag.setPageSize(1L);
 
+        InvestmentFund firstFund = new InvestmentFund();
+        firstFund.setInvestmentFundId("FUND-1");
+        InvestmentFund secondFund = new InvestmentFund();
+        secondFund.setInvestmentFundId("FUND-2");
+
         OutputInvestmentFundsDTO out1 = new OutputInvestmentFundsDTO();
         out1.setDTOIntPagination(intPag);
-        out1.setData(Collections.singletonList(new InvestmentFund()));
+        out1.setData(Collections.singletonList(firstFund));
         OutputInvestmentFundsDTO out2 = new OutputInvestmentFundsDTO();
-        out2.setData(Collections.singletonList(new InvestmentFund()));
+        out2.setData(Collections.singletonList(secondFund));
 
         List<OutputInvestmentFundsDTO> response = Arrays.asList(out1, out2);
 
@@ -410,10 +416,10 @@ public class PFMHT01001PETransactionTest {
         assertEquals(Integer.valueOf(2), pagination.getTotalElements());
         assertEquals(Integer.valueOf(2), pagination.getTotalPages());
         assertEquals(Integer.valueOf(1), pagination.getPageSize());
-        assertEquals("/investment-funds/v0/investment-funds?paginationKey=0&pageSize=1", pagination.getLinks().getNext());
+        assertEquals("FUND-2", pagination.getLinks().getNext());
         assertNull(pagination.getLinks().getPrevious());
-        assertEquals("/investment-funds/v0/investment-funds?page=0&pageSize=1", pagination.getLinks().getFirst());
-        assertEquals("/investment-funds/v0/investment-funds?page=1&pageSize=1", pagination.getLinks().getLast());
+        assertEquals("FUND-1", pagination.getLinks().getFirst());
+        assertEquals("FUND-2", pagination.getLinks().getLast());
         assertEquals(pagination, dtoPaginationCaptor.getValue());
         List<InvestmentFund> aggregated = dataCaptor.getValue();
         assertEquals(2, aggregated.size());
@@ -426,11 +432,16 @@ public class PFMHT01001PETransactionTest {
         intPag.setPaginationKey("1");
         intPag.setPageSize(1L);
 
+        InvestmentFund firstFund = new InvestmentFund();
+        firstFund.setInvestmentFundId("FUND-1");
+        InvestmentFund secondFund = new InvestmentFund();
+        secondFund.setInvestmentFundId("FUND-2");
+
         OutputInvestmentFundsDTO out1 = new OutputInvestmentFundsDTO();
         out1.setDTOIntPagination(intPag);
-        out1.setData(Collections.singletonList(new InvestmentFund()));
+        out1.setData(Collections.singletonList(firstFund));
         OutputInvestmentFundsDTO out2 = new OutputInvestmentFundsDTO();
-        out2.setData(Collections.singletonList(new InvestmentFund()));
+        out2.setData(Collections.singletonList(secondFund));
 
         List<OutputInvestmentFundsDTO> response = Arrays.asList(out1, out2);
 
@@ -447,10 +458,10 @@ public class PFMHT01001PETransactionTest {
         spyTransaction.execute();
 
         PaginationDTO pagination = captor.getValue();
-        assertEquals("/investment-funds/v0/investment-funds?paginationKey=1&pageSize=1", pagination.getLinks().getNext());
+        assertEquals("FUND-2", pagination.getLinks().getNext());
         assertNull(pagination.getLinks().getPrevious());
-        assertEquals("/investment-funds/v0/investment-funds?page=0&pageSize=1", pagination.getLinks().getFirst());
-        assertEquals("/investment-funds/v0/investment-funds?page=1&pageSize=1", pagination.getLinks().getLast());
+        assertEquals("FUND-1", pagination.getLinks().getFirst());
+        assertEquals("FUND-2", pagination.getLinks().getLast());
         assertEquals(pagination, dtoPaginationCaptor.getValue());
         verify(spyTransaction, times(1)).setDTOLinks(any());
     }
@@ -461,11 +472,16 @@ public class PFMHT01001PETransactionTest {
         intPag.setPaginationKey("001101308000011582");
         intPag.setPageSize(1L);
 
+        InvestmentFund firstFund = new InvestmentFund();
+        firstFund.setInvestmentFundId("FUND-A");
+        InvestmentFund secondFund = new InvestmentFund();
+        secondFund.setInvestmentFundId("FUND-B");
+
         OutputInvestmentFundsDTO out1 = new OutputInvestmentFundsDTO();
         out1.setDTOIntPagination(intPag);
-        out1.setData(Collections.singletonList(new InvestmentFund()));
+        out1.setData(Collections.singletonList(firstFund));
         OutputInvestmentFundsDTO out2 = new OutputInvestmentFundsDTO();
-        out2.setData(Collections.singletonList(new InvestmentFund()));
+        out2.setData(Collections.singletonList(secondFund));
 
         List<OutputInvestmentFundsDTO> response = Arrays.asList(out1, out2);
 
@@ -481,10 +497,10 @@ public class PFMHT01001PETransactionTest {
 
         PaginationDTO pagination = captor.getValue();
         assertEquals(Integer.valueOf(0), pagination.getPage());
-        assertEquals("/investment-funds/v0/investment-funds?paginationKey=001101308000011582&pageSize=1", pagination.getLinks().getNext());
+        assertEquals("FUND-B", pagination.getLinks().getNext());
         assertNull(pagination.getLinks().getPrevious());
-        assertEquals("/investment-funds/v0/investment-funds?page=0&pageSize=1", pagination.getLinks().getFirst());
-        assertEquals("/investment-funds/v0/investment-funds?page=1&pageSize=1", pagination.getLinks().getLast());
+        assertEquals("FUND-A", pagination.getLinks().getFirst());
+        assertEquals("FUND-B", pagination.getLinks().getLast());
         verify(spyTransaction, times(1)).setDTOLinks(any());
     }
 
@@ -496,9 +512,9 @@ public class PFMHT01001PETransactionTest {
 
         OutputInvestmentFundsDTO out1 = new OutputInvestmentFundsDTO();
         out1.setDTOIntPagination(intPag);
-        out1.setData(Collections.singletonList(new InvestmentFund()));
+        out1.setData(Collections.singletonList(createFund("BLANK-1")));
         OutputInvestmentFundsDTO out2 = new OutputInvestmentFundsDTO();
-        out2.setData(Collections.singletonList(new InvestmentFund()));
+        out2.setData(Collections.singletonList(createFund("BLANK-2")));
 
         List<OutputInvestmentFundsDTO> response = Arrays.asList(out1, out2);
 
@@ -517,10 +533,10 @@ public class PFMHT01001PETransactionTest {
         assertEquals(Integer.valueOf(0), pagination.getPage());
         LinksDTO links = pagination.getLinks();
         assertNotNull(links);
-        assertNull(links.getNext());
+        assertEquals("BLANK-2", links.getNext());
         assertNull(links.getPrevious());
-        assertEquals("/investment-funds/v0/investment-funds?page=0&pageSize=1", links.getFirst());
-        assertEquals("/investment-funds/v0/investment-funds?page=1&pageSize=1", links.getLast());
+        assertEquals("BLANK-1", links.getFirst());
+        assertEquals("BLANK-2", links.getLast());
         assertEquals(links, linksCaptor.getValue());
         verify(spyTransaction, times(1)).setDTOLinks(any());
     }
@@ -536,10 +552,20 @@ public class PFMHT01001PETransactionTest {
 
         OutputInvestmentFundsDTO out1 = new OutputInvestmentFundsDTO();
         out1.setDTOIntPagination(intPag);
-        out1.setData(Arrays.asList(new InvestmentFund(), new InvestmentFund(), new InvestmentFund(), new InvestmentFund(), new InvestmentFund()));
+        out1.setData(Arrays.asList(
+                createFund("F0"),
+                createFund("F1"),
+                createFund("F2"),
+                createFund("F3"),
+                createFund("F4")));
 
         OutputInvestmentFundsDTO out2 = new OutputInvestmentFundsDTO();
-        out2.setData(Arrays.asList(new InvestmentFund(), new InvestmentFund(), new InvestmentFund(), new InvestmentFund(), new InvestmentFund()));
+        out2.setData(Arrays.asList(
+                createFund("F5"),
+                createFund("F6"),
+                createFund("F7"),
+                createFund("F8"),
+                createFund("F9")));
 
         List<OutputInvestmentFundsDTO> response = Arrays.asList(out1, out2);
 
@@ -564,10 +590,10 @@ public class PFMHT01001PETransactionTest {
 
         LinksDTO links = linksCaptor.getValue();
         assertNotNull(links);
-        assertEquals("/investment-funds/v0/investment-funds?paginationKey=1&pageSize=5", links.getPrevious());
-        assertEquals("/investment-funds/v0/investment-funds?paginationKey=2&pageSize=5", links.getNext());
-        assertEquals("/investment-funds/v0/investment-funds?page=0&pageSize=5", links.getFirst());
-        assertEquals("/investment-funds/v0/investment-funds?page=1&pageSize=5", links.getLast());
+        assertEquals("F4", links.getPrevious());
+        assertNull(links.getNext());
+        assertEquals("F0", links.getFirst());
+        assertEquals("F9", links.getLast());
         assertEquals(pagination, dtoPaginationCaptor.getValue());
 
         when(inputListInvestmentFundsDTO.getPaginationKey()).thenReturn(null);
@@ -673,9 +699,10 @@ public class PFMHT01001PETransactionTest {
         intPag.setPaginationKey("key");
         intPag.setPageSize((long) Integer.MAX_VALUE + 10);
 
+        InvestmentFund fund = createFund("MAX-LINK");
         OutputInvestmentFundsDTO output = new OutputInvestmentFundsDTO();
         output.setDTOIntPagination(intPag);
-        output.setData(Collections.singletonList(new InvestmentFund()));
+        output.setData(Collections.singletonList(fund));
 
         List<OutputInvestmentFundsDTO> response = Collections.singletonList(output);
 
@@ -698,170 +725,39 @@ public class PFMHT01001PETransactionTest {
         assertEquals(Integer.valueOf(1), pagination.getTotalElements());
         LinksDTO links = linksCaptor.getValue();
         assertNotNull(links);
-        assertEquals(LINKS_BASE_PATH + "?paginationKey=key&pageSize=" + Integer.MAX_VALUE, links.getNext());
+        assertNull(links.getNext());
         assertNull(links.getPrevious());
-    }
-
-    @Test
-    public void testExecute_UsesRuntimeOverrideWhenBasePathBlank() {
-        doReturn("   ").when(applicationConfigurationService).getProperty("pfmht01001pe.links.base-path");
-        System.setProperty("pfmht01001pe.links.base-path.default", LINKS_BASE_PATH);
-
-        IntPaginationDTO intPag = new IntPaginationDTO();
-        intPag.setPaginationKey("7");
-        intPag.setPageSize(3L);
-
-        InvestmentFund fund = new InvestmentFund();
-        OutputInvestmentFundsDTO output = new OutputInvestmentFundsDTO();
-        output.setDTOIntPagination(intPag);
-        output.setData(Collections.singletonList(fund));
-
-        List<OutputInvestmentFundsDTO> response = Collections.singletonList(output);
-
-        PFMHT01001PETransaction spyTransaction = spy(transaction);
-
-        ArgumentCaptor<PaginationDTO> paginationCaptor = ArgumentCaptor.forClass(PaginationDTO.class);
-        ArgumentCaptor<LinksDTO> linksCaptor = ArgumentCaptor.forClass(LinksDTO.class);
-
-        doNothing().when(spyTransaction).setResponseOut(any());
-        doNothing().when(spyTransaction).setDTOIntPagination(any());
-        doNothing().when(spyTransaction).setPagination(paginationCaptor.capture());
-        doNothing().when(spyTransaction).setDTOPagination(any());
-        doNothing().when(spyTransaction).setDTOLinks(linksCaptor.capture());
-        doNothing().when(spyTransaction).setData(any());
-
-        when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class))).thenReturn(response);
-
-        try {
-            spyTransaction.execute();
-
-            PaginationDTO pagination = paginationCaptor.getValue();
-            assertNotNull(pagination);
-            assertNotNull(pagination.getLinks());
-            assertEquals(LINKS_BASE_PATH + "?page=0&pageSize=3", pagination.getLinks().getFirst());
-            assertEquals(LINKS_BASE_PATH + "?page=0&pageSize=3", pagination.getLinks().getLast());
-            assertNull(pagination.getLinks().getPrevious());
-            assertEquals(LINKS_BASE_PATH + "?paginationKey=7&pageSize=3", pagination.getLinks().getNext());
-            assertEquals(Integer.valueOf(1), pagination.getTotalElements());
-            assertEquals(Integer.valueOf(0), pagination.getPage());
-
-            LinksDTO links = linksCaptor.getValue();
-            assertNotNull(links);
-            assertEquals(pagination.getLinks(), links);
-            assertEquals(Severity.OK, spyTransaction.getSeverity());
-        } finally {
-            System.clearProperty("pfmht01001pe.links.base-path.default");
-        }
-    }
-
-    @Test
-    public void testExecute_UsesInlineParameterWhenNoConfigurationAvailable() {
-        doReturn("   ").when(applicationConfigurationService).getProperty("pfmht01001pe.links.base-path");
-        setParameterToTransaction(LINKS_BASE_PATH_PARAMETER, LINKS_BASE_PATH);
-
-        IntPaginationDTO intPag = new IntPaginationDTO();
-        intPag.setPaginationKey("11");
-        intPag.setPageSize(5L);
-
-        InvestmentFund fund = new InvestmentFund();
-        OutputInvestmentFundsDTO output = new OutputInvestmentFundsDTO();
-        output.setDTOIntPagination(intPag);
-        output.setData(Collections.singletonList(fund));
-
-        List<OutputInvestmentFundsDTO> response = Collections.singletonList(output);
-
-        PFMHT01001PETransaction spyTransaction = spy(transaction);
-
-        ArgumentCaptor<PaginationDTO> paginationCaptor = ArgumentCaptor.forClass(PaginationDTO.class);
-        ArgumentCaptor<LinksDTO> linksCaptor = ArgumentCaptor.forClass(LinksDTO.class);
-
-        doNothing().when(spyTransaction).setResponseOut(any());
-        doNothing().when(spyTransaction).setDTOIntPagination(any());
-        doNothing().when(spyTransaction).setPagination(paginationCaptor.capture());
-        doNothing().when(spyTransaction).setDTOPagination(any());
-        doNothing().when(spyTransaction).setDTOLinks(linksCaptor.capture());
-        doNothing().when(spyTransaction).setData(any());
-
-        when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class))).thenReturn(response);
-
-        spyTransaction.execute();
-
-        LinksDTO links = linksCaptor.getValue();
-        assertNotNull(links);
-        assertEquals(LINKS_BASE_PATH + "?page=0&pageSize=5", links.getFirst());
-        assertEquals(LINKS_BASE_PATH + "?page=0&pageSize=5", links.getLast());
-        assertNull(links.getPrevious());
-        assertEquals(LINKS_BASE_PATH + "?paginationKey=11&pageSize=5", links.getNext());
-
-        PaginationDTO pagination = paginationCaptor.getValue();
-        assertNotNull(pagination);
-        assertEquals(links, pagination.getLinks());
-        assertEquals(Integer.valueOf(1), pagination.getTotalElements());
-        assertEquals(Integer.valueOf(0), pagination.getPage());
-        assertEquals(Integer.valueOf(5), pagination.getPageSize());
-        assertEquals(Integer.valueOf(1), pagination.getTotalPages());
-    }
-
-    @Test
-    public void testExecute_DefaultBasePathUsedWhenNothingConfigured() {
-        doReturn("   ").when(applicationConfigurationService).getProperty("pfmht01001pe.links.base-path");
-
-        IntPaginationDTO intPag = new IntPaginationDTO();
-        intPag.setPaginationKey("9");
-        intPag.setPageSize(2L);
-
-        InvestmentFund fund = new InvestmentFund();
-        OutputInvestmentFundsDTO output = new OutputInvestmentFundsDTO();
-        output.setDTOIntPagination(intPag);
-        output.setData(Collections.singletonList(fund));
-
-        List<OutputInvestmentFundsDTO> response = Collections.singletonList(output);
-
-        PFMHT01001PETransaction spyTransaction = spy(transaction);
-
-        ArgumentCaptor<PaginationDTO> paginationCaptor = ArgumentCaptor.forClass(PaginationDTO.class);
-        ArgumentCaptor<LinksDTO> linksCaptor = ArgumentCaptor.forClass(LinksDTO.class);
-
-        doNothing().when(spyTransaction).setResponseOut(any());
-        doNothing().when(spyTransaction).setDTOIntPagination(any());
-        doNothing().when(spyTransaction).setPagination(paginationCaptor.capture());
-        doNothing().when(spyTransaction).setDTOPagination(any());
-        doNothing().when(spyTransaction).setDTOLinks(linksCaptor.capture());
-        doNothing().when(spyTransaction).setData(any());
-
-        when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class))).thenReturn(response);
-
-        spyTransaction.execute();
-
-        LinksDTO links = linksCaptor.getValue();
-        assertNotNull(links);
-        assertEquals(LINKS_BASE_PATH + "?page=0&pageSize=2", links.getFirst());
-        assertEquals(LINKS_BASE_PATH + "?page=0&pageSize=2", links.getLast());
-        assertNull(links.getPrevious());
-        assertEquals(LINKS_BASE_PATH + "?paginationKey=9&pageSize=2", links.getNext());
-
-        PaginationDTO pagination = paginationCaptor.getValue();
-        assertNotNull(pagination);
-        assertEquals(links, pagination.getLinks());
-        assertEquals(Integer.valueOf(1), pagination.getTotalElements());
-        assertEquals(Integer.valueOf(0), pagination.getPage());
-        assertEquals(Integer.valueOf(2), pagination.getPageSize());
-        assertEquals(Integer.valueOf(1), pagination.getTotalPages());
+        assertEquals("MAX-LINK", links.getFirst());
+        assertEquals("MAX-LINK", links.getLast());
     }
 
     @Test
     public void testExecute_PreviousLinkUsesInputPageSizeWhenServiceOmit() {
-        when(inputListInvestmentFundsDTO.getPaginationKey()).thenReturn("5");
-        when(inputListInvestmentFundsDTO.getPageSize()).thenReturn(7);
+        when(inputListInvestmentFundsDTO.getPaginationKey()).thenReturn("1");
+        when(inputListInvestmentFundsDTO.getPageSize()).thenReturn(5);
 
         IntPaginationDTO intPag = new IntPaginationDTO();
-        intPag.setPaginationKey("6");
+        intPag.setPaginationKey("2");
         intPag.setPageSize(null);
 
-        InvestmentFund fund = new InvestmentFund();
         OutputInvestmentFundsDTO output = new OutputInvestmentFundsDTO();
         output.setDTOIntPagination(intPag);
-        output.setData(Collections.singletonList(fund));
+        output.setData(Arrays.asList(
+                createFund("F0"),
+                createFund("F1"),
+                createFund("F2"),
+                createFund("F3"),
+                createFund("F4"),
+                createFund("F5"),
+                createFund("F6"),
+                createFund("F7"),
+                createFund("F8"),
+                createFund("F9"),
+                createFund("F10"),
+                createFund("F11"),
+                createFund("F12"),
+                createFund("F13"),
+                createFund("F14")));
 
         List<OutputInvestmentFundsDTO> response = Collections.singletonList(output);
 
@@ -883,13 +779,16 @@ public class PFMHT01001PETransactionTest {
 
         LinksDTO links = linksCaptor.getValue();
         assertNotNull(links);
-        assertEquals(LINKS_BASE_PATH + "?paginationKey=5&pageSize=7", links.getPrevious());
-        assertEquals(LINKS_BASE_PATH + "?paginationKey=6", links.getNext());
+        assertEquals("F4", links.getPrevious());
+        assertEquals("F10", links.getNext());
+        assertEquals("F0", links.getFirst());
+        assertEquals("F14", links.getLast());
 
         PaginationDTO pagination = paginationCaptor.getValue();
-        assertNull(pagination.getPageSize());
-        assertEquals(Integer.valueOf(1), pagination.getTotalElements());
-        assertEquals(Integer.valueOf(0), pagination.getPage());
+        assertEquals(Integer.valueOf(5), pagination.getPageSize());
+        assertEquals(Integer.valueOf(15), pagination.getTotalElements());
+        assertEquals(Integer.valueOf(3), pagination.getTotalPages());
+        assertEquals(Integer.valueOf(1), pagination.getPage());
 
         when(inputListInvestmentFundsDTO.getPaginationKey()).thenReturn(null);
         when(inputListInvestmentFundsDTO.getPageSize()).thenReturn(10);
@@ -906,7 +805,11 @@ public class PFMHT01001PETransactionTest {
 
         OutputInvestmentFundsDTO output = new OutputInvestmentFundsDTO();
         output.setDTOIntPagination(intPag);
-        output.setData(Arrays.asList(new InvestmentFund(), new InvestmentFund(), new InvestmentFund(), new InvestmentFund()));
+        output.setData(Arrays.asList(
+                createFund("F0"),
+                createFund("F1"),
+                createFund("F2"),
+                createFund("F3")));
 
         List<OutputInvestmentFundsDTO> response = Collections.singletonList(output);
 
@@ -934,9 +837,9 @@ public class PFMHT01001PETransactionTest {
 
         LinksDTO links = linksCaptor.getValue();
         assertNotNull(links);
-        assertEquals("/investment-funds/v0/investment-funds?page=0&pageSize=4", links.getFirst());
-        assertEquals("/investment-funds/v0/investment-funds?page=0&pageSize=4", links.getLast());
-        assertEquals("/investment-funds/v0/investment-funds?paginationKey=3&pageSize=4", links.getNext());
+        assertEquals("F0", links.getFirst());
+        assertEquals("F3", links.getLast());
+        assertNull(links.getNext());
         assertNull(links.getPrevious());
 
         when(inputListInvestmentFundsDTO.getPaginationKey()).thenReturn(null);
