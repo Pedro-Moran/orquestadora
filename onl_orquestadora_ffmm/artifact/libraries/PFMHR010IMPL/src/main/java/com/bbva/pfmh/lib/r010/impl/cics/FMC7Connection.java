@@ -224,7 +224,8 @@ public class FMC7Connection extends AbstractLibrary {
 
     public boolean getVisible(String globalContractId, String profileId) {
         if (!isKusuConfigured()) {
-            return false;
+            LOGGER.info("[getVisible] - KUSU no configurado, se marcará visible por defecto");
+            return true;
         }
         LOGGER.info("[getVisible] - globalContractId: {}", globalContractId);
         IdentificationData identificationData = resolveIdentifiers(profileId);
@@ -232,13 +233,14 @@ public class FMC7Connection extends AbstractLibrary {
         LOGGER.info("[getVisible] - resolved profileId: {}", identificationData.getProfileId());
 
         if (!identificationData.hasIdentifiers()) {
-            LOGGER.warn("[getVisible] - unable to resolve identifiers, returning invisible by default");
-            return false;
+            LOGGER.warn("[getVisible] - no fue posible resolver identificadores, se marcará visible por defecto");
+            return true;
         }
 
         List<AliasFavContractEntity> contracts = fetchFavoriteContracts(globalContractId, identificationData);
         if (contracts.isEmpty()) {
-            return false;
+            LOGGER.warn("[getVisible] - sin contratos asociados en KUSU, se marcará visible por defecto");
+            return true;
         }
 
         AliasFavContractEntity matchedContract = findMatchingContract(globalContractId, contracts);
@@ -564,14 +566,14 @@ public class FMC7Connection extends AbstractLibrary {
     private boolean applyFallbackDecision(VisibilityFallbackState fallbackState) {
         switch (fallbackState) {
             case EXPLICIT_INVISIBLE:
-                LOGGER.info("[getVisible] - returning invisible due to explicit indicator");
+                LOGGER.info("[getVisible] - contrato marcado como no visible por indicador explícito");
                 return false;
             case MISSING_INDICATOR:
-                LOGGER.info("[getVisible] - defaulting to visible because indicators are missing");
+                LOGGER.info("[getVisible] - se usará visibilidad por defecto al no existir indicadores");
                 return true;
             default:
-                LOGGER.info("[getVisible] - no indicator information available, returning invisible by default");
-                return false;
+                LOGGER.info("[getVisible] - sin información de indicadores, se marcará visible por defecto");
+                return true;
         }
     }
 

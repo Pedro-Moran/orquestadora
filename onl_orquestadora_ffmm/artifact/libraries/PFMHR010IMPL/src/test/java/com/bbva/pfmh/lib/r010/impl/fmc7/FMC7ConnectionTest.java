@@ -372,18 +372,18 @@ public class FMC7ConnectionTest {
     }
 
     @Test
-    public void testGetVisible_ReturnsFalseWhenKusuNotConfigured() {
+    public void testGetVisible_DefaultsToVisibleWhenKusuNotConfigured() {
         fmc7Connection.setKusuR325(null);
         boolean visible = fmc7Connection.getVisible("PE00112233", "profile");
-        assertFalse(visible);
+        assertTrue(visible);
     }
 
     @Test
-    public void testGetVisible_ReturnsFalseWhenIdentifiersMissing() {
+    public void testGetVisible_DefaultsToVisibleWhenIdentifiersMissing() {
         reset(kusuR325);
         clearTransactionRequest();
         boolean visible = fmc7Connection.getVisible("PE00112233", null);
-        assertFalse(visible);
+        assertTrue(visible);
     }
 
     @Test
@@ -435,7 +435,7 @@ public class FMC7ConnectionTest {
     }
 
     @Test
-    public void testGetVisible_ReturnsFalseWhenKusuResponseEmpty() {
+    public void testGetVisible_DefaultsToVisibleWhenKusuResponseEmpty() {
         reset(kusuR325);
         CommonRequestHeader header = headerWithIdentifiers("user777", "profile777");
         assignTransactionRequestHeader(header);
@@ -444,7 +444,7 @@ public class FMC7ConnectionTest {
                 .thenReturn(Collections.emptyList());
 
         boolean visible = fmc7Connection.getVisible("PE00112233", null);
-        assertFalse(visible);
+        assertTrue(visible);
     }
 
     @Test
@@ -643,12 +643,12 @@ public class FMC7ConnectionTest {
     }
 
     @Test
-    public void testGetVisible_KusurNull() {
+    public void testGetVisible_DefaultsVisibleWhenKusurNull() {
         fmc7Connection.setKusuR325(null);
 
         boolean result = fmc7Connection.getVisible("PE00112233", "user123");
 
-        assertFalse(result);
+        assertTrue(result);
     }
 
     @Test
@@ -661,12 +661,12 @@ public class FMC7ConnectionTest {
     }
 
     @Test
-    public void testGetVisible_EmptyList() {
+    public void testGetVisible_DefaultsVisibleWhenListEmpty() {
         when(kusuR325.executeGetAliasFavoriteContractsList(anyString(), anyString(), Mockito.<AliasFavContractEntity>anyList())).thenReturn(Collections.emptyList());
 
         boolean result = fmc7Connection.getVisible("PE00112233", "user123");
 
-        assertFalse(result);
+        assertTrue(result);
     }
 
     @Test
