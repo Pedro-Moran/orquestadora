@@ -69,6 +69,9 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         LOGGER.debug("response detail -> {}", payload);
 
         LinksDTO links = buildLinks(availableFunds, summary.getVisibleFunds());
+        if (links == null && summary.hasVisibleFunds() && !availableFunds.isEmpty()) {
+            links = buildFallbackLinks(summary, normalizedPageSize, currentPage);
+        }
         applyPaginationMetadata(paginationNode, links, summary, normalizedPageSize, currentPage);
 
         this.setDTOLinks(links);
@@ -398,6 +401,46 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         }
 
         return hasAnyLinkValue(links) ? links : null;
+    }
+
+    private LinksDTO buildFallbackLinks(ResponseSummary summary,
+                                        Integer normalizedPageSize,
+                                        int currentPage) {
+        if (summary == null) {
+            return null;
+        }
+
+        int totalElements = summary.getTotalElements();
+        if (totalElements <= 0) {
+            return null;
+        }
+
+        if (normalizedPageSize == null || normalizedPageSize <= 0) {
+            return null;
+        }
+
+        int totalPages = (int) Math.ceil((double) totalElements / normalizedPageSize);
+        if (totalPages <= 0) {
+            return null;
+        }
+
+        int lastPageIndex = Math.max(totalPages - 1, 0);
+        int clampedCurrentPage = Math.min(Math.max(currentPage, 0), lastPageIndex);
+
+        LinksDTO links = new LinksDTO();
+        // Enlaces basados en índices como respaldo cuando no hay identificadores disponibles
+        links.setFirst("0");
+        links.setLast(String.valueOf(lastPageIndex));
+
+        if (clampedCurrentPage > 0) {
+            links.setPrevious(String.valueOf(clampedCurrentPage - 1));
+        }
+
+        if (clampedCurrentPage < lastPageIndex) {
+            links.setNext(String.valueOf(clampedCurrentPage + 1));
+        }
+
+        return links;
     }
 
     private boolean hasAnyLinkValue(LinksDTO links) {
