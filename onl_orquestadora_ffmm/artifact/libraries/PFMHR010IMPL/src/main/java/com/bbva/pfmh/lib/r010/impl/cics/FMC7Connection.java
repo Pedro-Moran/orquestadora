@@ -224,7 +224,7 @@ public class FMC7Connection extends AbstractLibrary {
 
     public boolean getVisible(String globalContractId, String profileId) {
         if (!isKusuConfigured()) {
-            LOGGER.info("[getVisible] - KUSU no configurado, se marcará visible por defecto");
+            LOGGER.info("[getVisible] - KUSU no configurado, se mantendrá la visibilidad por defecto (visible)");
             return true;
         }
         LOGGER.info("[getVisible] - globalContractId: {}", globalContractId);
@@ -233,13 +233,13 @@ public class FMC7Connection extends AbstractLibrary {
         LOGGER.info("[getVisible] - resolved profileId: {}", identificationData.getProfileId());
 
         if (!identificationData.hasIdentifiers()) {
-            LOGGER.warn("[getVisible] - no fue posible resolver identificadores, se marcará visible por defecto");
+            LOGGER.warn("[getVisible] - no fue posible resolver identificadores, se mantendrá la visibilidad por defecto (visible)");
             return true;
         }
 
         List<AliasFavContractEntity> contracts = fetchFavoriteContracts(globalContractId, identificationData);
         if (contracts.isEmpty()) {
-            LOGGER.warn("[getVisible] - sin contratos asociados en KUSU, se marcará visible por defecto");
+            LOGGER.warn("[getVisible] - sin contratos asociados en KUSU, se mantendrá la visibilidad por defecto (visible)");
             return true;
         }
 
@@ -257,8 +257,13 @@ public class FMC7Connection extends AbstractLibrary {
         return applyFallbackDecision(evaluation.getFallbackState());
     }
 
+    public boolean tieneSoporteKusu() {
+        // Se expone para que la transacción pueda decidir la visibilidad ante la ausencia de KUSU.
+        return kusuR325 != null;
+    }
+
     private boolean isKusuConfigured() {
-        if (kusuR325 != null) {
+        if (tieneSoporteKusu()) {
             return true;
         }
         LOGGER.warn("[getVisible] - kusur325 no configurado");
@@ -572,8 +577,9 @@ public class FMC7Connection extends AbstractLibrary {
                 LOGGER.info("[getVisible] - se usará visibilidad por defecto al no existir indicadores");
                 return true;
             default:
-                LOGGER.info("[getVisible] - sin información de indicadores, se marcará visible por defecto");
-                return true;
+                // Ajuste: ante ausencia total de información se fuerza la invisibilidad para evitar mostrar datos sin confirmación.
+                LOGGER.info("[getVisible] - sin información de indicadores, se marcará no visible por defecto");
+                return false;
         }
     }
 

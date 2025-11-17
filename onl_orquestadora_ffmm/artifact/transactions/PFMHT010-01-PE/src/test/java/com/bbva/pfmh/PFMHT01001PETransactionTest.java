@@ -30,6 +30,7 @@ import org.springframework.web.client.RestClientException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doReturn;
@@ -37,6 +38,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 
 
 public class PFMHT01001PETransactionTest {
@@ -117,6 +119,14 @@ public class PFMHT01001PETransactionTest {
     private InvestmentFund createFund(String id) {
         InvestmentFund fund = new InvestmentFund();
         fund.setInvestmentFundId(id);
+        return fund;
+    }
+
+    private InvestmentFund createFundWithoutIdentifiers(String alias) {
+        InvestmentFund fund = new InvestmentFund();
+        fund.setInvestmentFundId(null);
+        fund.setNumber(null);
+        fund.setAlias(alias);
         return fund;
     }
 
@@ -844,5 +854,74 @@ public class PFMHT01001PETransactionTest {
 
         when(inputListInvestmentFundsDTO.getPaginationKey()).thenReturn(null);
         when(inputListInvestmentFundsDTO.getPageSize()).thenReturn(10);
+    }
+
+    @Test
+    public void testExecute_UsaLinksDeRespaldoCuandoNoHayIdentificadores() {
+        when(inputListInvestmentFundsDTO.getPaginationKey()).thenReturn("1");
+        when(inputListInvestmentFundsDTO.getPageSize()).thenReturn(2);
+
+        IntPaginationDTO intPagination = new IntPaginationDTO();
+        intPagination.setPaginationKey("1");
+        intPagination.setPageSize(2L);
+
+        InvestmentFund primerFondo = createFundWithoutIdentifiers("F0");
+        InvestmentFund segundoFondo = createFundWithoutIdentifiers("F1");
+        InvestmentFund tercerFondo = createFundWithoutIdentifiers("F2");
+
+        OutputInvestmentFundsDTO output = new OutputInvestmentFundsDTO();
+        output.setDTOIntPagination(intPagination);
+        output.setData(Arrays.asList(primerFondo, segundoFondo, tercerFondo));
+
+        List<OutputInvestmentFundsDTO> response = Collections.singletonList(output);
+
+        PFMHT01001PETransaction spyTransaction = spy(transaction);
+
+        ArgumentCaptor<List> responseCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<LinksDTO> linksCaptor = ArgumentCaptor.forClass(LinksDTO.class);
+
+        doNothing().when(spyTransaction).setPagination(any());
+        doNothing().when(spyTransaction).setDTOIntPagination(any());
+        doNothing().when(spyTransaction).setDTOPagination(any());
+        doNothing().when(spyTransaction).setData(any());
+        doNothing().when(spyTransaction).setResponseOut(responseCaptor.capture());
+        doNothing().when(spyTransaction).setDTOLinks(linksCaptor.capture());
+
+        when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class))).thenReturn(response);
+
+        spyTransaction.execute();
+
+        verify(spyTransaction, times(1)).setDTOLinks(any());
+
+        LinksDTO fallbackLinks = linksCaptor.getValue();
+        assertNotNull(fallbackLinks);
+        assertEquals("0", fallbackLinks.getFirst());
+        assertEquals("1", fallbackLinks.getLast());
+        assertEquals("0", fallbackLinks.getPrevious());
+        assertNull(fallbackLinks.getNext());
+
+        List<OutputInvestmentFundsDTO> sobresVisibles = responseCaptor.getValue();
+        assertEquals(1, sobresVisibles.size());
+        List<InvestmentFund> fondosVisibles = sobresVisibles.get(0).getData();
+        assertEquals(1, fondosVisibles.size());
+        assertEquals(tercerFondo, fondosVisibles.get(0));
+        assertEquals(Severity.OK, spyTransaction.getSeverity());
+
+        when(inputListInvestmentFundsDTO.getPaginationKey()).thenReturn(null);
+        when(inputListInvestmentFundsDTO.getPageSize()).thenReturn(10);
+    }
+
+    @Test
+    public void testExecute_PropagaErroresNoControlados() {
+        PFMHT01001PETransaction spyTransaction = spy(transaction);
+
+        when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class)))
+                .thenAnswer(invocation -> {
+                    throw new AssertionError("error crítico");
+                });
+
+        assertThrows("Se esperaba que se propagara el AssertionError", AssertionError.class, spyTransaction::execute);
+
+        verify(spyTransaction, never()).setResponseOut(any());
     }
 }

@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 
 public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
@@ -91,47 +91,59 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
     private InvocationOutcome invokeLibrary(PFMHR010 pfmhR010,
                                             InputListInvestmentFundsDTO input) {
-        AtomicBoolean failureHandled = new AtomicBoolean(false);
+        AtomicReference<Throwable> fatalCause = new AtomicReference<>();
 
-        List<OutputInvestmentFundsDTO> response = CompletableFuture.completedFuture(input)
+        InvocationOutcome outcome = CompletableFuture.completedFuture(input)
                 .thenApply(pfmhR010::executeGetFFMMStatements)
-                .handle((result, throwable) -> {
-                    if (throwable != null) {
-                        Throwable cause = unwrap(throwable);
-                        if (handleKnownFailure(cause)) {
-                            failureHandled.set(true);
-                            return Collections.emptyList();
-                        }
-                        return propagate(cause);
+                .thenApply(this::normalizeResponse)
+                .handle((response, throwable) -> {
+                    if (throwable == null) {
+                        return InvocationOutcome.success(response);
                     }
 
-                    if (result == null) {
-                        LOGGER.warn("PFMHR010 service returned a null body. Falling back to an empty list");
-                        return Collections.emptyList();
+                    Throwable cause = unwrap(throwable);
+                    if (isKnownFailure(cause)) {
+                        return handleKnownFailure(cause);
                     }
 
-                    return result;
+                    fatalCause.set(cause);
+                    return null;
                 })
                 .join();
 
-        return failureHandled.get()
-                ? InvocationOutcome.failure()
-                : InvocationOutcome.success(response);
+        Throwable unhandled = fatalCause.get();
+        if (unhandled != null) {
+            throwUnchecked(unhandled);
+        }
+
+        return outcome;
     }
 
-    private boolean handleKnownFailure(Throwable cause) {
+    private List<OutputInvestmentFundsDTO> normalizeResponse(List<OutputInvestmentFundsDTO> response) {
+        if (response != null) {
+            return response;
+        }
+
+        LOGGER.warn("PFMHR010 devolvió un cuerpo nulo. Se utilizará una lista vacía");
+        return Collections.emptyList();
+    }
+
+    private InvocationOutcome handleKnownFailure(Throwable cause) {
         if (cause instanceof RestClientException) {
-            LOGGER.error("Error executing PFMHR010 service", cause);
-        } else if (cause instanceof IllegalArgumentException
-                || cause instanceof IllegalStateException
-                || cause instanceof NullPointerException) {
-            LOGGER.error("Unexpected error executing PFMHR010 service", cause);
+            LOGGER.error("Error al invocar PFMHR010", cause);
         } else {
-            return false;
+            LOGGER.error("Error inesperado al invocar PFMHR010", cause);
         }
 
         handleFailure();
-        return true;
+        return InvocationOutcome.failure();
+    }
+
+    private boolean isKnownFailure(Throwable cause) {
+        return cause instanceof RestClientException
+                || cause instanceof IllegalArgumentException
+                || cause instanceof IllegalStateException
+                || cause instanceof NullPointerException;
     }
 
     private Throwable unwrap(Throwable throwable) {
@@ -141,14 +153,9 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         return throwable;
     }
 
-    private List<OutputInvestmentFundsDTO> propagate(Throwable throwable) {
-        if (throwable instanceof RuntimeException) {
-            throw (RuntimeException) throwable;
-        }
-        if (throwable instanceof Error) {
-            throw (Error) throwable;
-        }
-        throw new IllegalStateException(throwable);
+    @SuppressWarnings("unchecked")
+    private static <T extends Throwable> void throwUnchecked(Throwable throwable) throws T {
+        throw (T) throwable;
     }
 
     private static final class InvocationOutcome {
