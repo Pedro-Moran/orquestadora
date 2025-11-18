@@ -262,7 +262,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         PaginationDTO pagination = new PaginationDTO();
 
         if (links != null) {
-            pagination.setLinks(links);
+            pagination.setDTOLinks(links);
         }
 
         if (normalizedPageSize != null) {
