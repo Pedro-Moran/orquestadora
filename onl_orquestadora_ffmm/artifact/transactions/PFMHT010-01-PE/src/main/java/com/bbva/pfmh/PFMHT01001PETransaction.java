@@ -84,9 +84,6 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         this.setDTOLinks(links);
 
         updateSeverity(summary);
-        if (!summary.hasVisibleFunds()) {
-            return;
-        }
     }
 
     private void handleFailure() {
