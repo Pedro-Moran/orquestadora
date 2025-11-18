@@ -1,5 +1,10 @@
 GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
-PFMHR010IMPL,com.bbva.pfmh.lib.r010.impl.cics,FMC7Connection,32,561,18,50,7,129,16,33,0,15
-PFMHR010IMPL,com.bbva.pfmh.lib.r010.impl.utils,ValidationUtils,0,36,2,10,0,5,2,7,0,3
+PFMHR010IMPL,com.bbva.pfmh.lib.r010.impl.cics,FMC7Connection.VisibilityEvaluation,0,37,0,2,0,9,0,7,0,6
+PFMHR010IMPL,com.bbva.pfmh.lib.r010.impl.cics,FMC7Connection.IndicatorExtractionResult,0,14,0,0,0,2,0,1,0,1
+PFMHR010IMPL,com.bbva.pfmh.lib.r010.impl.cics,FMC7Connection.VisibilityFallbackState,0,34,0,0,0,4,0,1,0,1
+PFMHR010IMPL,com.bbva.pfmh.lib.r010.impl.cics,FMC7Connection,73,1254,50,171,27,307,47,101,0,36
+PFMHR010IMPL,com.bbva.pfmh.lib.r010.impl.cics,FMC7Connection.IdentificationData,0,35,1,5,0,10,1,6,0,4
+PFMHR010IMPL,com.bbva.pfmh.lib.r010.impl.cics,FMC7Connection.VisibilityIndicator,0,34,0,0,0,4,0,1,0,1
+PFMHR010IMPL,com.bbva.pfmh.lib.r010.impl.utils,ValidationUtils,0,40,2,10,0,7,2,8,0,4
 PFMHR010IMPL,com.bbva.pfmh.lib.r010.impl,PFMHR010Impl,0,25,1,3,0,7,1,4,0,3
 PFMHR010IMPL,com.bbva.pfmh.lib.r010.impl,PFMHR010Abstract,0,15,0,0,0,7,0,4,0,4

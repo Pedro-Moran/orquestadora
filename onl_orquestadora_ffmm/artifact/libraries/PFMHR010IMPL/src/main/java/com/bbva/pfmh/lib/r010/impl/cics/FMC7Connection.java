@@ -7,6 +7,7 @@ import com.bbva.elara.domain.transaction.request.TransactionRequest;
 import com.bbva.elara.domain.transaction.request.header.CommonRequestHeader;
 import com.bbva.elara.library.AbstractLibrary;
 import com.bbva.kusu.dto.users.entity.AliasFavContractEntity;
+import com.bbva.kusu.dto.users.entity.commons.AliasFavCommons;
 import com.bbva.kusu.lib.r325.KUSUR325;
 import com.bbva.pfmh.dto.fmc7.ffmm.FFMM7;
 import com.bbva.pfmh.dto.fmc7.pague.FFMMPagination;
@@ -32,6 +33,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -376,7 +378,7 @@ public class FMC7Connection extends AbstractLibrary {
         }
         return StringUtils.trimToNull(value.toString());
     }
-  
+
     private AliasFavContractEntity findMatchingContract(String globalContractId, List<AliasFavContractEntity> contracts) {
         for (AliasFavContractEntity entity : contracts) {
             if (entity != null && StringUtils.equalsIgnoreCase(globalContractId, entity.getGContractId())) {
@@ -577,7 +579,6 @@ public class FMC7Connection extends AbstractLibrary {
                 LOGGER.info("[getVisible] - se usará visibilidad por defecto al no existir indicadores");
                 return true;
             default:
-                // Ajuste: ante ausencia total de información se fuerza la invisibilidad para evitar mostrar datos sin confirmación.
                 LOGGER.info("[getVisible] - sin información de indicadores, se marcará no visible por defecto");
                 return false;
         }

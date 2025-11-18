@@ -13,12 +13,19 @@ public class ValidationUtils {
     }
 
     public static boolean validationInputIsNullOrEmpty(InputListInvestmentFundsDTO input) {
-<span class="fc bfc" id="L16" title="All 2 branches covered.">        return input == null</span>
-<span class="pc bpc" id="L17" title="1 of 4 branches missed.">                || Objects.isNull(input.getCustomerId()) || input.getCustomerId().isEmpty();</span>
+<span class="fc bfc" id="L16" title="All 2 branches covered.">        if (input == null) {</span>
+<span class="fc" id="L17">            return true;</span>
+        }
+
+<span class="fc" id="L20">        return isBlank(input.getCustomerId());</span>
     }
 
     public static boolean validationResponseIsNullOrEmpty(OutputInvestmentFundsDTO response) {
-<span class="pc bpc" id="L21" title="1 of 6 branches missed.">        return Objects.nonNull(response) &amp;&amp; Objects.nonNull(response.getData()) &amp;&amp; !response.getData().isEmpty();</span>
+<span class="pc bpc" id="L24" title="1 of 6 branches missed.">        return Objects.nonNull(response) &amp;&amp; Objects.nonNull(response.getData()) &amp;&amp; !response.getData().isEmpty();</span>
+    }
+
+    private static boolean isBlank(String value) {
+<span class="pc bpc" id="L28" title="1 of 4 branches missed.">        return value == null || value.trim().isEmpty();</span>
     }
 
 }

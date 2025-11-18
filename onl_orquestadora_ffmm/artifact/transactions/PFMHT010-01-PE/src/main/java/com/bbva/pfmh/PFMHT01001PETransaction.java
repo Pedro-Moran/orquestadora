@@ -1,6 +1,5 @@
 package com.bbva.pfmh;
 
-import com.bbva.elara.domain.transaction.Severity;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.InputListInvestmentFundsDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.IntPaginationDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.LinksDTO;
@@ -8,6 +7,7 @@ import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.OutputInvestmentFundsDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.PaginationDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.InvestmentFund;
 import com.bbva.pfmh.lib.r010.PFMHR010;
+import com.bbva.elara.domain.transaction.Severity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestClientException;
@@ -354,8 +354,8 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         }
 
         private void consume(OutputInvestmentFundsDTO dto,
-                              List<InvestmentFund> funds,
-                              List<OutputInvestmentFundsDTO> limited) {
+                             List<InvestmentFund> funds,
+                             List<OutputInvestmentFundsDTO> limited) {
             if (funds.isEmpty() || isComplete()) {
                 return;
             }
@@ -509,7 +509,6 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
         return null;
     }
-
     private Long asLong(Integer value) {
         return value == null ? null : value.longValue();
     }
@@ -578,7 +577,6 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
         return sanitized.isEmpty() ? Collections.emptyList() : sanitized;
     }
-
     private OutputInvestmentFundsDTO sanitizeInvestmentFund(OutputInvestmentFundsDTO dto) {
         if (dto == null) {
             return null;

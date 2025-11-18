@@ -1,4 +1,10 @@
-com\bbva\pfmh\lib\r010\impl\PFMHR010Impl.class
 com\bbva\pfmh\lib\r010\impl\cics\FMC7Connection.class
+com\bbva\pfmh\lib\r010\impl\cics\FMC7Connection$VisibilityIndicator.class
+com\bbva\pfmh\lib\r010\impl\cics\FMC7Connection$VisibilityFallbackState.class
 com\bbva\pfmh\lib\r010\impl\utils\ValidationUtils.class
 com\bbva\pfmh\lib\r010\impl\PFMHR010Abstract.class
+com\bbva\pfmh\lib\r010\impl\cics\FMC7Connection$1.class
+com\bbva\pfmh\lib\r010\impl\PFMHR010Impl.class
+com\bbva\pfmh\lib\r010\impl\cics\FMC7Connection$IndicatorExtractionResult.class
+com\bbva\pfmh\lib\r010\impl\cics\FMC7Connection$VisibilityEvaluation.class
+com\bbva\pfmh\lib\r010\impl\cics\FMC7Connection$IdentificationData.class

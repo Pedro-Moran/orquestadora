@@ -3,6 +3,7 @@ package com.bbva.pfmh.lib.r010.impl;
 import com.bbva.elara.configuration.manager.application.ApplicationConfigurationService;
 import com.bbva.elara.domain.transaction.Context;
 import com.bbva.elara.domain.transaction.ThreadContext;
+import com.bbva.kbtq.lib.r518.KBTQR518;
 import com.bbva.kusu.dto.users.entity.AliasFavContractEntity;
 import com.bbva.kusu.lib.r325.KUSUR325;
 import com.bbva.pfmh.dto.fmc7.ffmm.FFMM7;
@@ -36,6 +37,9 @@ public class PFMHR010ImplTest {
 
     @Mock
     private KUSUR325 kusuR325;
+
+    @Mock
+    private KBTQR518 kbtqR518;
 
     @Mock
     private ApplicationConfigurationService applicationConfigurationService;

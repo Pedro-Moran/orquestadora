@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1756355282029
+Bnd-LastModified: 1762309554544
 Build-Jdk-Spec: 11
 Bundle-Category: library
 Bundle-Description: libreria interna
@@ -12,17 +12,21 @@ Import-Package: com.bbva.pfmh.dto.fmc7.ffmm;version="0.0",com.bbva.pfmh.
  dto.fmc7.pague;version="0.0",com.bbva.pfmh.dto.fmc7.request;version="0.
  0",com.bbva.pfmh.dto.fmc7.response;version="0.0",com.bbva.elara.configu
  ration.manager.application;version="0.0",com.bbva.elara.configuration.m
- anager.application.factory;version="0.0",com.bbva.elara.library;version
- ="0.0",com.bbva.kusu.dto.users.entity;version="0.0",com.bbva.kusu.lib.r
- 325;version="0.0",com.bbva.pfmh.dto.jcisconnector.ffmm.commons;version=
- "0.0",com.bbva.pfmh.dto.jcisconnector.ffmm.investmen;version="0.0",com.
- bbva.pfmh.lib.r010;version="0.0",com.bbva.pfmh.lib.r015;version="0.0",j
- ava.lang,java.lang.invoke,java.math,java.util,java.util.function,java.u
- til.stream,org.apache.commons.lang;version="0.0",org.slf4j;version="0.0
- ",com.bbva.ksan.dto.c101;version="0.0",com.bbva.pfmh.dto.fmc7.constant;
- version="0.0",com.bbva.elara.aspect;version="0.0",org.aopalliance.aop;v
- ersion="0.0",org.osgi.framework;version="0.0",org.springframework.aop;v
- ersion="0.0",org.springframework.aop.framework;version="0.0",org.spring
- framework.core;version="0.0",spring;version="0.0"
+ anager.application.factory;version="0.0",com.bbva.elara.domain.transact
+ ion;version="0.0",com.bbva.elara.domain.transaction.request;version="0.
+ 0",com.bbva.elara.domain.transaction.request.header;version="0.0",com.b
+ bva.elara.library;version="0.0",com.bbva.kusu.dto.users.entity;version=
+ "0.0",com.bbva.kusu.dto.users.entity.commons;version="0.0",com.bbva.kus
+ u.lib.r325;version="0.0",com.bbva.pfmh.dto.jcisconnector.ffmm.commons;v
+ ersion="0.0",com.bbva.pfmh.dto.jcisconnector.ffmm.investmen;version="0.
+ 0",com.bbva.pfmh.lib.r010;version="0.0",com.bbva.pfmh.lib.r015;version=
+ "0.0",java.lang,java.lang.invoke,java.lang.reflect,java.math,java.util,
+ java.util.function,java.util.regex,java.util.stream,org.apache.commons.
+ lang;version="0.0",org.slf4j;version="0.0",com.bbva.ksan.dto.c101;versi
+ on="0.0",com.bbva.pfmh.dto.fmc7.constant;version="0.0",com.bbva.elara.a
+ spect;version="0.0",org.aopalliance.aop;version="0.0",org.osgi.framewor
+ k;version="0.0",org.springframework.aop;version="0.0",org.springframewo
+ rk.aop.framework;version="0.0",org.springframework.core;version="0.0",s
+ pring;version="0.0"
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=11))"
 Tool: Bnd-6.3.1.202206071316
