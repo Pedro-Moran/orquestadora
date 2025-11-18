@@ -30,6 +30,13 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         LOGGER.info("[PFMHT010] execute:: START");
         PFMHR010 pfmhR010 = this.getServiceLibrary(PFMHR010.class);
         InputListInvestmentFundsDTO input = this.getInputlistinvestmentfundsdto();
+        if (input == null) {
+            LOGGER.warn("No se recibió InputListInvestmentFundsDTO. Se retorna respuesta vacía");
+            handleFailure();
+            return;
+        }
+
+        InputListInvestmentFundsDTO serviceRequest = buildServiceRequest(input);
 
         String customerId = input.getCustomerId();
         String paginationKey = input.getPaginationKey();
@@ -43,7 +50,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
         LOGGER.info("RBVDT30301PETransaction - START");
 
-        InvocationOutcome outcome = invokeLibrary(pfmhR010, input);
+        InvocationOutcome outcome = invokeLibrary(pfmhR010, serviceRequest);
 
         if (outcome.isFailureHandled()) {
             return;
@@ -63,7 +70,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         this.setResponseOut(payload);
         this.setData(availableFunds);
 
-        ResponseSummary summary = summarizeResponse(payload, availableFunds, sanitizedResponse);
+        ResponseSummary summary = summarizeResponse(payload, availableFunds);
 
         LOGGER.info("response envelopes -> {}, investment funds -> {}", payload.size(), summary.getVisibleFunds().size());
         LOGGER.debug("response detail -> {}", payload);
@@ -87,6 +94,17 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         this.setData(Collections.emptyList());
         this.setDTOLinks(null);
         this.setSeverity(Severity.ENR);
+    }
+
+    private InputListInvestmentFundsDTO buildServiceRequest(InputListInvestmentFundsDTO original) {
+        if (original == null) {
+            return null;
+        }
+
+        InputListInvestmentFundsDTO request = new InputListInvestmentFundsDTO();
+        request.setCustomerId(original.getCustomerId());
+        request.setProfileId(original.getProfileId());
+        return request;
     }
 
     private InvocationOutcome invokeLibrary(PFMHR010 pfmhR010,
@@ -193,11 +211,9 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
     }
 
     private ResponseSummary summarizeResponse(List<OutputInvestmentFundsDTO> payload,
-                                              List<InvestmentFund> availableFunds,
-                                              List<OutputInvestmentFundsDTO> sanitizedResponse) {
+                                              List<InvestmentFund> availableFunds) {
         List<InvestmentFund> visibleFunds = extractFunds(payload);
-        boolean hasFunds = !visibleFunds.isEmpty();
-        int totalElements = hasFunds ? availableFunds.size() : sanitizedResponse.size();
+        int totalElements = availableFunds == null ? 0 : availableFunds.size();
         return new ResponseSummary(visibleFunds, totalElements);
     }
 
@@ -211,19 +227,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         }
 
         this.setDTOIntPagination(paginationNode);
-
-        Long servicePageSize = paginationNode.getPageSize();
-        boolean missingPageSize = servicePageSize == null || servicePageSize <= 0;
-        boolean shouldMapPagination = summary.hasVisibleFunds() || missingPageSize;
-
-        if (!shouldMapPagination) {
-            return;
-        }
-
-        Integer paginationPageSize = (!summary.hasVisibleFunds() && missingPageSize) ? null : normalizedPageSize;
-        int currentPageIndex = (missingPageSize && !summary.hasVisibleFunds()) ? 0 : currentPage;
-
-        PaginationDTO pagination = mapPagination(summary.getTotalElements(), links, paginationPageSize, currentPageIndex);
+        PaginationDTO pagination = mapPagination(summary.getTotalElements(), links, normalizedPageSize, currentPage);
         this.setPagination(pagination);
         this.setDTOPagination(pagination);
     }
@@ -498,11 +502,15 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
     }
 
     private Integer resolvePageSize(IntPaginationDTO paginationNode, InputListInvestmentFundsDTO input) {
-        if (paginationNode == null || paginationNode.getPageSize() == null || paginationNode.getPageSize() <= 0) {
-            return input != null ? normalizePageSize(asLong(input.getPageSize())) : null;
+        if (input != null && input.getPageSize() != null && input.getPageSize() > 0) {
+            return normalizePageSize(asLong(input.getPageSize()));
         }
 
-        return normalizePageSize(paginationNode.getPageSize());
+        if (paginationNode != null && paginationNode.getPageSize() != null && paginationNode.getPageSize() > 0) {
+            return normalizePageSize(paginationNode.getPageSize());
+        }
+
+        return null;
     }
 
     private Long asLong(Integer value) {
