@@ -380,12 +380,18 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
     }
 
     private List<InvestmentFund> extractFunds(OutputInvestmentFundsDTO dto) {
-        if (dto == null) {
+        if (dto == null || dto.getData() == null || dto.getData().isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<InvestmentFund> funds = dto.getData();
-        return funds == null ? Collections.emptyList() : funds;
+        List<InvestmentFund> funds = new ArrayList<>();
+        for (InvestmentFund fund : dto.getData()) {
+            if (fund != null) {
+                funds.add(fund);
+            }
+        }
+
+        return funds.isEmpty() ? Collections.emptyList() : funds;
     }
 
     private final class PageWindow {
@@ -719,8 +725,9 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
         List<InvestmentFund> funds = new ArrayList<>();
         for (OutputInvestmentFundsDTO dto : response) {
-            if (dto != null && dto.getData() != null && !dto.getData().isEmpty()) {
-                funds.addAll(dto.getData());
+            List<InvestmentFund> dtoFunds = extractFunds(dto);
+            if (!dtoFunds.isEmpty()) {
+                funds.addAll(dtoFunds);
             }
         }
 
