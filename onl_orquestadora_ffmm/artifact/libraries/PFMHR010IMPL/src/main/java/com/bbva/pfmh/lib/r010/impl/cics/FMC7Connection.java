@@ -127,12 +127,12 @@ public class FMC7Connection extends AbstractLibrary {
             }
         }
 
-        applyPagination(dtoIntInvestmentFundsList, responsefmc7.getPagination());
+        attachPaginationMetadata(dtoIntInvestmentFundsList, responsefmc7.getPagination());
         LOGGER.info("***** PFMH010Impl - mapFMC7ouput - dtoIntInvestmentFundsList: {} *****", dtoIntInvestmentFundsList);
         return dtoIntInvestmentFundsList;
     }
 
-    private void applyPagination(List<OutputInvestmentFundsDTO> funds, FFMMPagination pagination) {
+    private void attachPaginationMetadata(List<OutputInvestmentFundsDTO> funds, FFMMPagination pagination) {
         if (pagination == null || funds.isEmpty()) {
             return;
         }
