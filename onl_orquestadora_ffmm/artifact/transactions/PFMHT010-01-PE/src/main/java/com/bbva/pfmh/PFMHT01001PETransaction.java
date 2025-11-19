@@ -75,12 +75,14 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         LOGGER.debug("response detail -> {}", payload);
 
         LinksDTO links = buildLinks(availableFunds, summary.getVisibleFunds());
-        if (links == null && summary.hasVisibleFunds() && !availableFunds.isEmpty()) {
-            links = buildFallbackLinks(summary, normalizedPageSize, currentPage);
-        }
-        applyPaginationMetadata(paginationNode, links, summary, normalizedPageSize, currentPage);
 
-        this.setDTOLinks(links);
+        PaginationDTO pagination = mapPagination(summary, links, normalizedPageSize, currentPage);
+        LinksDTO paginationLinks = ensurePaginationLinks(pagination, summary, normalizedPageSize, currentPage);
+        LinksDTO exposedLinks = synchronizePaginationLinks(pagination, paginationLinks);
+
+        applyPaginationMetadata(paginationNode, pagination);
+
+        this.setDTOLinks(exposedLinks);
 
         updateSeverity(summary);
     }
@@ -214,19 +216,15 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
     }
 
     private void applyPaginationMetadata(IntPaginationDTO paginationNode,
-                                         LinksDTO links,
-                                         ResponseSummary summary,
-                                         Integer normalizedPageSize,
-                                         int currentPage) {
-        if (summary == null) {
-            return;
-        }
-
+                                         PaginationDTO pagination) {
         if (paginationNode != null) {
             this.setDTOIntPagination(paginationNode);
         }
 
-        PaginationDTO pagination = mapPagination(summary.getTotalElements(), links, normalizedPageSize, currentPage);
+        if (pagination == null) {
+            return;
+        }
+
         this.setPagination(pagination);
         this.setDTOPagination(pagination);
     }
@@ -258,15 +256,17 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         }
     }
 
-    private PaginationDTO mapPagination(int totalElements,
+    private PaginationDTO mapPagination(ResponseSummary summary,
                                         LinksDTO links,
                                         Integer normalizedPageSize,
                                         int currentPage) {
         PaginationDTO pagination = new PaginationDTO();
 
         if (links != null) {
-            pagination.setDTOLinks(links);
+            pagination.setDTOLinks(copyLinks(links));
         }
+
+        int totalElements = summary == null ? 0 : summary.getTotalElements();
 
         if (normalizedPageSize != null) {
             pagination.setPageSize(normalizedPageSize);
@@ -278,6 +278,52 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         pagination.setTotalElements(totalElements);
         pagination.setPage(currentPage);
         return pagination;
+    }
+
+    private LinksDTO ensurePaginationLinks(PaginationDTO pagination,
+                                           ResponseSummary summary,
+                                           Integer normalizedPageSize,
+                                           int currentPage) {
+        if (pagination == null) {
+            return new LinksDTO();
+        }
+
+        LinksDTO links = pagination.getDTOLinks();
+        if (hasAnyLinkValue(links)) {
+            return links;
+        }
+
+        LinksDTO fallback = buildFallbackLinks(summary, normalizedPageSize, currentPage);
+        if (fallback == null) {
+            fallback = buildPaginationLinksFromMetadata(pagination);
+        }
+
+        if (fallback != null) {
+            pagination.setDTOLinks(fallback);
+            return fallback;
+        }
+
+        if (links == null) {
+            links = new LinksDTO();
+            pagination.setDTOLinks(links);
+        }
+
+        return links;
+    }
+
+    private LinksDTO synchronizePaginationLinks(PaginationDTO pagination, LinksDTO paginationLinks) {
+        LinksDTO resolvedLinks = paginationLinks;
+        if (resolvedLinks == null) {
+            resolvedLinks = new LinksDTO();
+        }
+
+        // Se clonan los enlaces para evitar compartir referencias entre los parámetros expuestos
+        LinksDTO snapshot = copyLinks(resolvedLinks);
+        if (pagination != null) {
+            pagination.setDTOLinks(copyLinks(resolvedLinks));
+        }
+
+        return snapshot;
     }
 
     private int computeStartIndex(int currentPage, Integer normalizedPageSize) {
@@ -453,11 +499,58 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         return links;
     }
 
+    private LinksDTO buildPaginationLinksFromMetadata(PaginationDTO pagination) {
+        if (pagination == null) {
+            return null;
+        }
+
+        Integer totalPages = pagination.getTotalPages();
+        Integer currentPage = pagination.getPage();
+
+        if (totalPages == null || totalPages <= 0 || currentPage == null) {
+            return null;
+        }
+
+        int lastPageIndex = Math.max(totalPages - 1, 0);
+        int normalizedCurrent = Math.min(Math.max(currentPage, 0), lastPageIndex);
+
+        LinksDTO links = new LinksDTO();
+        links.setFirst("0");
+        links.setLast(String.valueOf(lastPageIndex));
+
+        if (normalizedCurrent > 0) {
+            links.setPrevious(String.valueOf(normalizedCurrent - 1));
+        }
+
+        if (normalizedCurrent < lastPageIndex) {
+            links.setNext(String.valueOf(normalizedCurrent + 1));
+        }
+
+        return links;
+    }
+
     private boolean hasAnyLinkValue(LinksDTO links) {
+        if (links == null) {
+            return false;
+        }
+
         return links.getFirst() != null
                 || links.getLast() != null
                 || links.getPrevious() != null
                 || links.getNext() != null;
+    }
+
+    private LinksDTO copyLinks(LinksDTO source) {
+        if (source == null) {
+            return null;
+        }
+
+        LinksDTO copy = new LinksDTO();
+        copy.setFirst(source.getFirst());
+        copy.setLast(source.getLast());
+        copy.setPrevious(source.getPrevious());
+        copy.setNext(source.getNext());
+        return copy;
     }
 
     private String describeFund(InvestmentFund fund) {

@@ -4,18 +4,20 @@ import java.io.Serializable;
 
 public class PaginationDTO implements Serializable {
     private static final long serialVersionUID = 8268731132101006705L;
-    private LinksDTO dtoLinks;
+    @SuppressWarnings("java:S116")
+    // Mantener la coincidencia con el descriptor aunque el atributo cumpla el estándar camelCase
+    private LinksDTO DTOLinks;
     private Integer page;
     private Integer totalPages;
     private Integer totalElements;
     private Integer pageSize;
 
     public LinksDTO getDTOLinks() {
-        return dtoLinks;
+        return DTOLinks;
     }
 
     public void setDTOLinks(LinksDTO dtoLinks) {
-        this.dtoLinks = dtoLinks;
+        this.DTOLinks = dtoLinks;
     }
 
     public Integer getPage() {
@@ -53,7 +55,7 @@ public class PaginationDTO implements Serializable {
     @Override
     public String toString() {
         return "DTOPagination{" +
-                "DTOLinks=" + dtoLinks +
+                "DTOLinks=" + DTOLinks +
                 ", page=" + page +
                 ", totalPages=" + totalPages +
                 ", totalElements=" + totalElements +
