@@ -158,6 +158,24 @@ public class PFMHT01001PETransactionTest {
         return (T) method.invoke(transaction, args);
     }
 
+    private void assertEmptyLinks(LinksDTO links) {
+        // Utilidad centralizada para verificar enlaces vacíos sin saturar cada caso de prueba
+        assertNotNull(links);
+        assertNull(links.getFirst());
+        assertNull(links.getLast());
+        assertNull(links.getNext());
+        assertNull(links.getPrevious());
+    }
+
+    private void assertPaginationDefaults(PaginationDTO pagination, int expectedPageSize) {
+        // Verificación compacta del DTO de paginación expuesto por la transacción
+        assertNotNull(pagination);
+        assertEquals(Integer.valueOf(0), pagination.getTotalElements());
+        assertEquals(Integer.valueOf(0), pagination.getTotalPages());
+        assertEquals(Integer.valueOf(expectedPageSize), pagination.getPageSize());
+        assertEquals(Integer.valueOf(0), pagination.getPage());
+    }
+
 
     @Test
     public void testExecute_ResponseNotNull() {
@@ -200,22 +218,10 @@ public class PFMHT01001PETransactionTest {
         verify(spyTransaction, times(1)).setDTOPagination(any());
         verify(spyTransaction, times(1)).setDTOLinks(any());
         LinksDTO exposedLinks = linksCaptor.getValue();
-        assertNotNull(exposedLinks);
-        assertNull(exposedLinks.getFirst());
-        assertNull(exposedLinks.getLast());
-        assertNull(exposedLinks.getNext());
-        assertNull(exposedLinks.getPrevious());
+        assertEmptyLinks(exposedLinks);
         PaginationDTO pagination = paginationCaptor.getValue();
-        assertEquals(Integer.valueOf(0), pagination.getPage());
-        assertEquals(Integer.valueOf(0), pagination.getTotalElements());
-        assertEquals(Integer.valueOf(0), pagination.getTotalPages());
-        assertEquals(Integer.valueOf(10), pagination.getPageSize());
-        LinksDTO paginationLinks = pagination.getDTOLinks();
-        assertNotNull(paginationLinks);
-        assertNull(paginationLinks.getFirst());
-        assertNull(paginationLinks.getLast());
-        assertNull(paginationLinks.getNext());
-        assertNull(paginationLinks.getPrevious());
+        assertPaginationDefaults(pagination, 10);
+        assertEmptyLinks(pagination.getDTOLinks());
         assertEquals(pagination, dtoPaginationCaptor.getValue());
     }
 
@@ -250,25 +256,12 @@ public class PFMHT01001PETransactionTest {
         verify(spyTransaction, times(1)).setDTOPagination(any());
         verify(spyTransaction, times(1)).setDTOLinks(any());
         LinksDTO exposedLinks = linksCaptor.getValue();
-        assertNotNull(exposedLinks);
-        assertNull(exposedLinks.getFirst());
-        assertNull(exposedLinks.getLast());
-        assertNull(exposedLinks.getNext());
-        assertNull(exposedLinks.getPrevious());
+        assertEmptyLinks(exposedLinks);
         verify(spyTransaction, times(1)).setData(any());
         assertEquals(Collections.emptyList(), dataCaptor.getValue());
         PaginationDTO pagination = paginationCaptor.getValue();
-        assertNotNull(pagination);
-        assertEquals(Integer.valueOf(0), pagination.getTotalElements());
-        assertEquals(Integer.valueOf(0), pagination.getTotalPages());
-        assertEquals(Integer.valueOf(10), pagination.getPageSize());
-        assertEquals(Integer.valueOf(0), pagination.getPage());
-        LinksDTO paginationLinks = pagination.getDTOLinks();
-        assertNotNull(paginationLinks);
-        assertNull(paginationLinks.getFirst());
-        assertNull(paginationLinks.getLast());
-        assertNull(paginationLinks.getNext());
-        assertNull(paginationLinks.getPrevious());
+        assertPaginationDefaults(pagination, 10);
+        assertEmptyLinks(pagination.getDTOLinks());
         assertEquals(pagination, dtoPaginationCaptor.getValue());
     }
 
