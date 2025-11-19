@@ -827,14 +827,14 @@ public class PFMHT01001PETransactionTest {
                 "updateSeverity",
                 new Class[]{emptySummary.getClass()},
                 emptySummary);
-        verify(spyTransaction, times(1)).setSeverity(Severity.ENR);
+        assertEquals("La severidad debe ajustarse a ENR cuando no hay datos", Severity.ENR, spyTransaction.getSeverity());
 
         invokeTransactionMethod(
                 spyTransaction,
                 "updateSeverity",
                 new Class[]{populatedSummary.getClass()},
                 populatedSummary);
-        verify(spyTransaction, times(1)).setSeverity(Severity.OK);
+        assertEquals("La severidad debe ajustarse a OK cuando existe información", Severity.OK, spyTransaction.getSeverity());
     }
 
     @Test
