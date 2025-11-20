@@ -703,6 +703,59 @@ public class PFMHT01001PETransactionTest {
     }
 
     @Test
+    public void testExposeLinksInicializaEClonaEnlaces() throws Exception {
+        PaginationDTO pagination = new PaginationDTO();
+        PFMHT01001PETransaction spyTransaction = spy(transaction);
+
+        ArgumentCaptor<LinksDTO> linksCaptor = ArgumentCaptor.forClass(LinksDTO.class);
+        doNothing().when(spyTransaction).setDTOLinks(linksCaptor.capture());
+
+        invokeTransactionMethod(
+                spyTransaction,
+                "exposeLinks",
+                new Class[]{LinksDTO.class, PaginationDTO.class},
+                null,
+                pagination);
+
+        LinksDTO captured = linksCaptor.getValue();
+        assertNotNull(captured);
+        assertEmptyLinks(captured);
+        assertNotNull(pagination.getDTOLinks());
+        assertEmptyLinks(pagination.getDTOLinks());
+        assertNotSame("Los enlaces expuestos deben ser copias independientes", captured, pagination.getDTOLinks());
+    }
+
+    @Test
+    public void testExposeLinksNoSobrescribePaginacionExistente() throws Exception {
+        LinksDTO existing = new LinksDTO();
+        existing.setFirst("persistente");
+        PaginationDTO pagination = new PaginationDTO();
+        pagination.setDTOLinks(existing);
+
+        LinksDTO exposed = new LinksDTO();
+        exposed.setNext("nuevo");
+
+        PFMHT01001PETransaction spyTransaction = spy(transaction);
+        ArgumentCaptor<LinksDTO> linksCaptor = ArgumentCaptor.forClass(LinksDTO.class);
+        doNothing().when(spyTransaction).setDTOLinks(linksCaptor.capture());
+
+        invokeTransactionMethod(
+                spyTransaction,
+                "exposeLinks",
+                new Class[]{LinksDTO.class, PaginationDTO.class},
+                exposed,
+                pagination);
+
+        LinksDTO captured = linksCaptor.getValue();
+        assertNotNull(captured);
+        assertEquals("nuevo", captured.getNext());
+        assertNotSame("Se debe exponer una copia de los enlaces originales", exposed, captured);
+        assertSame("Los enlaces previos no deben ser reemplazados", existing, pagination.getDTOLinks());
+        assertEquals("persistente", pagination.getDTOLinks().getFirst());
+        assertNull("Los enlaces previos no deben ser contaminados por los nuevos valores", pagination.getDTOLinks().getNext());
+    }
+
+    @Test
     public void testSynchronizePaginationLinksClonaReferencias() throws Exception {
         PaginationDTO pagination = new PaginationDTO();
         LinksDTO links = new LinksDTO();
@@ -1766,6 +1819,22 @@ public class PFMHT01001PETransactionTest {
 
         when(inputListInvestmentFundsDTO.getPaginationKey()).thenReturn(null);
         when(inputListInvestmentFundsDTO.getPageSize()).thenReturn(10);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testBuildLinksUsaFondosVisiblesCuandoFaltanDisponibles() throws Exception {
+        LinksDTO links = invokeTransactionMethod(
+                "buildLinks",
+                new Class[]{List.class, List.class},
+                null,
+                Arrays.asList(createFund("F0"), createFund("F1")));
+
+        assertNotNull(links);
+        assertEquals("F0", links.getFirst());
+        assertEquals("F1", links.getLast());
+        assertNull(links.getPrevious());
+        assertNull(links.getNext());
     }
 
     @Test

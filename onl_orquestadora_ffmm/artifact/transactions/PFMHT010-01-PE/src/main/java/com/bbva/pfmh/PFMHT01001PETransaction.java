@@ -80,9 +80,9 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         LinksDTO paginationLinks = ensurePaginationLinks(pagination, summary, normalizedPageSize, currentPage);
         LinksDTO exposedLinks = synchronizePaginationLinks(pagination, paginationLinks);
 
-        applyPaginationMetadata(paginationNode, pagination);
+        exposeLinks(exposedLinks, pagination);
 
-        this.setDTOLinks(exposedLinks);
+        applyPaginationMetadata(paginationNode, pagination);
 
         updateSeverity(summary);
     }
@@ -326,6 +326,16 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         return snapshot;
     }
 
+    private void exposeLinks(LinksDTO exposedLinks, PaginationDTO pagination) {
+        LinksDTO safeLinks = exposedLinks == null ? new LinksDTO() : exposedLinks;
+
+        if (pagination != null && pagination.getDTOLinks() == null) {
+            pagination.setDTOLinks(copyLinks(safeLinks));
+        }
+
+        this.setDTOLinks(copyLinks(safeLinks));
+    }
+
     private int computeStartIndex(int currentPage, Integer normalizedPageSize) {
         if (currentPage <= 0 || normalizedPageSize == null || normalizedPageSize <= 0) {
             return 0;
@@ -442,6 +452,12 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
     private LinksDTO buildLinks(List<InvestmentFund> availableFunds,
                                 List<InvestmentFund> visibleFunds) {
+        if ((availableFunds == null || availableFunds.isEmpty()) &&
+                visibleFunds != null && !visibleFunds.isEmpty()) {
+            // Si la respuesta sólo trae los fondos visibles, se reutilizan para exponer enlaces
+            availableFunds = visibleFunds;
+        }
+
         if (availableFunds == null || availableFunds.isEmpty()) {
             return null;
         }
