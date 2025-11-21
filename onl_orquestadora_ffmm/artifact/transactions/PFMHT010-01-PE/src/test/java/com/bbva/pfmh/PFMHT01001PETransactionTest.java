@@ -815,6 +815,26 @@ public class PFMHT01001PETransactionTest {
     }
 
     @Test
+    public void testBuildLinksGeneraFallbackPosicionalConPaginacionActiva() throws Exception {
+        // Comentario en español: se crean fondos sin identificadores válidos para forzar el uso del fallback posicional.
+        InvestmentFund primero = createFundWithoutIdentifiers("ALIAS-1");
+        InvestmentFund segundo = createFundWithoutIdentifiers("ALIAS-2");
+
+        LinksDTO links = invokeTransactionMethod(
+                "buildLinks",
+                new Class[]{List.class, List.class, Integer.class},
+                Arrays.asList(primero, segundo),
+                Arrays.asList(primero),
+                5);
+
+        assertNotNull(links);
+        assertEquals("0", links.getFirst());
+        assertEquals("1", links.getLast());
+        assertNull(links.getPrevious());
+        assertEquals("1", links.getNext());
+    }
+
+    @Test
     public void testBuildPaginationLinksDesdeMetadata() throws Exception {
         PaginationDTO pagination = new PaginationDTO();
         pagination.setTotalPages(4);
@@ -2000,15 +2020,16 @@ public class PFMHT01001PETransactionTest {
         LinksDTO fallbackLinks = linksCaptor.getValue();
         assertNotNull(fallbackLinks);
         assertEquals("0", fallbackLinks.getFirst());
-        assertEquals("1", fallbackLinks.getLast());
+        assertEquals("2", fallbackLinks.getLast());
         assertEquals("0", fallbackLinks.getPrevious());
-        assertNull(fallbackLinks.getNext());
+        assertEquals("2", fallbackLinks.getNext());
 
         List<OutputInvestmentFundsDTO> sobresVisibles = responseCaptor.getValue();
         assertEquals(1, sobresVisibles.size());
         List<InvestmentFund> fondosVisibles = sobresVisibles.get(0).getData();
-        assertEquals(1, fondosVisibles.size());
-        assertEquals(tercerFondo, fondosVisibles.get(0));
+        assertEquals(2, fondosVisibles.size());
+        assertEquals(segundoFondo, fondosVisibles.get(0));
+        assertEquals(tercerFondo, fondosVisibles.get(1));
         assertEquals(Severity.OK, spyTransaction.getSeverity());
 
         when(inputListInvestmentFundsDTO.getPaginationKey()).thenReturn(null);
