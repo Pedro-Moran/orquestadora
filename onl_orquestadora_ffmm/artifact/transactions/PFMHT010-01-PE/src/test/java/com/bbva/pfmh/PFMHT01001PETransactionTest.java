@@ -832,6 +832,35 @@ public class PFMHT01001PETransactionTest {
     }
 
     @Test
+    public void testBuildPositionalLinksUsaIndicesDeLista() throws Exception {
+        InvestmentFund first = createFund("F0");
+        InvestmentFund second = createFund("F1");
+        InvestmentFund third = createFund("F2");
+
+        LinksDTO links = invokeTransactionMethod(
+                "buildPositionalLinks",
+                new Class[]{List.class, List.class},
+                Arrays.asList(first, second, third),
+                Arrays.asList(second));
+
+        assertEquals("0", links.getFirst());
+        assertEquals("2", links.getLast());
+        assertEquals("0", links.getPrevious());
+        assertEquals("2", links.getNext());
+    }
+
+    @Test
+    public void testBuildPositionalLinksRetornaNuloConListaVacia() throws Exception {
+        LinksDTO links = invokeTransactionMethod(
+                "buildPositionalLinks",
+                new Class[]{List.class, List.class},
+                Collections.emptyList(),
+                Collections.emptyList());
+
+        assertNull(links);
+    }
+
+    @Test
     public void testHasAnyLinkValueDetectaValores() throws Exception {
         LinksDTO empty = new LinksDTO();
         boolean none = invokeTransactionMethod("hasAnyLinkValue", new Class[]{LinksDTO.class}, empty);
