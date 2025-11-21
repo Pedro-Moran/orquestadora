@@ -88,9 +88,20 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
     }
 
     private void handleFailure() {
+        // Siempre exponemos la estructura de paginación y enlaces para mantener el contrato de salida
+        LinksDTO emptyLinks = new LinksDTO();
+        PaginationDTO emptyPagination = new PaginationDTO();
+        emptyPagination.setPage(0);
+        emptyPagination.setPageSize(0);
+        emptyPagination.setTotalElements(0);
+        emptyPagination.setTotalPages(0);
+        emptyPagination.setDTOLinks(emptyLinks);
+
         this.setResponseOut(buildEmptyEnvelope(null));
         this.setData(Collections.emptyList());
-        this.setDTOLinks(null);
+        this.setPagination(emptyPagination);
+        this.setDTOPagination(emptyPagination);
+        this.setDTOLinks(copyLinks(emptyLinks));
         this.setSeverity(Severity.ENR);
     }
 

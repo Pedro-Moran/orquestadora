@@ -327,11 +327,14 @@ public class PFMHT01001PETransactionTest {
         PFMHT01001PETransaction spyTransaction = spy(transaction);
 
         ArgumentCaptor<List> responseCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<PaginationDTO> paginationCaptor = ArgumentCaptor.forClass(PaginationDTO.class);
+        ArgumentCaptor<PaginationDTO> dtoPaginationCaptor = ArgumentCaptor.forClass(PaginationDTO.class);
+        ArgumentCaptor<LinksDTO> linksCaptor = ArgumentCaptor.forClass(LinksDTO.class);
         doNothing().when(spyTransaction).setResponseOut(responseCaptor.capture());
-        doNothing().when(spyTransaction).setPagination(any());
+        doNothing().when(spyTransaction).setPagination(paginationCaptor.capture());
         doNothing().when(spyTransaction).setDTOIntPagination(any());
-        doNothing().when(spyTransaction).setDTOPagination(any());
-        doNothing().when(spyTransaction).setDTOLinks(any());
+        doNothing().when(spyTransaction).setDTOPagination(dtoPaginationCaptor.capture());
+        doNothing().when(spyTransaction).setDTOLinks(linksCaptor.capture());
         doNothing().when(spyTransaction).setData(any());
 
         spyTransaction.execute();
@@ -342,7 +345,12 @@ public class PFMHT01001PETransactionTest {
         assertEquals(Collections.emptyList(), response.get(0).getData());
         assertNull(response.get(0).getDTOIntPagination());
         assertEquals(Severity.ENR, spyTransaction.getSeverity());
-        verify(spyTransaction, times(1)).setDTOLinks(null);
+        PaginationDTO pagination = paginationCaptor.getValue();
+        assertPaginationDefaults(pagination, 0);
+        assertEquals(pagination, dtoPaginationCaptor.getValue());
+        LinksDTO links = linksCaptor.getValue();
+        assertEmptyLinks(links);
+        assertEmptyLinks(pagination.getDTOLinks());
     }
 
     @Test
@@ -470,11 +478,14 @@ public class PFMHT01001PETransactionTest {
 
         ArgumentCaptor<List> responseCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<List> dataCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<PaginationDTO> paginationCaptor = ArgumentCaptor.forClass(PaginationDTO.class);
+        ArgumentCaptor<PaginationDTO> dtoPaginationCaptor = ArgumentCaptor.forClass(PaginationDTO.class);
+        ArgumentCaptor<LinksDTO> linksCaptor = ArgumentCaptor.forClass(LinksDTO.class);
         doNothing().when(spyTransaction).setResponseOut(responseCaptor.capture());
-        doNothing().when(spyTransaction).setPagination(any());
+        doNothing().when(spyTransaction).setPagination(paginationCaptor.capture());
         doNothing().when(spyTransaction).setDTOIntPagination(any());
-        doNothing().when(spyTransaction).setDTOPagination(any());
-        doNothing().when(spyTransaction).setDTOLinks(any());
+        doNothing().when(spyTransaction).setDTOPagination(dtoPaginationCaptor.capture());
+        doNothing().when(spyTransaction).setDTOLinks(linksCaptor.capture());
         doNothing().when(spyTransaction).setData(dataCaptor.capture());
         when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class)))
                 .thenThrow(new RestClientException("Error de prueba"));
@@ -488,9 +499,15 @@ public class PFMHT01001PETransactionTest {
         assertEquals(Collections.emptyList(), captured.get(0).getData());
         assertNull(captured.get(0).getDTOIntPagination());
         verify(spyTransaction, times(0)).setDTOIntPagination(any());
-        verify(spyTransaction, times(0)).setPagination(any());
-        verify(spyTransaction, times(0)).setDTOPagination(any());
-        verify(spyTransaction, times(1)).setDTOLinks(null);
+        verify(spyTransaction, times(1)).setPagination(any());
+        verify(spyTransaction, times(1)).setDTOPagination(any());
+        verify(spyTransaction, times(1)).setDTOLinks(any());
+        PaginationDTO pagination = paginationCaptor.getValue();
+        assertPaginationDefaults(pagination, 0);
+        assertEquals(pagination, dtoPaginationCaptor.getValue());
+        LinksDTO links = linksCaptor.getValue();
+        assertEmptyLinks(links);
+        assertEmptyLinks(pagination.getDTOLinks());
         verify(spyTransaction, times(1)).setData(any());
         assertEquals(Collections.emptyList(), dataCaptor.getValue());
     }
@@ -896,11 +913,14 @@ public class PFMHT01001PETransactionTest {
 
         ArgumentCaptor<List> responseCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<List> dataCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<PaginationDTO> paginationCaptor = ArgumentCaptor.forClass(PaginationDTO.class);
+        ArgumentCaptor<PaginationDTO> dtoPaginationCaptor = ArgumentCaptor.forClass(PaginationDTO.class);
+        ArgumentCaptor<LinksDTO> linksCaptor = ArgumentCaptor.forClass(LinksDTO.class);
         doNothing().when(spyTransaction).setResponseOut(responseCaptor.capture());
-        doNothing().when(spyTransaction).setPagination(any());
+        doNothing().when(spyTransaction).setPagination(paginationCaptor.capture());
         doNothing().when(spyTransaction).setDTOIntPagination(any());
-        doNothing().when(spyTransaction).setDTOPagination(any());
-        doNothing().when(spyTransaction).setDTOLinks(any());
+        doNothing().when(spyTransaction).setDTOPagination(dtoPaginationCaptor.capture());
+        doNothing().when(spyTransaction).setDTOLinks(linksCaptor.capture());
         doNothing().when(spyTransaction).setData(dataCaptor.capture());
         when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class)))
                 .thenThrow(new IllegalStateException("Unexpected error"));
@@ -914,9 +934,15 @@ public class PFMHT01001PETransactionTest {
         assertEquals(Collections.emptyList(), captured.get(0).getData());
         assertNull(captured.get(0).getDTOIntPagination());
         verify(spyTransaction, times(0)).setDTOIntPagination(any());
-        verify(spyTransaction, times(0)).setPagination(any());
-        verify(spyTransaction, times(0)).setDTOPagination(any());
-        verify(spyTransaction, times(1)).setDTOLinks(null);
+        verify(spyTransaction, times(1)).setPagination(any());
+        verify(spyTransaction, times(1)).setDTOPagination(any());
+        verify(spyTransaction, times(1)).setDTOLinks(any());
+        PaginationDTO pagination = paginationCaptor.getValue();
+        assertPaginationDefaults(pagination, 0);
+        assertEquals(pagination, dtoPaginationCaptor.getValue());
+        LinksDTO links = linksCaptor.getValue();
+        assertEmptyLinks(links);
+        assertEmptyLinks(pagination.getDTOLinks());
         verify(spyTransaction, times(1)).setData(any());
         assertEquals(Collections.emptyList(), dataCaptor.getValue());
     }
