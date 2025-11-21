@@ -514,13 +514,9 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
         // Comentario en español: si no se pudieron derivar enlaces semánticos porque aún no están
         // inicializados los identificadores de los fondos, se recurre a posiciones ordinales de
-        // la lista ya armada para exponer un DTOLinks coherente con el orden actual.
-        if (normalizedPageSize != null && normalizedPageSize > 0) {
-            // Comentario en español: si hay paginación explícita, se delega el cálculo de DTOLinks
-            // al mecanismo de fallback basado en metadatos de paginación para mantener la
-            // consistencia con la vista paginada.
-            return null;
-        }
+        // la lista ya armada para exponer un DTOLinks coherente con el orden actual. Esto aplica
+        // incluso cuando hay paginación, para asegurar que siempre se expone un enlace coherente
+        // con el subconjunto visible.
         return buildPositionalLinks(sanitizedAvailable, sanitizedVisible);
     }
 
