@@ -483,23 +483,26 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
             availableFunds = visibleFunds;
         }
 
-        if (availableFunds == null || availableFunds.isEmpty()) {
+        List<InvestmentFund> sanitizedAvailable = filterNonNullFunds(availableFunds);
+        List<InvestmentFund> sanitizedVisible = filterNonNullFunds(visibleFunds);
+
+        if (sanitizedAvailable.isEmpty()) {
             return null;
         }
 
         LinksDTO links = new LinksDTO();
-        links.setFirst(describeFund(availableFunds.get(0)));
-        links.setLast(describeFund(availableFunds.get(availableFunds.size() - 1)));
+        links.setFirst(describeFund(sanitizedAvailable.get(0)));
+        links.setLast(describeFund(sanitizedAvailable.get(sanitizedAvailable.size() - 1)));
 
-        if (visibleFunds != null && !visibleFunds.isEmpty()) {
-            int startIndex = indexOf(availableFunds, visibleFunds.get(0));
+        if (!sanitizedVisible.isEmpty()) {
+            int startIndex = indexOf(sanitizedAvailable, sanitizedVisible.get(0));
             if (startIndex > 0) {
-                links.setPrevious(describeFund(availableFunds.get(startIndex - 1)));
+                links.setPrevious(describeFund(sanitizedAvailable.get(startIndex - 1)));
             }
 
-            int endIndex = indexOf(availableFunds, visibleFunds.get(visibleFunds.size() - 1));
-            if (endIndex >= 0 && endIndex + 1 < availableFunds.size()) {
-                links.setNext(describeFund(availableFunds.get(endIndex + 1)));
+            int endIndex = indexOf(sanitizedAvailable, sanitizedVisible.get(sanitizedVisible.size() - 1));
+            if (endIndex >= 0 && endIndex + 1 < sanitizedAvailable.size()) {
+                links.setNext(describeFund(sanitizedAvailable.get(endIndex + 1)));
             }
         }
 
@@ -610,7 +613,38 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
             return identifier;
         }
 
-        return sanitizeKey(fund.getNumber());
+        identifier = sanitizeKey(fund.getNumber());
+        if (identifier != null) {
+            return identifier;
+        }
+
+        // Fallback adicional para escenarios donde el identificador principal no llega informado
+        identifier = sanitizeKey(fund.getAlias());
+        if (identifier == null) {
+            LOGGER.warn("DEBUG PFMHT010 - Fondo sin identificadores válidos para DTOLinks: {}", fund);
+        }
+
+        return identifier;
+    }
+
+    private List<InvestmentFund> filterNonNullFunds(List<InvestmentFund> funds) {
+        if (funds == null) {
+            return Collections.emptyList();
+        }
+
+        List<InvestmentFund> sanitized = new ArrayList<>();
+        for (InvestmentFund fund : funds) {
+            if (fund != null) {
+                sanitized.add(fund);
+            }
+        }
+
+        if (sanitized.size() != funds.size()) {
+            // Comentario en español: se omiten fondos nulos para evitar enlaces incompletos
+            LOGGER.warn("DEBUG PFMHT010 - Se omitieron {} fondos nulos al generar DTOLinks", funds.size() - sanitized.size());
+        }
+
+        return sanitized;
     }
 
     private int indexOf(List<InvestmentFund> funds, InvestmentFund target) {
