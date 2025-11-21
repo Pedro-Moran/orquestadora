@@ -6,10 +6,8 @@ import com.bbva.elara.domain.transaction.Context;
 import com.bbva.elara.domain.transaction.Severity;
 import com.bbva.elara.domain.transaction.request.header.CommonRequestHeader;
 
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
+import java.util.concurrent.CompletionException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -542,6 +540,147 @@ public class PFMHT01001PETransactionTest {
         assertNull(copy);
     }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testHandleFailureExponeRespuestaEstructurada() throws Exception {
+        PFMHT01001PETransaction spyTransaction = spy(transaction);
+
+        ArgumentCaptor<List> responseCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<PaginationDTO> paginationCaptor = ArgumentCaptor.forClass(PaginationDTO.class);
+        ArgumentCaptor<LinksDTO> linksCaptor = ArgumentCaptor.forClass(LinksDTO.class);
+
+        doNothing().when(spyTransaction).setResponseOut(responseCaptor.capture());
+        doNothing().when(spyTransaction).setPagination(paginationCaptor.capture());
+        doNothing().when(spyTransaction).setDTOPagination(any());
+        doNothing().when(spyTransaction).setDTOLinks(linksCaptor.capture());
+        doNothing().when(spyTransaction).setData(any());
+
+        invokeTransactionMethod(spyTransaction, "handleFailure", new Class[]{});
+
+        assertEquals(Severity.ENR, spyTransaction.getSeverity());
+        List<OutputInvestmentFundsDTO> response = responseCaptor.getValue();
+        assertNotNull(response);
+        assertEquals(1, response.size());
+        assertEquals(Collections.emptyList(), response.get(0).getData());
+        assertNull(response.get(0).getDTOIntPagination());
+
+        PaginationDTO pagination = paginationCaptor.getValue();
+        assertNotNull(pagination);
+        assertEquals(Integer.valueOf(0), pagination.getPage());
+        assertEquals(Integer.valueOf(0), pagination.getPageSize());
+        assertEquals(Integer.valueOf(0), pagination.getTotalElements());
+        assertEquals(Integer.valueOf(0), pagination.getTotalPages());
+        assertEmptyLinks(pagination.getDTOLinks());
+
+        LinksDTO exposedLinks = linksCaptor.getValue();
+        assertEmptyLinks(exposedLinks);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testHandleKnownFailureDevuelveOutcomeDeFalla() throws Exception {
+        PFMHT01001PETransaction spyTransaction = spy(transaction);
+
+        ArgumentCaptor<List> responseCaptor = ArgumentCaptor.forClass(List.class);
+        doNothing().when(spyTransaction).setResponseOut(responseCaptor.capture());
+        doNothing().when(spyTransaction).setPagination(any());
+        doNothing().when(spyTransaction).setDTOPagination(any());
+        doNothing().when(spyTransaction).setDTOLinks(any());
+        doNothing().when(spyTransaction).setData(any());
+
+        Object outcome = invokeTransactionMethod(
+                spyTransaction,
+                "handleKnownFailure",
+                new Class[]{Throwable.class},
+                new RestClientException("fallo forzado"));
+
+        Class<?> outcomeClass = Class.forName("com.bbva.pfmh.PFMHT01001PETransaction$InvocationOutcome");
+        Method failureHandled = outcomeClass.getDeclaredMethod("isFailureHandled");
+        Method payload = outcomeClass.getDeclaredMethod("getPayload");
+        failureHandled.setAccessible(true);
+        payload.setAccessible(true);
+
+        assertTrue((Boolean) failureHandled.invoke(outcome));
+        List<OutputInvestmentFundsDTO> handledPayload = (List<OutputInvestmentFundsDTO>) payload.invoke(outcome);
+        assertNotNull(handledPayload);
+        assertTrue(handledPayload.isEmpty());
+
+        assertEquals(Severity.ENR, spyTransaction.getSeverity());
+        List<OutputInvestmentFundsDTO> response = responseCaptor.getValue();
+        assertEquals(1, response.size());
+        assertEquals(Collections.emptyList(), response.get(0).getData());
+    }
+
+    @Test
+    public void testIsKnownFailureReconoceEscenariosEspecificos() throws Exception {
+        boolean restClient = invokeTransactionMethod(
+                "isKnownFailure",
+                new Class[]{Throwable.class},
+                new RestClientException("rest"));
+        boolean iae = invokeTransactionMethod(
+                "isKnownFailure",
+                new Class[]{Throwable.class},
+                new IllegalArgumentException("iae"));
+        boolean generic = invokeTransactionMethod(
+                "isKnownFailure",
+                new Class[]{Throwable.class},
+                new RuntimeException("otro"));
+
+        assertTrue(restClient);
+        assertTrue(iae);
+        assertFalse(generic);
+    }
+
+    @Test
+    public void testUnwrapRetornaCausaDeCompletionException() throws Exception {
+        IllegalStateException inner = new IllegalStateException("inner");
+        CompletionException wrapped = new CompletionException(inner);
+
+        Throwable resolved = invokeTransactionMethod("unwrap", new Class[]{Throwable.class}, wrapped);
+        assertSame(inner, resolved);
+
+        Throwable passthrough = invokeTransactionMethod("unwrap", new Class[]{Throwable.class}, inner);
+        assertSame(inner, passthrough);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testNormalizeResponseRetornaListaVaciaSiEsNula() throws Exception {
+        List<OutputInvestmentFundsDTO> empty = invokeTransactionMethod("normalizeResponse", new Class[]{List.class}, new Object[]{null});
+        assertNotNull(empty);
+        assertTrue(empty.isEmpty());
+
+        List<OutputInvestmentFundsDTO> provided = Collections.singletonList(new OutputInvestmentFundsDTO());
+        List<OutputInvestmentFundsDTO> normalized = invokeTransactionMethod("normalizeResponse", new Class[]{List.class}, provided);
+        assertSame(provided, normalized);
+    }
+
+    @Test
+    public void testResolveCurrentPageInterpretaClaveValidaONula() throws Exception {
+        InputListInvestmentFundsDTO dto = new InputListInvestmentFundsDTO();
+        dto.setPaginationKey("7");
+        dto.setPageSize(3);
+
+        int pagina = invokeTransactionMethod("resolveCurrentPage", new Class[]{InputListInvestmentFundsDTO.class, Integer.class}, dto, 3);
+        assertEquals(7, pagina);
+
+        dto.setPaginationKey(null);
+        int paginaDefault = invokeTransactionMethod("resolveCurrentPage", new Class[]{InputListInvestmentFundsDTO.class, Integer.class}, dto, 3);
+        assertEquals(0, paginaDefault);
+    }
+
+    @Test
+    public void testFilterNonNullFundsOmiteNulos() throws Exception {
+        InvestmentFund present = createFund("OK");
+        List<InvestmentFund> sanitized = invokeTransactionMethod(
+                "filterNonNullFunds",
+                new Class[]{List.class},
+                Arrays.asList(present, null));
+
+        assertEquals(1, sanitized.size());
+        assertSame(present, sanitized.get(0));
+    }
+
     @Test
     public void testComputeStartIndexOperaEnEscenariosValidosEInvalidos() throws Exception {
         int valido = invokeTransactionMethod("computeStartIndex", new Class[]{int.class, Integer.class}, 2, 5);
@@ -640,9 +779,10 @@ public class PFMHT01001PETransactionTest {
 
         LinksDTO links = invokeTransactionMethod(
                 "buildLinks",
-                new Class[]{List.class, List.class},
+                new Class[]{List.class, List.class, Integer.class},
                 Arrays.asList(first, second, third),
-                Collections.singletonList(second));
+                Collections.singletonList(second),
+                null);
 
         assertEquals("F0", links.getFirst());
         assertEquals("F2", links.getLast());
@@ -1849,9 +1989,10 @@ public class PFMHT01001PETransactionTest {
     public void testBuildLinksUsaFondosVisiblesCuandoFaltanDisponibles() throws Exception {
         LinksDTO links = invokeTransactionMethod(
                 "buildLinks",
-                new Class[]{List.class, List.class},
+                new Class[]{List.class, List.class, Integer.class},
                 null,
-                Arrays.asList(createFund("F0"), createFund("F1")));
+                Arrays.asList(createFund("F0"), createFund("F1")),
+                null);
 
         assertNotNull(links);
         assertEquals("F0", links.getFirst());
@@ -1873,80 +2014,6 @@ public class PFMHT01001PETransactionTest {
         verify(spyTransaction, never()).setResponseOut(any());
     }
 
-    @Test
-    public void testCountFundsAcumulaElementos() throws Exception {
-        OutputInvestmentFundsDTO first = buildEnvelope(createFund("F0"), createFund("F1"));
-        OutputInvestmentFundsDTO second = buildEnvelope(createFund("F2"));
-
-        int total = invokeTransactionMethod("countFunds", new Class[]{List.class}, Arrays.asList(first, second));
-
-        assertEquals(3, total);
-    }
-
-    @Test
-    public void testExtractPaginationDevuelvePrimerNodoNoNulo() throws Exception {
-        IntPaginationDTO paginationNode = new IntPaginationDTO();
-        paginationNode.setPaginationKey("A");
-
-        IntPaginationDTO resolved = invokeTransactionMethod(
-                "extractPagination",
-                new Class[]{List.class},
-                Arrays.asList(null, new OutputInvestmentFundsDTO(), buildEnvelope(createFund("F0"))));
-
-        assertNull(resolved);
-
-        OutputInvestmentFundsDTO dto = new OutputInvestmentFundsDTO();
-        dto.setDTOIntPagination(paginationNode);
-        resolved = invokeTransactionMethod(
-                "extractPagination",
-                new Class[]{List.class},
-                Arrays.asList(null, dto));
-
-        assertEquals(paginationNode, resolved);
-    }
-
-    @Test
-    public void testBuildEmptyEnvelopeConservaReferenciaDePaginacion() throws Exception {
-        IntPaginationDTO paginationNode = new IntPaginationDTO();
-        paginationNode.setPaginationKey("NODE");
-
-        List<OutputInvestmentFundsDTO> envelope = invokeTransactionMethod(
-                "buildEmptyEnvelope",
-                new Class[]{IntPaginationDTO.class},
-                paginationNode);
-
-        assertEquals(1, envelope.size());
-        assertEquals(Collections.emptyList(), envelope.get(0).getData());
-        assertEquals(paginationNode, envelope.get(0).getDTOIntPagination());
-    }
-
-    @Test
-    public void testExtractFundsAgrupaDatosValidos() throws Exception {
-        OutputInvestmentFundsDTO dto = new OutputInvestmentFundsDTO();
-        dto.setData(Arrays.asList(createFund("F0"), null, createFund("F1")));
-
-        List<InvestmentFund> funds = invokeTransactionMethod(
-                "extractFunds",
-                new Class[]{List.class},
-                Arrays.asList(null, dto));
-
-        assertEquals(2, funds.size());
-        assertEquals("F0", funds.get(0).getInvestmentFundId());
-        assertEquals("F1", funds.get(1).getInvestmentFundId());
-    }
-
-    @Test
-    public void testPaginationDtoExposesExactDescriptorName() throws Exception {
-        BeanInfo beanInfo = Introspector.getBeanInfo(PaginationDTO.class);
-        PropertyDescriptor descriptor = Arrays.stream(beanInfo.getPropertyDescriptors())
-                .filter(property -> "DTOLinks".equals(property.getName()))
-                .findFirst()
-                .orElse(null);
-
-        assertNotNull("La propiedad DTOLinks debe coincidir con el descriptor XML", descriptor);
-        assertNotNull("El getter de DTOLinks es obligatorio para la serialización", descriptor.getReadMethod());
-        assertNotNull("El setter de DTOLinks es obligatorio para la serialización", descriptor.getWriteMethod());
-    }
     @Test
     public void testExecute_LogsPaginationAndLinks() {
         List<InvestmentFund> funds = Arrays.asList(

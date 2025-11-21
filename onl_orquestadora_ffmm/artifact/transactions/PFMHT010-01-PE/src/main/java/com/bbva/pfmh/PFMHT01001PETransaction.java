@@ -79,7 +79,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         LOGGER.info("response envelopes -> {}, investment funds -> {}", payload.size(), summary.getVisibleFunds().size());
         LOGGER.debug("response detail -> {}", payload);
 
-        LinksDTO links = buildLinks(availableFunds, summary.getVisibleFunds());
+        LinksDTO links = buildLinks(availableFunds, summary.getVisibleFunds(), normalizedPageSize);
         LOGGER.info("linksDTO -> {}", links);
         PaginationDTO pagination = mapPagination(summary, links, normalizedPageSize, currentPage);
         LinksDTO paginationLinks = ensurePaginationLinks(pagination, summary, normalizedPageSize, currentPage);
@@ -477,7 +477,8 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
     }
 
     private LinksDTO buildLinks(List<InvestmentFund> availableFunds,
-                                List<InvestmentFund> visibleFunds) {
+                                List<InvestmentFund> visibleFunds,
+                                Integer normalizedPageSize) {
         LOGGER.info("DEBUG PFMHT010 - List<InvestmentFund> antes de exponer: {}", availableFunds);
         if ((availableFunds == null || availableFunds.isEmpty()) &&
                 visibleFunds != null && !visibleFunds.isEmpty()) {
@@ -507,7 +508,45 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
             }
         }
 
-        return hasAnyLinkValue(links) ? links : null;
+        if (hasAnyLinkValue(links)) {
+            return links;
+        }
+
+        // Comentario en español: si no se pudieron derivar enlaces semánticos porque aún no están
+        // inicializados los identificadores de los fondos, se recurre a posiciones ordinales de
+        // la lista ya armada para exponer un DTOLinks coherente con el orden actual.
+        if (normalizedPageSize != null && normalizedPageSize > 0) {
+            // Comentario en español: si hay paginación explícita, se delega el cálculo de DTOLinks
+            // al mecanismo de fallback basado en metadatos de paginación para mantener la
+            // consistencia con la vista paginada.
+            return null;
+        }
+        return buildPositionalLinks(sanitizedAvailable, sanitizedVisible);
+    }
+
+    private LinksDTO buildPositionalLinks(List<InvestmentFund> availableFunds,
+                                          List<InvestmentFund> visibleFunds) {
+        if (availableFunds == null || availableFunds.isEmpty()) {
+            return null;
+        }
+
+        LinksDTO positional = new LinksDTO();
+        positional.setFirst("0");
+        positional.setLast(String.valueOf(Math.max(availableFunds.size() - 1, 0)));
+
+        if (visibleFunds != null && !visibleFunds.isEmpty()) {
+            int startIndex = indexOf(availableFunds, visibleFunds.get(0));
+            if (startIndex > 0) {
+                positional.setPrevious(String.valueOf(startIndex - 1));
+            }
+
+            int endIndex = indexOf(availableFunds, visibleFunds.get(visibleFunds.size() - 1));
+            if (endIndex >= 0 && endIndex + 1 < availableFunds.size()) {
+                positional.setNext(String.valueOf(endIndex + 1));
+            }
+        }
+
+        return positional;
     }
 
     private LinksDTO buildFallbackLinks(ResponseSummary summary,
