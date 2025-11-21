@@ -27,7 +27,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
     private static final Logger LOGGER = LoggerFactory.getLogger(PFMHT01001PETransaction.class);
     @Override
     public void execute() {
-        LOGGER.info("[PFMHT010] execute:: START");
+        LOGGER.info("[PFMHT010] execute:: START 2025");
         PFMHR010 pfmhR010 = this.getServiceLibrary(PFMHR010.class);
         InputListInvestmentFundsDTO input = this.getInputlistinvestmentfundsdto();
         if (input == null) {
@@ -50,12 +50,16 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
         LOGGER.info("RBVDT30301PETransaction - START");
 
+        LOGGER.info("DEBUG PFMHT010 - antes de invokeLibrary");
         InvocationOutcome outcome = invokeLibrary(pfmhR010, serviceRequest);
+        LOGGER.info("DEBUG PFMHT010 - después de invokeLibrary, failureHandled={}", outcome.isFailureHandled());
 
         if (outcome.isFailureHandled()) {
+            LOGGER.warn("DEBUG PFMHT010 - outcome.isFailureHandled() = true, saliendo antes de construir paginación");
             return;
         }
 
+        LOGGER.info("DEBUG PFMHT010 - antes de construir rawResponse y paginación");
         List<OutputInvestmentFundsDTO> rawResponse = outcome.getPayload();
 
         IntPaginationDTO paginationNode = extractPagination(rawResponse);
@@ -66,6 +70,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         int startIndex = computeStartIndex(currentPage, normalizedPageSize);
 
         List<OutputInvestmentFundsDTO> payload = resolvePayload(sanitizedResponse, paginationNode, normalizedPageSize, startIndex);
+
         ResponseSummary summary = summarizeResponse(payload, availableFunds);
 
         this.setResponseOut(payload);
@@ -75,13 +80,22 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         LOGGER.debug("response detail -> {}", payload);
 
         LinksDTO links = buildLinks(availableFunds, summary.getVisibleFunds());
-
+        LOGGER.info("linksDTO -> {}", links);
         PaginationDTO pagination = mapPagination(summary, links, normalizedPageSize, currentPage);
         LinksDTO paginationLinks = ensurePaginationLinks(pagination, summary, normalizedPageSize, currentPage);
         LinksDTO exposedLinks = synchronizePaginationLinks(pagination, paginationLinks);
 
         exposeLinks(exposedLinks, pagination);
-
+        LOGGER.info("DEBUG PFMHT010 - PaginationDTO antes de exponer: {}", pagination);
+        if (pagination != null && pagination.getDTOLinks() != null) {
+            LOGGER.info("DEBUG PFMHT010 - DTOLinks -> first={}, last={}, prev={}, next={}",
+                    pagination.getDTOLinks().getFirst(),
+                    pagination.getDTOLinks().getLast(),
+                    pagination.getDTOLinks().getPrevious(),
+                    pagination.getDTOLinks().getNext());
+        } else {
+            LOGGER.info("DEBUG PFMHT010 - DTOLinks es NULL en PaginationDTO");
+        }
         applyPaginationMetadata(paginationNode, pagination);
 
         updateSeverity(summary);
@@ -463,9 +477,9 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
     private LinksDTO buildLinks(List<InvestmentFund> availableFunds,
                                 List<InvestmentFund> visibleFunds) {
+        LOGGER.info("DEBUG PFMHT010 - List<InvestmentFund> antes de exponer: {}", availableFunds);
         if ((availableFunds == null || availableFunds.isEmpty()) &&
                 visibleFunds != null && !visibleFunds.isEmpty()) {
-            // Si la respuesta sólo trae los fondos visibles, se reutilizan para exponer enlaces
             availableFunds = visibleFunds;
         }
 
@@ -753,7 +767,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         List<InvestmentFund> funds = new ArrayList<>();
         for (OutputInvestmentFundsDTO dto : response) {
             List<InvestmentFund> dtoFunds = extractFunds(dto);
-            if (!dtoFunds.isEmpty()) {
+            if (!dtoFunds.isEmpty()){
                 funds.addAll(dtoFunds);
             }
         }

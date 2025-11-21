@@ -16,167 +16,739 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicReference;
 
 
-<span class="fc" id="L21">public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {</span>
+<span class="fc" id="L24">public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {</span>
 
 
-<span class="fc" id="L24">    private static final Logger LOGGER = LoggerFactory.getLogger(PFMHT01001PETransaction.class);</span>
-    // Los enlaces de paginación solo exponen el índice de página
-
+<span class="fc" id="L27">    private static final Logger LOGGER = LoggerFactory.getLogger(PFMHT01001PETransaction.class);</span>
     @Override
     public void execute() {
-<span class="fc" id="L29">        LOGGER.info(&quot;[PFMHT010] execute:: START&quot;);</span>
-<span class="fc" id="L30">        PFMHR010 pfmhR010 = this.getServiceLibrary(PFMHR010.class);</span>
-<span class="fc" id="L31">        InputListInvestmentFundsDTO input = this.getInputlistinvestmentfundsdto();</span>
-
-<span class="fc" id="L33">        String customerId = input.getCustomerId();</span>
-<span class="fc" id="L34">        String paginationKey = input.getPaginationKey();</span>
-<span class="fc" id="L35">        Integer pageSize = input.getPageSize();</span>
-<span class="fc" id="L36">        String profileId = input.getProfileId();</span>
-
-<span class="fc" id="L38">        LOGGER.info(&quot;customerId: {}&quot;, customerId);</span>
-<span class="fc" id="L39">        LOGGER.info(&quot;paginationKey: {}&quot;, paginationKey);</span>
-<span class="fc" id="L40">        LOGGER.info(&quot;pageSize: {}&quot;, pageSize);</span>
-<span class="fc" id="L41">        LOGGER.info(&quot;profileId: {}&quot;, profileId);</span>
-
-<span class="fc" id="L43">        LOGGER.info(&quot;RBVDT30301PETransaction - START&quot;);</span>
-
-        try {
-<span class="fc" id="L46">            List&lt;OutputInvestmentFundsDTO&gt; response = pfmhR010.executeGetFFMMStatements(input);</span>
-<span class="fc bfc" id="L47" title="All 2 branches covered.">            if (response == null) {</span>
-<span class="fc" id="L48">                LOGGER.warn(&quot;PFMHR010 service returned a null body. Falling back to an empty list&quot;);</span>
-<span class="fc" id="L49">                response = Collections.emptyList();</span>
-            } else {
-<span class="fc" id="L51">                response = sanitizeResponse(response);</span>
-            }
-<span class="fc" id="L53">            LOGGER.info(&quot;response size -&gt; {}&quot;, response.size());</span>
-<span class="fc" id="L54">            LOGGER.debug(&quot;response detail -&gt; {}&quot;, response);</span>
-<span class="fc bfc" id="L55" title="All 2 branches covered.">            if (!response.isEmpty()) {</span>
-<span class="fc" id="L56">                this.setResponseOut(response);</span>
-<span class="fc" id="L57">                IntPaginationDTO intPag = response.get(0).getDTOIntPagination();</span>
-<span class="pc bpc" id="L58" title="1 of 2 branches missed.">                if (intPag != null) {</span>
-<span class="fc" id="L59">                    this.setDTOIntPagination(intPag);</span>
-<span class="fc bfc" id="L60" title="All 4 branches covered.">                    if (intPag.getPaginationKey() != null &amp;&amp; intPag.getPageSize() != null) {</span>
-<span class="fc" id="L61">                        BigInteger currentKey = safeParse(intPag.getPaginationKey());</span>
-<span class="fc" id="L62">                        int size = intPag.getPageSize().intValue();</span>
-<span class="fc" id="L63">                        PaginationDTO pagination = mapPagination(currentKey, size, response.size());</span>
-<span class="fc" id="L64">                        this.setPagination(pagination);</span>
-                    }
-                }
-<span class="fc" id="L67">                this.setSeverity(Severity.OK);</span>
-<span class="fc" id="L68">            } else {</span>
-<span class="fc" id="L69">                this.setResponseOut(Collections.emptyList());</span>
-<span class="fc" id="L70">                this.setSeverity(Severity.ENR);</span>
-            }
-<span class="fc" id="L72">        } catch (RestClientException e) {</span>
-<span class="fc" id="L73">            LOGGER.error(&quot;Error executing PFMHR010 service: {}&quot;, e.getMessage());</span>
-<span class="fc" id="L74">            this.setResponseOut(Collections.emptyList());</span>
-<span class="fc" id="L75">            this.setSeverity(Severity.ENR);</span>
-<span class="fc" id="L76">        }</span>
-<span class="fc" id="L77">    }</span>
-
-    private PaginationDTO mapPagination(BigInteger paginationKey, int pageSize, int total) {
-<span class="fc" id="L80">        PaginationDTO pagination = new PaginationDTO();</span>
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        if (total &lt;= 0) {</span>
-<span class="nc" id="L82">            return pagination;</span>
+<span class="fc" id="L30">        LOGGER.info(&quot;[PFMHT010] execute:: START&quot;);</span>
+<span class="fc" id="L31">        PFMHR010 pfmhR010 = this.getServiceLibrary(PFMHR010.class);</span>
+<span class="fc" id="L32">        InputListInvestmentFundsDTO input = this.getInputlistinvestmentfundsdto();</span>
+<span class="fc bfc" id="L33" title="All 2 branches covered.">        if (input == null) {</span>
+<span class="fc" id="L34">            LOGGER.warn(&quot;No se recibió InputListInvestmentFundsDTO. Se retorna respuesta vacía&quot;);</span>
+<span class="fc" id="L35">            handleFailure();</span>
+<span class="fc" id="L36">            return;</span>
         }
 
-<span class="fc bfc" id="L85" title="All 2 branches covered.">        if (pageSize &lt;= 0) {</span>
-<span class="fc" id="L86">            LOGGER.warn(&quot;Invalid page size {}. Falling back to the current result size {}&quot;, pageSize, total);</span>
-<span class="fc" id="L87">            pageSize = Math.max(total, 1);</span>
+<span class="fc" id="L39">        InputListInvestmentFundsDTO serviceRequest = buildServiceRequest(input);</span>
+
+<span class="fc" id="L41">        String customerId = input.getCustomerId();</span>
+<span class="fc" id="L42">        String paginationKey = input.getPaginationKey();</span>
+<span class="fc" id="L43">        Integer pageSize = input.getPageSize();</span>
+<span class="fc" id="L44">        String profileId = input.getProfileId();</span>
+
+<span class="fc" id="L46">        LOGGER.info(&quot;customerId: {}&quot;, customerId);</span>
+<span class="fc" id="L47">        LOGGER.info(&quot;paginationKey: {}&quot;, paginationKey);</span>
+<span class="fc" id="L48">        LOGGER.info(&quot;pageSize: {}&quot;, pageSize);</span>
+<span class="fc" id="L49">        LOGGER.info(&quot;profileId: {}&quot;, profileId);</span>
+
+<span class="fc" id="L51">        LOGGER.info(&quot;RBVDT30301PETransaction - START&quot;);</span>
+
+<span class="fc" id="L53">        InvocationOutcome outcome = invokeLibrary(pfmhR010, serviceRequest);</span>
+
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        if (outcome.isFailureHandled()) {</span>
+<span class="fc" id="L56">            return;</span>
         }
 
-<span class="fc" id="L90">        int totalPages = (int) Math.ceil((double) total / pageSize);</span>
-<span class="fc" id="L91">        int current = normalize(paginationKey);</span>
+<span class="fc" id="L59">        List&lt;OutputInvestmentFundsDTO&gt; rawResponse = outcome.getPayload();</span>
 
-<span class="fc" id="L93">        LinksDTO links = new LinksDTO();</span>
-<span class="fc" id="L94">        links.setFirst(&quot;0&quot;);</span>
-<span class="fc" id="L95">        links.setLast(String.valueOf(totalPages - 1));</span>
-<span class="pc bpc" id="L96" title="1 of 4 branches missed.">        if (current &gt; 0 &amp;&amp; current &lt;= totalPages - 1) {</span>
-<span class="fc" id="L97">            links.setPrevious(String.valueOf(current - 1));</span>
-        }
-<span class="fc bfc" id="L99" title="All 2 branches covered.">        if (current &lt; totalPages - 1) {</span>
-<span class="fc" id="L100">            links.setNext(String.valueOf(current + 1));</span>
+<span class="fc" id="L61">        IntPaginationDTO paginationNode = extractPagination(rawResponse);</span>
+<span class="fc" id="L62">        List&lt;OutputInvestmentFundsDTO&gt; sanitizedResponse = sanitizeResponse(rawResponse);</span>
+<span class="fc" id="L63">        List&lt;InvestmentFund&gt; availableFunds = extractFunds(sanitizedResponse);</span>
+<span class="fc" id="L64">        Integer normalizedPageSize = resolvePageSize(paginationNode, input);</span>
+<span class="fc" id="L65">        int currentPage = resolveCurrentPage(input, normalizedPageSize);</span>
+<span class="fc" id="L66">        int startIndex = computeStartIndex(currentPage, normalizedPageSize);</span>
+
+<span class="fc" id="L68">        List&lt;OutputInvestmentFundsDTO&gt; payload = resolvePayload(sanitizedResponse, paginationNode, normalizedPageSize, startIndex);</span>
+
+<span class="fc" id="L70">        ResponseSummary summary = summarizeResponse(payload, availableFunds);</span>
+
+<span class="fc" id="L72">        this.setResponseOut(payload);</span>
+<span class="fc" id="L73">        this.setData(summary.getVisibleFunds());</span>
+
+<span class="fc" id="L75">        LOGGER.info(&quot;response envelopes -&gt; {}, investment funds -&gt; {}&quot;, payload.size(), summary.getVisibleFunds().size());</span>
+<span class="fc" id="L76">        LOGGER.debug(&quot;response detail -&gt; {}&quot;, payload);</span>
+
+<span class="fc" id="L78">        LinksDTO links = buildLinks(availableFunds, summary.getVisibleFunds());</span>
+<span class="fc" id="L79">        LOGGER.info(&quot;linksDTO -&gt; {}&quot;, links);</span>
+<span class="fc" id="L80">        PaginationDTO pagination = mapPagination(summary, links, normalizedPageSize, currentPage);</span>
+<span class="fc" id="L81">        LinksDTO paginationLinks = ensurePaginationLinks(pagination, summary, normalizedPageSize, currentPage);</span>
+<span class="fc" id="L82">        LinksDTO exposedLinks = synchronizePaginationLinks(pagination, paginationLinks);</span>
+
+<span class="fc" id="L84">        exposeLinks(exposedLinks, pagination);</span>
+
+<span class="fc" id="L86">        applyPaginationMetadata(paginationNode, pagination);</span>
+
+<span class="fc" id="L88">        updateSeverity(summary);</span>
+<span class="fc" id="L89">    }</span>
+
+    private void handleFailure() {
+<span class="fc" id="L92">        this.setResponseOut(buildEmptyEnvelope(null));</span>
+<span class="fc" id="L93">        this.setData(Collections.emptyList());</span>
+<span class="fc" id="L94">        this.setDTOLinks(null);</span>
+<span class="fc" id="L95">        this.setSeverity(Severity.ENR);</span>
+<span class="fc" id="L96">    }</span>
+
+    private InputListInvestmentFundsDTO buildServiceRequest(InputListInvestmentFundsDTO original) {
+<span class="fc bfc" id="L99" title="All 2 branches covered.">        if (original == null) {</span>
+<span class="fc" id="L100">            return null;</span>
         }
 
-<span class="fc" id="L103">        pagination.setLinks(links);</span>
-<span class="fc" id="L104">        pagination.setPage(current);</span>
-<span class="fc" id="L105">        pagination.setTotalPages(totalPages);</span>
-<span class="fc" id="L106">        pagination.setTotalElements(total);</span>
-<span class="fc" id="L107">        pagination.setPageSize(pageSize);</span>
-<span class="fc" id="L108">        return pagination;</span>
+<span class="fc" id="L103">        InputListInvestmentFundsDTO request = new InputListInvestmentFundsDTO();</span>
+<span class="fc" id="L104">        request.setCustomerId(original.getCustomerId());</span>
+<span class="fc" id="L105">        request.setProfileId(original.getProfileId());</span>
+<span class="fc" id="L106">        return request;</span>
     }
 
-    private int normalize(BigInteger key) {
-<span class="pc bpc" id="L112" title="2 of 4 branches missed.">        if (key == null || key.signum() &lt; 0) {</span>
-<span class="nc" id="L113">            return 0;</span>
+    private InvocationOutcome invokeLibrary(PFMHR010 pfmhR010,
+                                            InputListInvestmentFundsDTO input) {
+<span class="fc" id="L111">        AtomicReference&lt;Throwable&gt; fatalCause = new AtomicReference&lt;&gt;();</span>
+
+<span class="fc" id="L113">        InvocationOutcome outcome = CompletableFuture.completedFuture(input)</span>
+<span class="fc" id="L114">                .thenApply(pfmhR010::executeGetFFMMStatements)</span>
+<span class="fc" id="L115">                .thenApply(this::normalizeResponse)</span>
+<span class="fc" id="L116">                .handle((response, throwable) -&gt; {</span>
+<span class="fc bfc" id="L117" title="All 2 branches covered.">                    if (throwable == null) {</span>
+<span class="fc" id="L118">                        return InvocationOutcome.success(response);</span>
+                    }
+
+<span class="fc" id="L121">                    Throwable cause = unwrap(throwable);</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">                    if (isKnownFailure(cause)) {</span>
+<span class="fc" id="L123">                        return handleKnownFailure(cause);</span>
+                    }
+
+<span class="fc" id="L126">                    fatalCause.set(cause);</span>
+<span class="fc" id="L127">                    return null;</span>
+                })
+<span class="fc" id="L129">                .join();</span>
+
+<span class="fc" id="L131">        Throwable unhandled = fatalCause.get();</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">        if (unhandled != null) {</span>
+<span class="nc" id="L133">            throwUnchecked(unhandled);</span>
         }
 
-<span class="fc" id="L116">        BigInteger maxInt = BigInteger.valueOf(Integer.MAX_VALUE);</span>
-<span class="fc bfc" id="L117" title="All 2 branches covered.">        if (key.compareTo(maxInt) &gt; 0) {</span>
-<span class="fc" id="L118">            return 0;</span>
+<span class="fc" id="L136">        return outcome;</span>
+    }
+
+    private List&lt;OutputInvestmentFundsDTO&gt; normalizeResponse(List&lt;OutputInvestmentFundsDTO&gt; response) {
+<span class="fc bfc" id="L140" title="All 2 branches covered.">        if (response != null) {</span>
+<span class="fc" id="L141">            return response;</span>
         }
 
-<span class="fc" id="L121">        return key.intValue();</span>
+<span class="fc" id="L144">        LOGGER.warn(&quot;PFMHR010 devolvió un cuerpo nulo. Se utilizará una lista vacía&quot;);</span>
+<span class="fc" id="L145">        return Collections.emptyList();</span>
+    }
+
+    private InvocationOutcome handleKnownFailure(Throwable cause) {
+<span class="fc bfc" id="L149" title="All 2 branches covered.">        if (cause instanceof RestClientException) {</span>
+<span class="fc" id="L150">            LOGGER.error(&quot;Error al invocar PFMHR010&quot;, cause);</span>
+        } else {
+<span class="fc" id="L152">            LOGGER.error(&quot;Error inesperado al invocar PFMHR010&quot;, cause);</span>
+        }
+
+<span class="fc" id="L155">        handleFailure();</span>
+<span class="fc" id="L156">        return InvocationOutcome.failure();</span>
+    }
+
+    private boolean isKnownFailure(Throwable cause) {
+<span class="pc bpc" id="L160" title="2 of 8 branches missed.">        return cause instanceof RestClientException</span>
+                || cause instanceof IllegalArgumentException
+                || cause instanceof IllegalStateException
+                || cause instanceof NullPointerException;
+    }
+
+    private Throwable unwrap(Throwable throwable) {
+<span class="pc bpc" id="L167" title="2 of 4 branches missed.">        if (throwable instanceof CompletionException &amp;&amp; throwable.getCause() != null) {</span>
+<span class="fc" id="L168">            return throwable.getCause();</span>
+        }
+<span class="nc" id="L170">        return throwable;</span>
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    private static &lt;T extends Throwable&gt; void throwUnchecked(Throwable throwable) throws T {
+<span class="fc" id="L175">        throw (T) throwable;</span>
+    }
+
+    private static final class InvocationOutcome {
+        private final List&lt;OutputInvestmentFundsDTO&gt; payload;
+        private final boolean failureHandled;
+
+<span class="fc" id="L182">        private InvocationOutcome(List&lt;OutputInvestmentFundsDTO&gt; payload, boolean failureHandled) {</span>
+<span class="fc" id="L183">            this.payload = payload;</span>
+<span class="fc" id="L184">            this.failureHandled = failureHandled;</span>
+<span class="fc" id="L185">        }</span>
+
+        static InvocationOutcome success(List&lt;OutputInvestmentFundsDTO&gt; payload) {
+<span class="fc" id="L188">            return new InvocationOutcome(payload, false);</span>
+        }
+
+        static InvocationOutcome failure() {
+<span class="fc" id="L192">            return new InvocationOutcome(Collections.emptyList(), true);</span>
+        }
+
+        List&lt;OutputInvestmentFundsDTO&gt; getPayload() {
+<span class="fc" id="L196">            return payload;</span>
+        }
+
+        boolean isFailureHandled() {
+<span class="fc" id="L200">            return failureHandled;</span>
+        }
+    }
+
+    private List&lt;OutputInvestmentFundsDTO&gt; resolvePayload(List&lt;OutputInvestmentFundsDTO&gt; sanitizedResponse,
+                                                          IntPaginationDTO paginationNode,
+                                                          Integer normalizedPageSize,
+                                                          int startIndex) {
+<span class="fc" id="L208">        List&lt;OutputInvestmentFundsDTO&gt; paginatedResponse = applyPageSize(sanitizedResponse, normalizedPageSize, startIndex);</span>
+<span class="fc bfc" id="L209" title="All 2 branches covered.">        return paginatedResponse.isEmpty() ? buildEmptyEnvelope(paginationNode) : paginatedResponse;</span>
+    }
+
+    private ResponseSummary summarizeResponse(List&lt;OutputInvestmentFundsDTO&gt; payload,
+                                              List&lt;InvestmentFund&gt; availableFunds) {
+<span class="fc" id="L214">        List&lt;InvestmentFund&gt; visibleFunds = extractFunds(payload);</span>
+<span class="pc bpc" id="L215" title="1 of 2 branches missed.">        int totalElements = availableFunds == null ? 0 : availableFunds.size();</span>
+<span class="fc" id="L216">        return new ResponseSummary(visibleFunds, totalElements);</span>
+    }
+
+    private void applyPaginationMetadata(IntPaginationDTO paginationNode,
+                                         PaginationDTO pagination) {
+<span class="fc bfc" id="L221" title="All 2 branches covered.">        if (paginationNode != null) {</span>
+<span class="fc" id="L222">            this.setDTOIntPagination(paginationNode);</span>
+        }
+
+<span class="fc bfc" id="L225" title="All 2 branches covered.">        if (pagination == null) {</span>
+<span class="fc" id="L226">            return;</span>
+        }
+
+<span class="fc" id="L229">        this.setPagination(pagination);</span>
+<span class="fc" id="L230">        this.setDTOPagination(pagination);</span>
+<span class="fc" id="L231">    }</span>
+
+    private void updateSeverity(ResponseSummary summary) {
+<span class="fc bfc" id="L234" title="All 2 branches covered.">        Severity severity = summary.hasVisibleFunds() ? Severity.OK : Severity.ENR;</span>
+<span class="fc" id="L235">        this.setSeverity(severity);</span>
+<span class="fc" id="L236">    }</span>
+
+    private final class ResponseSummary {
+        private final List&lt;InvestmentFund&gt; visibleFunds;
+        private final int totalElements;
+
+<span class="fc" id="L242">        private ResponseSummary(List&lt;InvestmentFund&gt; visibleFunds, int totalElements) {</span>
+<span class="pc bpc" id="L243" title="1 of 2 branches missed.">            this.visibleFunds = visibleFunds == null ? Collections.emptyList() : visibleFunds;</span>
+<span class="fc" id="L244">            this.totalElements = totalElements;</span>
+<span class="fc" id="L245">        }</span>
+
+        private List&lt;InvestmentFund&gt; getVisibleFunds() {
+<span class="fc" id="L248">            return visibleFunds;</span>
+        }
+
+        private boolean hasVisibleFunds() {
+<span class="fc bfc" id="L252" title="All 2 branches covered.">            return !visibleFunds.isEmpty();</span>
+        }
+
+        private int getTotalElements() {
+<span class="fc" id="L256">            return totalElements;</span>
+        }
+    }
+
+    private PaginationDTO mapPagination(ResponseSummary summary,
+                                        LinksDTO links,
+                                        Integer normalizedPageSize,
+                                        int currentPage) {
+<span class="fc" id="L264">        PaginationDTO pagination = new PaginationDTO();</span>
+
+<span class="fc bfc" id="L266" title="All 2 branches covered.">        if (links != null) {</span>
+<span class="fc" id="L267">            pagination.setDTOLinks(copyLinks(links));</span>
+        }
+
+<span class="pc bpc" id="L270" title="1 of 2 branches missed.">        int totalElements = summary == null ? 0 : summary.getTotalElements();</span>
+
+<span class="pc bpc" id="L272" title="1 of 2 branches missed.">        if (normalizedPageSize != null) {</span>
+<span class="fc" id="L273">            pagination.setPageSize(normalizedPageSize);</span>
+<span class="pc bpc" id="L274" title="1 of 2 branches missed.">            if (normalizedPageSize &gt; 0) {</span>
+<span class="fc" id="L275">                pagination.setTotalPages((int) Math.ceil((double) totalElements / normalizedPageSize));</span>
+            }
+        }
+
+<span class="fc" id="L279">        pagination.setTotalElements(totalElements);</span>
+<span class="fc" id="L280">        pagination.setPage(currentPage);</span>
+<span class="fc" id="L281">        return pagination;</span>
+    }
+
+    private LinksDTO ensurePaginationLinks(PaginationDTO pagination,
+                                           ResponseSummary summary,
+                                           Integer normalizedPageSize,
+                                           int currentPage) {
+<span class="fc bfc" id="L288" title="All 2 branches covered.">        if (pagination == null) {</span>
+<span class="fc" id="L289">            return new LinksDTO();</span>
+        }
+
+<span class="fc" id="L292">        LinksDTO links = pagination.getDTOLinks();</span>
+<span class="fc bfc" id="L293" title="All 2 branches covered.">        if (hasAnyLinkValue(links)) {</span>
+<span class="fc" id="L294">            return links;</span>
+        }
+
+<span class="fc" id="L297">        LinksDTO fallback = buildFallbackLinks(summary, normalizedPageSize, currentPage);</span>
+<span class="fc bfc" id="L298" title="All 2 branches covered.">        if (fallback == null) {</span>
+<span class="fc" id="L299">            fallback = buildPaginationLinksFromMetadata(pagination);</span>
+        }
+
+<span class="fc bfc" id="L302" title="All 2 branches covered.">        if (fallback != null) {</span>
+<span class="fc" id="L303">            pagination.setDTOLinks(fallback);</span>
+<span class="fc" id="L304">            return fallback;</span>
+        }
+
+<span class="pc bpc" id="L307" title="1 of 2 branches missed.">        if (links == null) {</span>
+<span class="fc" id="L308">            links = new LinksDTO();</span>
+<span class="fc" id="L309">            pagination.setDTOLinks(links);</span>
+        }
+
+<span class="fc" id="L312">        return links;</span>
+    }
+
+    private LinksDTO synchronizePaginationLinks(PaginationDTO pagination, LinksDTO paginationLinks) {
+<span class="fc" id="L316">        LinksDTO resolvedLinks = paginationLinks;</span>
+<span class="pc bpc" id="L317" title="1 of 2 branches missed.">        if (resolvedLinks == null) {</span>
+<span class="nc" id="L318">            resolvedLinks = new LinksDTO();</span>
+        }
+
+        // Se clonan los enlaces para evitar compartir referencias entre los parámetros expuestos
+<span class="fc" id="L322">        LinksDTO snapshot = copyLinks(resolvedLinks);</span>
+<span class="pc bpc" id="L323" title="1 of 2 branches missed.">        if (pagination != null) {</span>
+<span class="fc" id="L324">            pagination.setDTOLinks(copyLinks(resolvedLinks));</span>
+        }
+
+<span class="fc" id="L327">        return snapshot;</span>
+    }
+
+    private void exposeLinks(LinksDTO exposedLinks, PaginationDTO pagination) {
+<span class="fc bfc" id="L331" title="All 2 branches covered.">        LinksDTO safeLinks = exposedLinks == null ? new LinksDTO() : exposedLinks;</span>
+
+<span class="pc bpc" id="L333" title="1 of 4 branches missed.">        if (pagination != null &amp;&amp; pagination.getDTOLinks() == null) {</span>
+<span class="fc" id="L334">            pagination.setDTOLinks(copyLinks(safeLinks));</span>
+        }
+
+<span class="fc" id="L337">        this.setDTOLinks(copyLinks(safeLinks));</span>
+<span class="fc" id="L338">    }</span>
+
+    private int computeStartIndex(int currentPage, Integer normalizedPageSize) {
+<span class="pc bpc" id="L341" title="1 of 6 branches missed.">        if (currentPage &lt;= 0 || normalizedPageSize == null || normalizedPageSize &lt;= 0) {</span>
+<span class="fc" id="L342">            return 0;</span>
+        }
+
+<span class="fc" id="L345">        long candidate = (long) currentPage * normalizedPageSize;</span>
+<span class="fc bfc" id="L346" title="All 2 branches covered.">        return candidate &gt; Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) candidate;</span>
+    }
+
+    private List&lt;OutputInvestmentFundsDTO&gt; applyPageSize(List&lt;OutputInvestmentFundsDTO&gt; response,
+                                                         Integer normalizedPageSize,
+                                                         int startIndex) {
+<span class="pc bpc" id="L352" title="1 of 4 branches missed.">        if (response == null || response.isEmpty()) {</span>
+<span class="pc bpc" id="L353" title="1 of 2 branches missed.">            return response == null ? Collections.emptyList() : response;</span>
+        }
+
+<span class="pc bpc" id="L356" title="1 of 4 branches missed.">        if (normalizedPageSize == null || normalizedPageSize &lt;= 0) {</span>
+<span class="fc" id="L357">            return response;</span>
+        }
+
+<span class="fc" id="L360">        int totalFunds = countFunds(response);</span>
+<span class="fc bfc" id="L361" title="All 2 branches covered.">        if (totalFunds &lt;= 0) {</span>
+<span class="fc" id="L362">            return response;</span>
+        }
+
+<span class="fc bfc" id="L365" title="All 4 branches covered.">        if (startIndex &lt;= 0 &amp;&amp; normalizedPageSize &gt;= totalFunds) {</span>
+<span class="fc" id="L366">            return response;</span>
+        }
+
+<span class="fc" id="L369">        List&lt;OutputInvestmentFundsDTO&gt; limited = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L370">        PageWindow window = new PageWindow(startIndex, normalizedPageSize);</span>
+<span class="fc bfc" id="L371" title="All 2 branches covered.">        for (OutputInvestmentFundsDTO dto : response) {</span>
+<span class="fc bfc" id="L372" title="All 2 branches covered.">            if (window.isComplete()) {</span>
+<span class="fc" id="L373">                break;</span>
+            }
+
+<span class="fc" id="L376">            List&lt;InvestmentFund&gt; funds = extractFunds(dto);</span>
+<span class="pc bpc" id="L377" title="1 of 2 branches missed.">            if (!funds.isEmpty()) {</span>
+<span class="fc" id="L378">                window.consume(dto, funds, limited);</span>
+            }
+<span class="fc" id="L380">        }</span>
+
+<span class="fc" id="L382">        return limited;</span>
+    }
+
+    private int countFunds(List&lt;OutputInvestmentFundsDTO&gt; response) {
+<span class="fc" id="L386">        int total = 0;</span>
+<span class="fc bfc" id="L387" title="All 2 branches covered.">        for (OutputInvestmentFundsDTO dto : response) {</span>
+<span class="fc" id="L388">            total += extractFunds(dto).size();</span>
+<span class="fc" id="L389">        }</span>
+<span class="fc" id="L390">        return total;</span>
+    }
+
+    private List&lt;InvestmentFund&gt; extractFunds(OutputInvestmentFundsDTO dto) {
+<span class="pc bpc" id="L394" title="1 of 6 branches missed.">        if (dto == null || dto.getData() == null || dto.getData().isEmpty()) {</span>
+<span class="fc" id="L395">            return Collections.emptyList();</span>
+        }
+
+<span class="fc" id="L398">        List&lt;InvestmentFund&gt; funds = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L399" title="All 2 branches covered.">        for (InvestmentFund fund : dto.getData()) {</span>
+<span class="fc bfc" id="L400" title="All 2 branches covered.">            if (fund != null) {</span>
+<span class="fc" id="L401">                funds.add(fund);</span>
+            }
+<span class="fc" id="L403">        }</span>
+
+<span class="pc bpc" id="L405" title="1 of 2 branches missed.">        return funds.isEmpty() ? Collections.emptyList() : funds;</span>
+    }
+
+    private final class PageWindow {
+        private int offset;
+        private int remaining;
+
+<span class="fc" id="L412">        private PageWindow(int offset, int remaining) {</span>
+<span class="fc" id="L413">            this.offset = Math.max(offset, 0);</span>
+<span class="fc" id="L414">            this.remaining = remaining;</span>
+<span class="fc" id="L415">        }</span>
+
+        private boolean isComplete() {
+<span class="fc bfc" id="L418" title="All 2 branches covered.">            return remaining &lt;= 0;</span>
+        }
+
+        private void consume(OutputInvestmentFundsDTO dto,
+                             List&lt;InvestmentFund&gt; funds,
+                             List&lt;OutputInvestmentFundsDTO&gt; limited) {
+<span class="pc bpc" id="L424" title="2 of 4 branches missed.">            if (funds.isEmpty() || isComplete()) {</span>
+<span class="nc" id="L425">                return;</span>
+            }
+
+<span class="fc bfc" id="L428" title="All 2 branches covered.">            if (offset &gt;= funds.size()) {</span>
+<span class="fc" id="L429">                offset -= funds.size();</span>
+<span class="fc" id="L430">                return;</span>
+            }
+
+<span class="fc" id="L433">            int fromIndex = offset;</span>
+<span class="fc" id="L434">            int sliceLength = Math.min(remaining, funds.size() - fromIndex);</span>
+<span class="pc bpc" id="L435" title="1 of 2 branches missed.">            if (sliceLength &gt; 0) {</span>
+<span class="fc" id="L436">                limited.add(buildLimitedDto(dto, funds, fromIndex, fromIndex + sliceLength));</span>
+<span class="fc" id="L437">                remaining -= sliceLength;</span>
+            }
+
+<span class="fc" id="L440">            offset = 0;</span>
+<span class="fc" id="L441">        }</span>
+
+        private OutputInvestmentFundsDTO buildLimitedDto(OutputInvestmentFundsDTO dto,
+                                                         List&lt;InvestmentFund&gt; funds,
+                                                         int fromIndex,
+                                                         int toIndex) {
+<span class="fc" id="L447">            OutputInvestmentFundsDTO copy = new OutputInvestmentFundsDTO();</span>
+<span class="fc" id="L448">            copy.setDTOIntPagination(dto.getDTOIntPagination());</span>
+<span class="fc" id="L449">            copy.setData(new ArrayList&lt;&gt;(funds.subList(fromIndex, toIndex)));</span>
+<span class="fc" id="L450">            return copy;</span>
+        }
+    }
+
+    private LinksDTO buildLinks(List&lt;InvestmentFund&gt; availableFunds,
+                                List&lt;InvestmentFund&gt; visibleFunds) {
+<span class="pc bpc" id="L456" title="1 of 6 branches missed.">        if ((availableFunds == null || availableFunds.isEmpty()) &amp;&amp;</span>
+<span class="fc bfc" id="L457" title="All 2 branches covered.">                visibleFunds != null &amp;&amp; !visibleFunds.isEmpty()) {</span>
+<span class="fc" id="L458">            availableFunds = visibleFunds;</span>
+        }
+
+<span class="pc bpc" id="L461" title="1 of 4 branches missed.">        if (availableFunds == null || availableFunds.isEmpty()) {</span>
+<span class="fc" id="L462">            return null;</span>
+        }
+
+<span class="fc" id="L465">        LinksDTO links = new LinksDTO();</span>
+<span class="fc" id="L466">        links.setFirst(describeFund(availableFunds.get(0)));</span>
+<span class="fc" id="L467">        links.setLast(describeFund(availableFunds.get(availableFunds.size() - 1)));</span>
+
+<span class="pc bpc" id="L469" title="1 of 4 branches missed.">        if (visibleFunds != null &amp;&amp; !visibleFunds.isEmpty()) {</span>
+<span class="fc" id="L470">            int startIndex = indexOf(availableFunds, visibleFunds.get(0));</span>
+<span class="fc bfc" id="L471" title="All 2 branches covered.">            if (startIndex &gt; 0) {</span>
+<span class="fc" id="L472">                links.setPrevious(describeFund(availableFunds.get(startIndex - 1)));</span>
+            }
+
+<span class="fc" id="L475">            int endIndex = indexOf(availableFunds, visibleFunds.get(visibleFunds.size() - 1));</span>
+<span class="pc bpc" id="L476" title="1 of 4 branches missed.">            if (endIndex &gt;= 0 &amp;&amp; endIndex + 1 &lt; availableFunds.size()) {</span>
+<span class="fc" id="L477">                links.setNext(describeFund(availableFunds.get(endIndex + 1)));</span>
+            }
+        }
+
+<span class="fc bfc" id="L481" title="All 2 branches covered.">        return hasAnyLinkValue(links) ? links : null;</span>
+    }
+
+    private LinksDTO buildFallbackLinks(ResponseSummary summary,
+                                        Integer normalizedPageSize,
+                                        int currentPage) {
+<span class="fc bfc" id="L487" title="All 2 branches covered.">        if (summary == null) {</span>
+<span class="fc" id="L488">            return null;</span>
+        }
+
+<span class="fc" id="L491">        int totalElements = summary.getTotalElements();</span>
+<span class="fc bfc" id="L492" title="All 2 branches covered.">        if (totalElements &lt;= 0) {</span>
+<span class="fc" id="L493">            return null;</span>
+        }
+
+<span class="pc bpc" id="L496" title="2 of 4 branches missed.">        if (normalizedPageSize == null || normalizedPageSize &lt;= 0) {</span>
+<span class="nc" id="L497">            return null;</span>
+        }
+
+<span class="fc" id="L500">        int totalPages = (int) Math.ceil((double) totalElements / normalizedPageSize);</span>
+<span class="pc bpc" id="L501" title="1 of 2 branches missed.">        if (totalPages &lt;= 0) {</span>
+<span class="nc" id="L502">            return null;</span>
+        }
+
+<span class="fc" id="L505">        int lastPageIndex = Math.max(totalPages - 1, 0);</span>
+<span class="fc" id="L506">        int clampedCurrentPage = Math.min(Math.max(currentPage, 0), lastPageIndex);</span>
+
+<span class="fc" id="L508">        LinksDTO links = new LinksDTO();</span>
+        // Enlaces basados en índices como respaldo cuando no hay identificadores disponibles
+<span class="fc" id="L510">        links.setFirst(&quot;0&quot;);</span>
+<span class="fc" id="L511">        links.setLast(String.valueOf(lastPageIndex));</span>
+
+<span class="fc bfc" id="L513" title="All 2 branches covered.">        if (clampedCurrentPage &gt; 0) {</span>
+<span class="fc" id="L514">            links.setPrevious(String.valueOf(clampedCurrentPage - 1));</span>
+        }
+
+<span class="fc bfc" id="L517" title="All 2 branches covered.">        if (clampedCurrentPage &lt; lastPageIndex) {</span>
+<span class="fc" id="L518">            links.setNext(String.valueOf(clampedCurrentPage + 1));</span>
+        }
+
+<span class="fc" id="L521">        return links;</span>
+    }
+
+    private LinksDTO buildPaginationLinksFromMetadata(PaginationDTO pagination) {
+<span class="pc bpc" id="L525" title="1 of 2 branches missed.">        if (pagination == null) {</span>
+<span class="nc" id="L526">            return null;</span>
+        }
+
+<span class="fc" id="L529">        Integer totalPages = pagination.getTotalPages();</span>
+<span class="fc" id="L530">        Integer currentPage = pagination.getPage();</span>
+
+<span class="pc bpc" id="L532" title="2 of 6 branches missed.">        if (totalPages == null || totalPages &lt;= 0 || currentPage == null) {</span>
+<span class="fc" id="L533">            return null;</span>
+        }
+
+<span class="fc" id="L536">        int lastPageIndex = Math.max(totalPages - 1, 0);</span>
+<span class="fc" id="L537">        int normalizedCurrent = Math.min(Math.max(currentPage, 0), lastPageIndex);</span>
+
+<span class="fc" id="L539">        LinksDTO links = new LinksDTO();</span>
+<span class="fc" id="L540">        links.setFirst(&quot;0&quot;);</span>
+<span class="fc" id="L541">        links.setLast(String.valueOf(lastPageIndex));</span>
+
+<span class="pc bpc" id="L543" title="1 of 2 branches missed.">        if (normalizedCurrent &gt; 0) {</span>
+<span class="fc" id="L544">            links.setPrevious(String.valueOf(normalizedCurrent - 1));</span>
+        }
+
+<span class="pc bpc" id="L547" title="1 of 2 branches missed.">        if (normalizedCurrent &lt; lastPageIndex) {</span>
+<span class="fc" id="L548">            links.setNext(String.valueOf(normalizedCurrent + 1));</span>
+        }
+
+<span class="fc" id="L551">        return links;</span>
+    }
+
+    private boolean hasAnyLinkValue(LinksDTO links) {
+<span class="fc bfc" id="L555" title="All 2 branches covered.">        if (links == null) {</span>
+<span class="fc" id="L556">            return false;</span>
+        }
+
+<span class="fc bfc" id="L559" title="All 2 branches covered.">        return links.getFirst() != null</span>
+<span class="fc bfc" id="L560" title="All 2 branches covered.">                || links.getLast() != null</span>
+<span class="pc bpc" id="L561" title="1 of 2 branches missed.">                || links.getPrevious() != null</span>
+<span class="pc bpc" id="L562" title="1 of 2 branches missed.">                || links.getNext() != null;</span>
+    }
+
+    private LinksDTO copyLinks(LinksDTO source) {
+<span class="pc bpc" id="L566" title="1 of 2 branches missed.">        if (source == null) {</span>
+<span class="nc" id="L567">            return null;</span>
+        }
+
+<span class="fc" id="L570">        LinksDTO copy = new LinksDTO();</span>
+<span class="fc" id="L571">        copy.setFirst(source.getFirst());</span>
+<span class="fc" id="L572">        copy.setLast(source.getLast());</span>
+<span class="fc" id="L573">        copy.setPrevious(source.getPrevious());</span>
+<span class="fc" id="L574">        copy.setNext(source.getNext());</span>
+<span class="fc" id="L575">        return copy;</span>
+    }
+
+    private String describeFund(InvestmentFund fund) {
+<span class="pc bpc" id="L579" title="1 of 2 branches missed.">        if (fund == null) {</span>
+<span class="nc" id="L580">            return null;</span>
+        }
+
+<span class="fc" id="L583">        String identifier = sanitizeKey(fund.getInvestmentFundId());</span>
+<span class="fc bfc" id="L584" title="All 2 branches covered.">        if (identifier != null) {</span>
+<span class="fc" id="L585">            return identifier;</span>
+        }
+
+<span class="fc" id="L588">        return sanitizeKey(fund.getNumber());</span>
+    }
+
+    private int indexOf(List&lt;InvestmentFund&gt; funds, InvestmentFund target) {
+<span class="pc bpc" id="L592" title="3 of 6 branches missed.">        if (funds == null || funds.isEmpty() || target == null) {</span>
+<span class="nc" id="L593">            return -1;</span>
+        }
+
+<span class="fc bfc" id="L596" title="All 2 branches covered.">        for (int i = 0; i &lt; funds.size(); i++) {</span>
+<span class="fc bfc" id="L597" title="All 2 branches covered.">            if (funds.get(i) == target) {</span>
+<span class="fc" id="L598">                return i;</span>
+            }
+        }
+
+<span class="fc" id="L602">        return -1;</span>
+    }
+
+    private Integer normalizePageSize(Long pageSize) {
+<span class="pc bpc" id="L606" title="2 of 4 branches missed.">        if (pageSize == null || pageSize &lt;= 0) {</span>
+<span class="nc" id="L607">            return null;</span>
+        }
+
+<span class="fc bfc" id="L610" title="All 2 branches covered.">        if (pageSize &gt; Integer.MAX_VALUE) {</span>
+<span class="fc" id="L611">            LOGGER.warn(&quot;Page size {} exceeds Integer.MAX_VALUE. Capping value to {}&quot;, pageSize, Integer.MAX_VALUE);</span>
+<span class="fc" id="L612">            return Integer.MAX_VALUE;</span>
+        }
+
+<span class="fc" id="L615">        return pageSize.intValue();</span>
+    }
+
+    private Integer resolvePageSize(IntPaginationDTO paginationNode, InputListInvestmentFundsDTO input) {
+<span class="pc bpc" id="L619" title="1 of 6 branches missed.">        if (input != null &amp;&amp; input.getPageSize() != null &amp;&amp; input.getPageSize() &gt; 0) {</span>
+<span class="fc" id="L620">            return normalizePageSize(asLong(input.getPageSize()));</span>
+        }
+
+<span class="pc bpc" id="L623" title="3 of 6 branches missed.">        if (paginationNode != null &amp;&amp; paginationNode.getPageSize() != null &amp;&amp; paginationNode.getPageSize() &gt; 0) {</span>
+<span class="fc" id="L624">            return normalizePageSize(paginationNode.getPageSize());</span>
+        }
+
+<span class="nc" id="L627">        return null;</span>
+    }
+    private Long asLong(Integer value) {
+<span class="pc bpc" id="L630" title="1 of 2 branches missed.">        return value == null ? null : value.longValue();</span>
+    }
+
+    private int resolveCurrentPage(InputListInvestmentFundsDTO input, Integer normalizedPageSize) {
+<span class="pc bpc" id="L634" title="3 of 6 branches missed.">        if (input == null || normalizedPageSize == null || normalizedPageSize &lt;= 0) {</span>
+<span class="nc" id="L635">            return 0;</span>
+        }
+
+<span class="fc" id="L638">        return normalize(safeParse(input.getPaginationKey()));</span>
     }
 
     private BigInteger safeParse(String value) {
-<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if (value == null) {</span>
-<span class="nc" id="L126">            return BigInteger.ZERO;</span>
+<span class="fc bfc" id="L642" title="All 2 branches covered.">        if (value == null) {</span>
+<span class="fc" id="L643">            return BigInteger.ZERO;</span>
         }
 
-<span class="fc" id="L129">        String trimmed = value.trim();</span>
-<span class="pc bpc" id="L130" title="1 of 2 branches missed.">        if (trimmed.isEmpty()) {</span>
-<span class="nc" id="L131">            return BigInteger.ZERO;</span>
+<span class="fc" id="L646">        String trimmed = value.trim();</span>
+<span class="pc bpc" id="L647" title="1 of 2 branches missed.">        if (trimmed.isEmpty()) {</span>
+<span class="nc" id="L648">            return BigInteger.ZERO;</span>
         }
 
-<span class="fc bfc" id="L134" title="All 2 branches covered.">        for (int i = 0; i &lt; trimmed.length(); i++) {</span>
-<span class="fc bfc" id="L135" title="All 2 branches covered.">            if (!Character.isDigit(trimmed.charAt(i))) {</span>
-<span class="fc" id="L136">                return BigInteger.ZERO;</span>
+<span class="fc bfc" id="L651" title="All 2 branches covered.">        for (int i = 0; i &lt; trimmed.length(); i++) {</span>
+<span class="fc bfc" id="L652" title="All 2 branches covered.">            if (!Character.isDigit(trimmed.charAt(i))) {</span>
+<span class="fc" id="L653">                return BigInteger.ZERO;</span>
             }
         }
 
-<span class="fc" id="L140">        return new BigInteger(trimmed);</span>
+<span class="fc" id="L657">        return new BigInteger(trimmed);</span>
     }
+
+    private int normalize(BigInteger key) {
+<span class="pc bpc" id="L661" title="1 of 4 branches missed.">        if (key == null || key.signum() &lt; 0) {</span>
+<span class="fc" id="L662">            return 0;</span>
+        }
+
+<span class="fc" id="L665">        BigInteger maxInt = BigInteger.valueOf(Integer.MAX_VALUE);</span>
+<span class="fc bfc" id="L666" title="All 2 branches covered.">        if (key.compareTo(maxInt) &gt; 0) {</span>
+<span class="fc" id="L667">            return 0;</span>
+        }
+
+<span class="fc" id="L670">        return key.intValue();</span>
+    }
+
+    private String sanitizeKey(String value) {
+<span class="fc bfc" id="L674" title="All 2 branches covered.">        if (value == null) {</span>
+<span class="fc" id="L675">            return null;</span>
+        }
+
+<span class="fc" id="L678">        String trimmed = value.trim();</span>
+<span class="fc bfc" id="L679" title="All 2 branches covered.">        return trimmed.isEmpty() ? null : trimmed;</span>
+    }
+
     private List&lt;OutputInvestmentFundsDTO&gt; sanitizeResponse(List&lt;OutputInvestmentFundsDTO&gt; response) {
-<span class="pc bpc" id="L143" title="1 of 2 branches missed.">        if (response.isEmpty()) {</span>
-<span class="nc" id="L144">            return Collections.emptyList();</span>
+<span class="fc bfc" id="L683" title="All 2 branches covered.">        if (response.isEmpty()) {</span>
+<span class="fc" id="L684">            return Collections.emptyList();</span>
         }
 
-<span class="fc" id="L147">        List&lt;OutputInvestmentFundsDTO&gt; sanitized = new ArrayList&lt;&gt;(response.size());</span>
-<span class="fc bfc" id="L148" title="All 2 branches covered.">        for (OutputInvestmentFundsDTO dto : response) {</span>
-<span class="fc" id="L149">            OutputInvestmentFundsDTO cleanedDto = sanitizeInvestmentFund(dto);</span>
-<span class="fc bfc" id="L150" title="All 2 branches covered.">            if (cleanedDto != null) {</span>
-<span class="fc" id="L151">                sanitized.add(cleanedDto);</span>
+<span class="fc" id="L687">        List&lt;OutputInvestmentFundsDTO&gt; sanitized = new ArrayList&lt;&gt;(response.size());</span>
+<span class="fc bfc" id="L688" title="All 2 branches covered.">        for (OutputInvestmentFundsDTO dto : response) {</span>
+<span class="fc" id="L689">            OutputInvestmentFundsDTO cleanedDto = sanitizeInvestmentFund(dto);</span>
+<span class="fc bfc" id="L690" title="All 2 branches covered.">            if (cleanedDto != null) {</span>
+<span class="fc" id="L691">                sanitized.add(cleanedDto);</span>
             }
-<span class="fc" id="L153">        }</span>
+<span class="fc" id="L693">        }</span>
 
-<span class="fc bfc" id="L155" title="All 2 branches covered.">        return sanitized.isEmpty() ? Collections.emptyList() : sanitized;</span>
+<span class="fc bfc" id="L695" title="All 2 branches covered.">        return sanitized.isEmpty() ? Collections.emptyList() : sanitized;</span>
     }
-
     private OutputInvestmentFundsDTO sanitizeInvestmentFund(OutputInvestmentFundsDTO dto) {
-<span class="fc bfc" id="L159" title="All 2 branches covered.">        if (dto == null) {</span>
-<span class="fc" id="L160">            return null;</span>
+<span class="fc bfc" id="L698" title="All 2 branches covered.">        if (dto == null) {</span>
+<span class="fc" id="L699">            return null;</span>
         }
 
-<span class="fc" id="L163">        dto.setData(sanitizeFunds(dto.getData()));</span>
-<span class="fc" id="L164">        return dto;</span>
+<span class="fc" id="L702">        dto.setData(sanitizeFunds(dto.getData()));</span>
+<span class="fc" id="L703">        return dto;</span>
     }
 
     private List&lt;InvestmentFund&gt; sanitizeFunds(List&lt;InvestmentFund&gt; funds) {
-<span class="pc bpc" id="L168" title="1 of 4 branches missed.">        if (funds == null || funds.isEmpty()) {</span>
-<span class="fc" id="L169">            return Collections.emptyList();</span>
+<span class="fc bfc" id="L707" title="All 4 branches covered.">        if (funds == null || funds.isEmpty()) {</span>
+<span class="fc" id="L708">            return Collections.emptyList();</span>
         }
 
-<span class="fc" id="L172">        List&lt;InvestmentFund&gt; cleanedFunds = new ArrayList&lt;&gt;(funds.size());</span>
-<span class="fc bfc" id="L173" title="All 2 branches covered.">        for (InvestmentFund fund : funds) {</span>
-<span class="fc bfc" id="L174" title="All 2 branches covered.">            if (fund != null) {</span>
-<span class="fc" id="L175">                cleanedFunds.add(fund);</span>
+<span class="fc" id="L711">        List&lt;InvestmentFund&gt; cleanedFunds = new ArrayList&lt;&gt;(funds.size());</span>
+<span class="fc bfc" id="L712" title="All 2 branches covered.">        for (InvestmentFund fund : funds) {</span>
+<span class="fc bfc" id="L713" title="All 2 branches covered.">            if (fund != null) {</span>
+<span class="fc" id="L714">                cleanedFunds.add(fund);</span>
             }
-<span class="fc" id="L177">        }</span>
+<span class="fc" id="L716">        }</span>
 
-<span class="pc bpc" id="L179" title="1 of 2 branches missed.">        return cleanedFunds.isEmpty() ? Collections.emptyList() : cleanedFunds;</span>
+<span class="pc bpc" id="L718" title="1 of 2 branches missed.">        return cleanedFunds.isEmpty() ? Collections.emptyList() : cleanedFunds;</span>
     }
+
+    private IntPaginationDTO extractPagination(List&lt;OutputInvestmentFundsDTO&gt; response) {
+<span class="fc bfc" id="L722" title="All 2 branches covered.">        for (OutputInvestmentFundsDTO dto : response) {</span>
+<span class="fc bfc" id="L723" title="All 4 branches covered.">            if (dto != null &amp;&amp; dto.getDTOIntPagination() != null) {</span>
+<span class="fc" id="L724">                return dto.getDTOIntPagination();</span>
+            }
+<span class="fc" id="L726">        }</span>
+<span class="fc" id="L727">        return null;</span>
+    }
+
+    private List&lt;OutputInvestmentFundsDTO&gt; buildEmptyEnvelope(IntPaginationDTO pagination) {
+<span class="fc" id="L731">        OutputInvestmentFundsDTO emptyEnvelope = new OutputInvestmentFundsDTO();</span>
+<span class="fc" id="L732">        emptyEnvelope.setData(Collections.emptyList());</span>
+<span class="fc" id="L733">        emptyEnvelope.setDTOIntPagination(pagination);</span>
+<span class="fc" id="L734">        return Collections.singletonList(emptyEnvelope);</span>
+    }
+
+    private List&lt;InvestmentFund&gt; extractFunds(List&lt;OutputInvestmentFundsDTO&gt; response) {
+<span class="pc bpc" id="L738" title="1 of 4 branches missed.">        if (response == null || response.isEmpty()) {</span>
+<span class="fc" id="L739">            return Collections.emptyList();</span>
+        }
+
+<span class="fc" id="L742">        List&lt;InvestmentFund&gt; funds = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L743" title="All 2 branches covered.">        for (OutputInvestmentFundsDTO dto : response) {</span>
+<span class="fc" id="L744">            List&lt;InvestmentFund&gt; dtoFunds = extractFunds(dto);</span>
+<span class="fc bfc" id="L745" title="All 2 branches covered.">            if (!dtoFunds.isEmpty()){</span>
+<span class="fc" id="L746">                funds.addAll(dtoFunds);</span>
+            }
+<span class="fc" id="L748">        }</span>
+
+<span class="fc bfc" id="L750" title="All 2 branches covered.">        return funds.isEmpty() ? Collections.emptyList() : funds;</span>
+    }
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

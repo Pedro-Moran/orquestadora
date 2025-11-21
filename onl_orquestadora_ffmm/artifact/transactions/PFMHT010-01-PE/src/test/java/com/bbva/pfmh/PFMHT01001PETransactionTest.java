@@ -906,7 +906,6 @@ public class PFMHT01001PETransactionTest {
                 populatedSummary);
         assertEquals("La severidad debe ajustarse a OK cuando existe información", Severity.OK, spyTransaction.getSeverity());
     }
-
     @Test
     public void testExecute_RuntimeException() {
         PFMHT01001PETransaction spyTransaction = spy(transaction);
@@ -1846,8 +1845,6 @@ public class PFMHT01001PETransactionTest {
         when(inputListInvestmentFundsDTO.getPaginationKey()).thenReturn(null);
         when(inputListInvestmentFundsDTO.getPageSize()).thenReturn(10);
     }
-
-    @SuppressWarnings("unchecked")
     @Test
     public void testBuildLinksUsaFondosVisiblesCuandoFaltanDisponibles() throws Exception {
         LinksDTO links = invokeTransactionMethod(
@@ -1862,7 +1859,6 @@ public class PFMHT01001PETransactionTest {
         assertNull(links.getPrevious());
         assertNull(links.getNext());
     }
-
     @Test
     public void testExecute_PropagaErroresNoControlados() {
         PFMHT01001PETransaction spyTransaction = spy(transaction);
@@ -1950,5 +1946,40 @@ public class PFMHT01001PETransactionTest {
         assertNotNull("La propiedad DTOLinks debe coincidir con el descriptor XML", descriptor);
         assertNotNull("El getter de DTOLinks es obligatorio para la serialización", descriptor.getReadMethod());
         assertNotNull("El setter de DTOLinks es obligatorio para la serialización", descriptor.getWriteMethod());
+    }
+    @Test
+    public void testExecute_LogsPaginationAndLinks() {
+        List<InvestmentFund> funds = Arrays.asList(
+                createFund("FUND-A"),
+                createFund("FUND-B")
+        );
+        OutputInvestmentFundsDTO output = new OutputInvestmentFundsDTO();
+        output.setData(funds);
+        List<OutputInvestmentFundsDTO> response = Collections.singletonList(output);
+
+        when(inputListInvestmentFundsDTO.getPageSize()).thenReturn(1);
+        when(inputListInvestmentFundsDTO.getPaginationKey()).thenReturn("0");
+
+        PFMHT01001PETransaction spyTransaction = spy(transaction);
+
+        ArgumentCaptor<PaginationDTO> paginationCaptor = ArgumentCaptor.forClass(PaginationDTO.class);
+        ArgumentCaptor<PaginationDTO> dtoPaginationCaptor = ArgumentCaptor.forClass(PaginationDTO.class);
+
+        doNothing().when(spyTransaction).setResponseOut(any());
+        doNothing().when(spyTransaction).setPagination(paginationCaptor.capture());
+        doNothing().when(spyTransaction).setDTOIntPagination(any());
+        doNothing().when(spyTransaction).setDTOPagination(dtoPaginationCaptor.capture());
+        doNothing().when(spyTransaction).setDTOLinks(any());
+        doNothing().when(spyTransaction).setData(any());
+
+        when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class))).thenReturn(response);
+
+        spyTransaction.execute();
+
+        PaginationDTO pagination = paginationCaptor.getValue();
+        assertNotNull(pagination);
+        assertNotNull(pagination.getDTOLinks());
+        assertEquals("FUND-A", pagination.getDTOLinks().getFirst());
+        assertEquals("FUND-B", pagination.getDTOLinks().getLast());
     }
 }

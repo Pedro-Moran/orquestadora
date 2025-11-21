@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1762309562782
+Bnd-LastModified: 1763609539415
 Build-Jdk-Spec: 11
 Bundle-Activator: com.bbva.pfmh.PFMHT01001PETransaction
 Bundle-Category: transaction
@@ -7,13 +7,14 @@ Bundle-Description: trx orquestadora
 Bundle-ManifestVersion: 2
 Bundle-Name: PFMHT010-01-PE
 Bundle-SymbolicName: PFMHT010-01-PE
-Bundle-Version: 0.6.0
+Bundle-Version: 0.8.0.SNAPSHOT
 Created-By: Apache Maven Bundle Plugin 5.1.9
 Import-Package: com.bbva.elara.domain.transaction;version="0.0",com.bbva
  .elara.transaction;version="0.0",com.bbva.pfmh.dto.jcisconnector.ffmm.c
  ommons;version="0.0",com.bbva.pfmh.dto.jcisconnector.ffmm.investmen;ver
- sion="0.0",com.bbva.pfmh.lib.r010;version="0.0",java.lang,java.math,jav
- a.util,org.slf4j;version="0.0",org.springframework.web.client;version="
- 0.0"
+ sion="0.0",com.bbva.pfmh.lib.r010;version="0.0",java.lang,java.lang.inv
+ oke,java.math,java.util,java.util.concurrent,java.util.concurrent.atomi
+ c,java.util.function,org.slf4j;version="0.0",org.springframework.web.cl
+ ient;version="0.0"
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=11))"
 Tool: Bnd-6.3.1.202206071316

@@ -5,7 +5,6 @@ import java.io.Serializable;
 public class PaginationDTO implements Serializable {
     private static final long serialVersionUID = 8268731132101006705L;
     @SuppressWarnings("java:S116")
-    // Mantener la coincidencia con el descriptor aunque el atributo cumpla el estándar camelCase
     private LinksDTO DTOLinks;
     private Integer page;
     private Integer totalPages;

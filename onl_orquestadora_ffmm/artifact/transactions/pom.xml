@@ -4,12 +4,12 @@
 	<parent>
 		<artifactId>onl_orquestadora_ffmm</artifactId>
 		<groupId>com.bbva.pfmh</groupId>
-		<version>0.6.0</version>
+		<version>0.7.0</version>
 		<relativePath>../../</relativePath>
 	</parent>
 	<groupId>com.bbva.pfmh</groupId>
 	<artifactId>TRANSACTIONS-onl_orquestadora_ffmm</artifactId>
-	<version>0.6.0</version>
+	<version>0.7.0</version>
 	<packaging>pom</packaging>
 	<name>TRANSACTIONS-onl_orquestadora_ffmm</name>
 	<modules>
