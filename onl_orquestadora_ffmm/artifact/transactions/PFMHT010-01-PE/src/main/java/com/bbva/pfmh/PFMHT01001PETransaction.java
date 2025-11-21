@@ -87,12 +87,13 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
         exposeLinks(exposedLinks, pagination);
         LOGGER.info("DEBUG PFMHT010 - PaginationDTO antes de exponer: {}", pagination);
-        if (pagination != null && pagination.getDTOLinks() != null) {
+        LinksDTO paginationLogLinks = pagination.getDTOLinks();
+        if (paginationLogLinks != null) {
             LOGGER.info("DEBUG PFMHT010 - DTOLinks -> first={}, last={}, prev={}, next={}",
-                    pagination.getDTOLinks().getFirst(),
-                    pagination.getDTOLinks().getLast(),
-                    pagination.getDTOLinks().getPrevious(),
-                    pagination.getDTOLinks().getNext());
+                    paginationLogLinks.getFirst(),
+                    paginationLogLinks.getLast(),
+                    paginationLogLinks.getPrevious(),
+                    paginationLogLinks.getNext());
         } else {
             LOGGER.info("DEBUG PFMHT010 - DTOLinks es NULL en PaginationDTO");
         }
@@ -618,13 +619,9 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
             return identifier;
         }
 
-        // Fallback adicional para escenarios donde el identificador principal no llega informado
-        identifier = sanitizeKey(fund.getAlias());
-        if (identifier == null) {
-            LOGGER.warn("DEBUG PFMHT010 - Fondo sin identificadores válidos para DTOLinks: {}", fund);
-        }
-
-        return identifier;
+        // Comentario en español: sin identificadores válidos no se debe derivar el enlace desde alias
+        LOGGER.warn("DEBUG PFMHT010 - Fondo sin identificadores válidos para DTOLinks: {}", fund);
+        return null;
     }
 
     private List<InvestmentFund> filterNonNullFunds(List<InvestmentFund> funds) {
