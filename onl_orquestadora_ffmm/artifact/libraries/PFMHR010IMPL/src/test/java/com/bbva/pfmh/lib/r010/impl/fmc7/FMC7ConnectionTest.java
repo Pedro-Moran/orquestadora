@@ -180,6 +180,18 @@ public class FMC7ConnectionTest {
         assignTransactionRequest(null);
     }
 
+    private void setField(String name, Object value) throws Exception {
+        Field field = FMC7Connection.class.getDeclaredField(name);
+        field.setAccessible(true);
+        field.set(fmc7Connection, value);
+    }
+
+    private Object getField(String name) throws Exception {
+        Field field = FMC7Connection.class.getDeclaredField(name);
+        field.setAccessible(true);
+        return field.get(fmc7Connection);
+    }
+
     private CommonRequestHeader headerWithIdentifiers(String userId, String profileId) {
         CommonRequestHeader header = mock(CommonRequestHeader.class);
         doAnswer(invocation -> {
@@ -494,6 +506,39 @@ public class FMC7ConnectionTest {
         response.setHostAdviceCode("9999");
         String result = fmc7Connection.matchErrorCodeHost(response);
         assertEquals("PFMHFME2026", result); // Default error
+    }
+
+    @Test
+    public void testMatchErrorCodeHost_RebuildsErrorCodesWhenNull() throws Exception {
+        setField("uniqueErrorCodes", null);
+        setField("defaultError", null);
+
+        FMC7Response response = new FMC7Response();
+        response.setHostAdviceCode("FME2059");
+
+        String result = fmc7Connection.matchErrorCodeHost(response);
+
+        assertEquals("PFMHFME2059", result);
+        List<?> restoredCodes = (List<?>) getField("uniqueErrorCodes");
+        assertNotNull(restoredCodes);
+        assertFalse(restoredCodes.isEmpty());
+        assertEquals("FME2026", getField("defaultError"));
+    }
+
+    @Test
+    public void testMatchErrorCodeHost_UsesDefaultWhenCodesEmpty() throws Exception {
+        setField("uniqueErrorCodes", Collections.emptyList());
+        setField("defaultError", null);
+
+        FMC7Response response = new FMC7Response();
+        response.setHostAdviceCode("NO_MATCH");
+
+        String result = fmc7Connection.matchErrorCodeHost(response);
+
+        assertEquals("PFMHFME2026", result);
+        List<?> restoredCodes = (List<?>) getField("uniqueErrorCodes");
+        assertNotNull(restoredCodes);
+        assertFalse(restoredCodes.isEmpty());
     }
 
     @Test
