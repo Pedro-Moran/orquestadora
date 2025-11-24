@@ -182,7 +182,7 @@ public class FMC7Connection extends AbstractLibrary {
     private boolean hasFundData(FFMM7 ffmm7) {
         if (!hasMandatoryFundFields(ffmm7)) {
             String contractId = ffmm7 != null ? ffmm7.getIdContr() : null;
-            LOGGER.warn("[hasFundData] - se omite la sección funds para el contrato {} por datos obligatorios incompletos", contractId);
+            LOGGER.debug("[hasFundData] - se omite la sección funds para el contrato {} por datos obligatorios incompletos", contractId);
             return false;
         }
         return true;
@@ -229,10 +229,11 @@ public class FMC7Connection extends AbstractLibrary {
             LOGGER.info("[getVisible] - KUSU no configurado, se mantendrá la visibilidad por defecto (visible)");
             return true;
         }
-        LOGGER.info("[getVisible] - globalContractId: {}", globalContractId);
         IdentificationData identificationData = resolveIdentifiers(profileId);
-        LOGGER.info("[getVisible] - resolved userId: {}", identificationData.getUserId());
-        LOGGER.info("[getVisible] - resolved profileId: {}", identificationData.getProfileId());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("[getVisible] - globalContractId: {}, resolved userId: {}, resolved profileId: {}",
+                    globalContractId, identificationData.getUserId(), identificationData.getProfileId());
+        }
 
         if (!identificationData.hasIdentifiers()) {
             LOGGER.warn("[getVisible] - no fue posible resolver identificadores, se mantendrá la visibilidad por defecto (visible)");
@@ -241,7 +242,7 @@ public class FMC7Connection extends AbstractLibrary {
 
         List<AliasFavContractEntity> contracts = fetchFavoriteContracts(globalContractId, identificationData);
         if (contracts.isEmpty()) {
-            LOGGER.warn("[getVisible] - sin contratos asociados en KUSU, se mantendrá la visibilidad por defecto (visible)");
+            LOGGER.debug("[getVisible] - sin contratos asociados en KUSU, se mantendrá la visibilidad por defecto (visible)");
             return true;
         }
 
@@ -250,7 +251,7 @@ public class FMC7Connection extends AbstractLibrary {
             return resolveVisibilityFromIndicator(matchedContract);
         }
 
-        LOGGER.warn("[getVisible] - no contract matched {}, falling back to visibility indicator scan", globalContractId);
+        LOGGER.debug("[getVisible] - no contract matched {}, falling back to visibility indicator scan", globalContractId);
 
         VisibilityEvaluation evaluation = evaluateVisibilityFallback(contracts);
         if (evaluation.hasDecision()) {
@@ -277,7 +278,7 @@ public class FMC7Connection extends AbstractLibrary {
         AliasFavContractEntity contractEntity = new AliasFavContractEntity();
         contractEntity.setGContractId(globalContractId);
         contractEntityListIn.add(contractEntity);
-        LOGGER.info("[getVisible] - contractEntityListIn: {}", contractEntityListIn);
+        LOGGER.debug("[getVisible] - contractEntityListIn: {}", contractEntityListIn);
 
         if (!identificationData.hasIdentifiers()) {
             LOGGER.warn("[getVisible] - identifiers not available to query kusuR325");
@@ -293,7 +294,7 @@ public class FMC7Connection extends AbstractLibrary {
                 resolvedProfileId,
                 resolvedProfileId,
                 contractEntityListIn);
-        LOGGER.info("[getVisible] - result of kusu: {}", result);
+        LOGGER.debug("[getVisible] - result of kusu: {}", result);
         return result == null ? Collections.emptyList() : result;
     }
 

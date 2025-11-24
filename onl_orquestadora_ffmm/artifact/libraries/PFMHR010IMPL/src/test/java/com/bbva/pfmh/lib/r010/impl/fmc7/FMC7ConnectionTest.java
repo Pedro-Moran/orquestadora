@@ -1243,6 +1243,70 @@ public class FMC7ConnectionTest {
     }
 
     @Test
+    public void testAttachPaginationMetadata_PropagaMetadatosCuandoHayPaginacion() throws Exception {
+        Method method = FMC7Connection.class.getDeclaredMethod("attachPaginationMetadata", List.class, FFMMPagination.class);
+        method.setAccessible(true);
+
+        OutputInvestmentFundsDTO first = new OutputInvestmentFundsDTO();
+        OutputInvestmentFundsDTO second = new OutputInvestmentFundsDTO();
+        List<OutputInvestmentFundsDTO> funds = Arrays.asList(first, second);
+
+        FFMMPagination pagination = new FFMMPagination();
+        pagination.setIdpagin("NEXT-KEY");
+        pagination.setTampagi(10);
+
+        method.invoke(fmc7Connection, funds, pagination);
+
+        for (OutputInvestmentFundsDTO dto : funds) {
+            IntPaginationDTO dtoIntPagination = dto.getDTOIntPagination();
+            assertNotNull(dtoIntPagination);
+            assertEquals("NEXT-KEY", dtoIntPagination.getPaginationKey());
+            assertEquals(Long.valueOf(10L), dtoIntPagination.getPageSize());
+        }
+    }
+
+    @Test
+    public void testAttachPaginationMetadata_NoHaceNadaSinDatos() throws Exception {
+        Method method = FMC7Connection.class.getDeclaredMethod("attachPaginationMetadata", List.class, FFMMPagination.class);
+        method.setAccessible(true);
+
+        List<OutputInvestmentFundsDTO> funds = new ArrayList<>();
+        method.invoke(fmc7Connection, funds, new FFMMPagination());
+        assertTrue(funds.isEmpty());
+
+        OutputInvestmentFundsDTO dto = new OutputInvestmentFundsDTO();
+        funds = Collections.singletonList(dto);
+        method.invoke(fmc7Connection, funds, null);
+
+        assertNull(dto.getDTOIntPagination());
+    }
+
+    @Test
+    public void testResolveAvailableAmount_PrefiereSaldoDisponible() throws Exception {
+        FFMM7 ffmm7 = new FFMM7();
+        ffmm7.setSalDisp(BigDecimal.ONE);
+        ffmm7.setSalCont(BigDecimal.TEN);
+
+        Method method = FMC7Connection.class.getDeclaredMethod("resolveAvailableAmount", FFMM7.class);
+        method.setAccessible(true);
+
+        BigDecimal amount = (BigDecimal) method.invoke(fmc7Connection, ffmm7);
+        assertEquals(BigDecimal.ONE, amount);
+    }
+
+    @Test
+    public void testResolveAvailableAmount_UsaSaldoContableCuandoNoHayDisponible() throws Exception {
+        FFMM7 ffmm7 = new FFMM7();
+        ffmm7.setSalCont(new BigDecimal("123.45"));
+
+        Method method = FMC7Connection.class.getDeclaredMethod("resolveAvailableAmount", FFMM7.class);
+        method.setAccessible(true);
+
+        BigDecimal amount = (BigDecimal) method.invoke(fmc7Connection, ffmm7);
+        assertEquals(new BigDecimal("123.45"), amount);
+    }
+
+    @Test
     public void testMapFMC7ouput_OmitsContractWhenValidationFails() {
         FMC7Connection rejectingConnection = new RejectingFMC7Connection();
         rejectingConnection.initializeErrorCodeList();
