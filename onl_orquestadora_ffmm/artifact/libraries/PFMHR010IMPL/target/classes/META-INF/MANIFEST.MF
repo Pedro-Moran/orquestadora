@@ -1,12 +1,12 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1762309554544
+Bnd-LastModified: 1763609531026
 Build-Jdk-Spec: 11
 Bundle-Category: library
 Bundle-Description: libreria interna
 Bundle-ManifestVersion: 2
 Bundle-Name: PFMHR010IMPL
-Bundle-SymbolicName: PFMHR010IMPL-0.6.0
-Bundle-Version: 0.6.0
+Bundle-SymbolicName: PFMHR010IMPL-0.8.0-SNAPSHOT
+Bundle-Version: 0.8.0.SNAPSHOT
 Created-By: Apache Maven Bundle Plugin 5.1.9
 Import-Package: com.bbva.pfmh.dto.fmc7.ffmm;version="0.0",com.bbva.pfmh.
  dto.fmc7.pague;version="0.0",com.bbva.pfmh.dto.fmc7.request;version="0.
