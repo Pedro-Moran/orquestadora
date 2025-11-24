@@ -47,12 +47,11 @@ public abstract class AbstractPFMHT01001PETransaction extends AbstractTransactio
 		this.addParameter("pagination", field);
 	}
 
-    /**
-     * Set value for LinksDTO output parameter DTOLinks
-     */
-    protected void setDTOLinks(final LinksDTO field){
-            // Evitamos exponer DTOLinks como parámetro independiente para no duplicarlo fuera de DTOPagination.
-    }
+	/**
+	 * Set value for LinksDTO output parameter DTOLinks
+	 */
+	protected void setDTOLinks(final LinksDTO field){
+	}
 
 	/**
 	 * Set value for PaginationDTO output parameter DTOPagination

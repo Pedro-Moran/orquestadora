@@ -1,0 +1,5 @@
+# Created at 2025-11-19T22:32:05.188
+Boot Manifest-JAR contains absolute paths in classpath 'D:\PEDRO\workspace\prueba\onl_orquestadora_ffmm\artifact\libraries\PFMHR010IMPL\target\test-classes'
+Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+'other' has different root
+

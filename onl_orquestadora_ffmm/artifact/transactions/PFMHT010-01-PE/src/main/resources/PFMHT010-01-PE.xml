@@ -54,18 +54,18 @@
 			<parameter order="1" name="paginationKey" mandatory="0" type="String" size="35"/>
 			<parameter order="2" name="pageSize" mandatory="0" type="Long" size="3"/>
 		</dto>
-                <dto order="3" name="DTOPagination" mandatory="0" package="com.bbva.pfmh.dto.jcisconnector.ffmm.commons.PaginationDTO" artifactId="PFMHC010">
-                        <dto order="1" name="DTOLinks" mandatory="0" package="com.bbva.pfmh.dto.jcisconnector.ffmm.commons.LinksDTO" artifactId="PFMHC010">
-                                <parameter order="1" name="first" mandatory="0" type="String" size="200"/>
-                                <parameter order="2" name="last" mandatory="0" type="String" size="200"/>
-                                <parameter order="3" name="previous" mandatory="0" type="String" size="200"/>
-                                <parameter order="4" name="next" mandatory="0" type="String" size="200"/>
-                        </dto>
-                        <parameter order="2" name="page" mandatory="0" type="Long" size="10"/>
-                        <parameter order="3" name="totalPages" mandatory="0" type="Long" size="10"/>
-                        <parameter order="4" name="totalElements" mandatory="0" type="Long" size="10"/>
-                        <parameter order="5" name="pageSize" mandatory="0" type="Long" size="10"/>
-                </dto>
-        </paramsOut>
-        <description>trx orquestadora</description>
+		<dto order="3" name="DTOPagination" mandatory="0" package="com.bbva.pfmh.dto.jcisconnector.ffmm.commons.PaginationDTO" artifactId="PFMHC010">
+			<dto order="1" name="DTOLinks" mandatory="0" package="com.bbva.pfmh.dto.jcisconnector.ffmm.commons.LinksDTO" artifactId="PFMHC010">
+				<parameter order="1" name="first" mandatory="0" type="String" size="200"/>
+				<parameter order="2" name="last" mandatory="0" type="String" size="200"/>
+				<parameter order="3" name="previous" mandatory="0" type="String" size="200"/>
+				<parameter order="4" name="next" mandatory="0" type="String" size="200"/>
+			</dto>
+			<parameter order="2" name="page" mandatory="0" type="Long" size="10"/>
+			<parameter order="3" name="totalPages" mandatory="0" type="Long" size="10"/>
+			<parameter order="4" name="totalElements" mandatory="0" type="Long" size="10"/>
+			<parameter order="5" name="pageSize" mandatory="0" type="Long" size="10"/>
+		</dto>
+	</paramsOut>
+	<description>trx orquestadora</description>
 </transaction>

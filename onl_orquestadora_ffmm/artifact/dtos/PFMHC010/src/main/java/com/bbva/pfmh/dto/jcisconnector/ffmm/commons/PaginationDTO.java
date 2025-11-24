@@ -19,9 +19,6 @@ public class PaginationDTO implements Serializable {
         this.DTOLinks = dtoLinks;
     }
 
-    /**
-     * Alias de acceso para serializar los enlaces como "links" en el JSON sin depender de anotaciones.
-     */
     public LinksDTO getLinks() {
         if (DTOLinks == null) {
             return null;

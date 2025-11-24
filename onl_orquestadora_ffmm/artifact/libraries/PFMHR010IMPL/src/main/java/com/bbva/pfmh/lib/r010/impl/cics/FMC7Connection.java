@@ -761,10 +761,11 @@ public class FMC7Connection extends AbstractLibrary {
 
     public String matchErrorCodeHost(FMC7Response response) {
         ensureErrorCodesInitialized();
+
         if (uniqueErrorCodes.contains(response.getHostAdviceCode())) {
-            return "PFMH" + response.getHostAdviceCode();
+            return"PFMH" + response.getHostAdviceCode();
         } else {
-            return "PFMH" + defaultError;
+            return"PFMH" + defaultError;
         }
     }
 
@@ -774,9 +775,11 @@ public class FMC7Connection extends AbstractLibrary {
     }
 
     private void ensureErrorCodesInitialized() {
+
         if (uniqueErrorCodes == null || uniqueErrorCodes.isEmpty()) {
             initializeErrorCodeList();
         }
+
         if (defaultError == null) {
             defaultError = FME2026;
         }

@@ -70,6 +70,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         int startIndex = computeStartIndex(currentPage, normalizedPageSize);
 
         List<OutputInvestmentFundsDTO> payload = resolvePayload(sanitizedResponse, paginationNode, normalizedPageSize, startIndex);
+
         ResponseSummary summary = summarizeResponse(payload, availableFunds);
 
         this.setResponseOut(payload);
@@ -78,31 +79,20 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         LOGGER.info("response envelopes -> {}, investment funds -> {}", payload.size(), summary.getVisibleFunds().size());
         LOGGER.debug("response detail -> {}", payload);
 
-        LinksDTO links = buildLinks(availableFunds, summary.getVisibleFunds(), normalizedPageSize);
+        LinksDTO links = buildLinks(availableFunds, summary.getVisibleFunds());
         LOGGER.info("linksDTO -> {}", links);
         PaginationDTO pagination = mapPagination(summary, links, normalizedPageSize, currentPage);
         LinksDTO paginationLinks = ensurePaginationLinks(pagination, summary, normalizedPageSize, currentPage);
         LinksDTO exposedLinks = synchronizePaginationLinks(pagination, paginationLinks);
 
         exposeLinks(exposedLinks, pagination);
-        LOGGER.info("DEBUG PFMHT010 - PaginationDTO antes de exponer: {}", pagination);
-        LinksDTO paginationLogLinks = pagination.getDTOLinks();
-        if (paginationLogLinks != null) {
-            LOGGER.info("DEBUG PFMHT010 - DTOLinks -> first={}, last={}, prev={}, next={}",
-                    paginationLogLinks.getFirst(),
-                    paginationLogLinks.getLast(),
-                    paginationLogLinks.getPrevious(),
-                    paginationLogLinks.getNext());
-        } else {
-            LOGGER.info("DEBUG PFMHT010 - DTOLinks es NULL en PaginationDTO");
-        }
+
         applyPaginationMetadata(paginationNode, pagination);
 
         updateSeverity(summary);
     }
 
     private void handleFailure() {
-        // Siempre exponemos la estructura de paginación y enlaces para mantener el contrato de salida
         LinksDTO emptyLinks = new LinksDTO();
         PaginationDTO emptyPagination = new PaginationDTO();
         emptyPagination.setPage(0);
@@ -241,19 +231,15 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
     }
 
     private void applyPaginationMetadata(IntPaginationDTO paginationNode,
-                                         LinksDTO links,
-                                         ResponseSummary summary,
-                                         Integer normalizedPageSize,
-                                         int currentPage) {
-        if (summary == null) {
-            return;
-        }
-
+                                         PaginationDTO pagination) {
         if (paginationNode != null) {
             this.setDTOIntPagination(paginationNode);
         }
 
-        PaginationDTO pagination = mapPagination(summary.getTotalElements(), links, normalizedPageSize, currentPage);
+        if (pagination == null) {
+            return;
+        }
+
         this.setPagination(pagination);
         this.setDTOPagination(pagination);
     }
@@ -480,8 +466,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
     }
 
     private LinksDTO buildLinks(List<InvestmentFund> availableFunds,
-                                List<InvestmentFund> visibleFunds,
-                                Integer normalizedPageSize) {
+                                List<InvestmentFund> visibleFunds) {
         LOGGER.info("DEBUG PFMHT010 - List<InvestmentFund> antes de exponer: {}", availableFunds);
         if ((availableFunds == null || availableFunds.isEmpty()) &&
                 visibleFunds != null && !visibleFunds.isEmpty()) {
@@ -515,11 +500,6 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
             return links;
         }
 
-        // Comentario en español: si no se pudieron derivar enlaces semánticos porque aún no están
-        // inicializados los identificadores de los fondos, se recurre a posiciones ordinales de
-        // la lista ya armada para exponer un DTOLinks coherente con el orden actual. Esto aplica
-        // incluso cuando hay paginación, para asegurar que siempre se expone un enlace coherente
-        // con el subconjunto visible.
         return buildPositionalLinks(sanitizedAvailable, sanitizedVisible);
     }
 
