@@ -75,9 +75,6 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         this.setResponseOut(payload);
         this.setData(summary.getVisibleFunds());
 
-        this.setResponseOut(payload);
-        this.setData(summary.getVisibleFunds());
-
         LOGGER.info("response envelopes -> {}, investment funds -> {}", payload.size(), summary.getVisibleFunds().size());
         LOGGER.debug("response detail -> {}", payload);
 
