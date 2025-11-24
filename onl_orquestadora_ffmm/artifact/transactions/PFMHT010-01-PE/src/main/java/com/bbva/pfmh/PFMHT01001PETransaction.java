@@ -70,8 +70,10 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         int startIndex = computeStartIndex(currentPage, normalizedPageSize);
 
         List<OutputInvestmentFundsDTO> payload = resolvePayload(sanitizedResponse, paginationNode, normalizedPageSize, startIndex);
-
         ResponseSummary summary = summarizeResponse(payload, availableFunds);
+
+        this.setResponseOut(payload);
+        this.setData(summary.getVisibleFunds());
 
         this.setResponseOut(payload);
         this.setData(summary.getVisibleFunds());
@@ -242,15 +244,19 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
     }
 
     private void applyPaginationMetadata(IntPaginationDTO paginationNode,
-                                         PaginationDTO pagination) {
+                                         LinksDTO links,
+                                         ResponseSummary summary,
+                                         Integer normalizedPageSize,
+                                         int currentPage) {
+        if (summary == null) {
+            return;
+        }
+
         if (paginationNode != null) {
             this.setDTOIntPagination(paginationNode);
         }
 
-        if (pagination == null) {
-            return;
-        }
-
+        PaginationDTO pagination = mapPagination(summary.getTotalElements(), links, normalizedPageSize, currentPage);
         this.setPagination(pagination);
         this.setDTOPagination(pagination);
     }
