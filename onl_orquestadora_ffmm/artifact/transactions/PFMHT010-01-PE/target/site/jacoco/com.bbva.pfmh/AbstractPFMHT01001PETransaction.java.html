@@ -2,9 +2,11 @@
 
 import com.bbva.elara.transaction.AbstractTransaction;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.InputListInvestmentFundsDTO;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.IntPaginationDTO;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.LinksDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.OutputInvestmentFundsDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.PaginationDTO;
-import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.IntPaginationDTO;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.InvestmentFund;
 
 import java.util.List;
 
@@ -13,36 +15,57 @@ import java.util.List;
  */
 public abstract class AbstractPFMHT01001PETransaction extends AbstractTransaction {
 
-<span class="fc" id="L16">	protected AbstractPFMHT01001PETransaction(){</span>
-<span class="fc" id="L17">	}</span>
+<span class="fc" id="L18">	protected AbstractPFMHT01001PETransaction(){</span>
+<span class="fc" id="L19">	}</span>
 
 
 	/**
 	 * Return value for input parameter InputListInvestmentFundsDTO
 	 */
 	protected InputListInvestmentFundsDTO getInputlistinvestmentfundsdto(){
-<span class="fc" id="L24">		return (InputListInvestmentFundsDTO)this.getParameter(&quot;InputListInvestmentFundsDTO&quot;);</span>
+<span class="fc" id="L26">		return (InputListInvestmentFundsDTO)this.getParameter(&quot;InputListInvestmentFundsDTO&quot;);</span>
 	}
+
+	/**
+	 * Set value for List&lt;InvestmentFund&gt; output parameter data
+	 */
+	protected void setData(final List&lt;InvestmentFund&gt; field){
+<span class="fc" id="L33">		this.addParameter(&quot;data&quot;, field);</span>
+<span class="fc" id="L34">	}</span>
 
 	/**
 	 * Set value for List&lt;OutputInvestmentFundsDTO&gt; output parameter responseOut
 	 */
 	protected void setResponseOut(final List&lt;OutputInvestmentFundsDTO&gt; field){
-<span class="nc" id="L31">		this.addParameter(&quot;responseOut&quot;, field);</span>
-<span class="nc" id="L32">	}</span>
+<span class="nc" id="L40">		this.addParameter(&quot;responseOut&quot;, field);</span>
+<span class="nc" id="L41">	}</span>
 
 	/**
 	 * Set value for PaginationDTO output parameter pagination
 	 */
 	protected void setPagination(final PaginationDTO field){
-<span class="nc" id="L38">		this.addParameter(&quot;pagination&quot;, field);</span>
-<span class="nc" id="L39">	}</span>
+<span class="fc" id="L47">		this.addParameter(&quot;pagination&quot;, field);</span>
+<span class="fc" id="L48">	}</span>
+
+	/**
+	 * Set value for LinksDTO output parameter DTOLinks
+	 */
+	protected void setDTOLinks(final LinksDTO field){
+<span class="fc" id="L54">		this.addParameter(&quot;DTOLinks&quot;, field);</span>
+<span class="fc" id="L55">	}</span>
+
+	/**
+	 * Set value for PaginationDTO output parameter DTOPagination
+	 */
+	protected void setDTOPagination(final PaginationDTO field){
+<span class="fc" id="L61">		this.addParameter(&quot;DTOPagination&quot;, field);</span>
+<span class="fc" id="L62">	}</span>
 
 	/**
 	 * Set value for IntPaginationDTO output parameter DTOIntPagination
 	 */
 	protected void setDTOIntPagination(final IntPaginationDTO field){
-<span class="nc" id="L45">		this.addParameter(&quot;DTOIntPagination&quot;, field);</span>
-<span class="nc" id="L46">	}</span>
+<span class="fc" id="L68">		this.addParameter(&quot;DTOIntPagination&quot;, field);</span>
+<span class="fc" id="L69">	}</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

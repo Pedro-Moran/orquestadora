@@ -4,11 +4,11 @@
 	<parent>
 		<groupId>com.bbva.pfmh</groupId>
 		<artifactId>LIBRARIES-onl_orquestadora_ffmm</artifactId>
-		<version>0.6.0</version>
+		<version>0.7.0</version>
 	</parent>
 	<groupId>com.bbva.pfmh</groupId>
 	<artifactId>PFMHR010IMPL</artifactId>
-	<version>0.6.0</version>
+	<version>0.7.0</version>
 	<name>PFMHR010IMPL</name>
 	<packaging>bundle</packaging>
 	<description>libreria interna </description>
@@ -19,7 +19,7 @@
 		<dependency>
 			<groupId>com.bbva.pfmh</groupId>
 			<artifactId>PFMHR010</artifactId>
-			<version>0.6.0</version>
+			<version>0.7.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.bbva.kbtq</groupId>

@@ -4,18 +4,49 @@ import java.io.Serializable;
 
 public class PaginationDTO implements Serializable {
     private static final long serialVersionUID = 8268731132101006705L;
-    private LinksDTO dtoLinks;
+    @SuppressWarnings("java:S116")
+    private LinksDTO DTOLinks;
     private Integer page;
     private Integer totalPages;
     private Integer totalElements;
     private Integer pageSize;
 
     public LinksDTO getDTOLinks() {
-        return dtoLinks;
+        return DTOLinks;
     }
 
     public void setDTOLinks(LinksDTO dtoLinks) {
-        this.dtoLinks = dtoLinks;
+        this.DTOLinks = dtoLinks;
+    }
+
+    /**
+     * Alias de acceso para serializar los enlaces como "links" en el JSON sin depender de anotaciones.
+     */
+    public LinksDTO getLinks() {
+        if (DTOLinks == null) {
+            return null;
+        }
+
+        LinksDTO copy = new LinksDTO();
+        copy.setFirst(DTOLinks.getFirst());
+        copy.setLast(DTOLinks.getLast());
+        copy.setPrevious(DTOLinks.getPrevious());
+        copy.setNext(DTOLinks.getNext());
+        return copy;
+    }
+
+    public void setLinks(LinksDTO links) {
+        if (links == null) {
+            this.DTOLinks = null;
+            return;
+        }
+
+        LinksDTO copy = new LinksDTO();
+        copy.setFirst(links.getFirst());
+        copy.setLast(links.getLast());
+        copy.setPrevious(links.getPrevious());
+        copy.setNext(links.getNext());
+        this.DTOLinks = copy;
     }
 
     public Integer getPage() {
@@ -53,7 +84,7 @@ public class PaginationDTO implements Serializable {
     @Override
     public String toString() {
         return "DTOPagination{" +
-                "DTOLinks=" + dtoLinks +
+                "DTOLinks=" + DTOLinks +
                 ", page=" + page +
                 ", totalPages=" + totalPages +
                 ", totalElements=" + totalElements +

@@ -4,12 +4,12 @@
 	<parent>
 		<groupId>com.bbva.pfmh</groupId>
 		<artifactId>LIBRARIES-onl_orquestadora_ffmm</artifactId>
-		<version>0.6.0</version>
+		<version>0.7.0</version>
 	</parent>
 	<groupId>com.bbva.pfmh</groupId>
 	<artifactId>PFMHR010</artifactId>
 	<name>PFMHR010</name>
-	<version>0.6.0</version>
+	<version>0.7.0</version>
 	<packaging>bundle</packaging>
 	<description>libreria interna </description>
 	<properties>
@@ -19,7 +19,7 @@
 		<dependency>
 			<groupId>com.bbva.pfmh.dto.jcisconnector</groupId>
 			<artifactId>PFMHC010</artifactId>
-			<version>0.6.0</version>
+			<version>0.7.0</version>
 		</dependency>
 	</dependencies>
 	<build>

@@ -48,8 +48,8 @@ public class FMC7Connection extends AbstractLibrary {
     private static final Logger LOGGER = LoggerFactory.getLogger(FMC7Connection.class);
     private PFMHR015 pfmhR015;
     private KUSUR325 kusuR325;
-    private List<String> uniqueErrorCodes;
-    private String defaultError;
+    private List<String> uniqueErrorCodes = Collections.emptyList();
+    private String defaultError = FME2026;
     private static final String INVESTMENT_FUND_TYPE_SIMPLE = "SIMPLE";
     private static final String PFMHCUSTOMERID = "Es obligatorio indicar el customerId";
     private static final String PFMH_NOT_DPS = "No existen DPS a mostrar con esos datos ingresados";
@@ -127,12 +127,12 @@ public class FMC7Connection extends AbstractLibrary {
             }
         }
 
-        applyPagination(dtoIntInvestmentFundsList, responsefmc7.getPagination());
+        attachPaginationMetadata(dtoIntInvestmentFundsList, responsefmc7.getPagination());
         LOGGER.info("***** PFMH010Impl - mapFMC7ouput - dtoIntInvestmentFundsList: {} *****", dtoIntInvestmentFundsList);
         return dtoIntInvestmentFundsList;
     }
 
-    private void applyPagination(List<OutputInvestmentFundsDTO> funds, FFMMPagination pagination) {
+    private void attachPaginationMetadata(List<OutputInvestmentFundsDTO> funds, FFMMPagination pagination) {
         if (pagination == null || funds.isEmpty()) {
             return;
         }
@@ -760,6 +760,7 @@ public class FMC7Connection extends AbstractLibrary {
 
 
     public String matchErrorCodeHost(FMC7Response response) {
+        ensureErrorCodesInitialized();
         if (uniqueErrorCodes.contains(response.getHostAdviceCode())) {
             return "PFMH" + response.getHostAdviceCode();
         } else {
@@ -770,6 +771,15 @@ public class FMC7Connection extends AbstractLibrary {
     public void initializeErrorCodeList() {
         defaultError = FME2026;
         uniqueErrorCodes = Arrays.asList(FME2026, FME2059, FME2099, FME2084, FME2060, FME2100, FME2092);
+    }
+
+    private void ensureErrorCodesInitialized() {
+        if (uniqueErrorCodes == null || uniqueErrorCodes.isEmpty()) {
+            initializeErrorCodeList();
+        }
+        if (defaultError == null) {
+            defaultError = FME2026;
+        }
     }
 
     public boolean validarContratoEnKsanYHost(String contratoGlobal, OutputInvestmentFundsDTO dto) {

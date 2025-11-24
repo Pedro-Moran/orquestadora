@@ -2,26 +2,45 @@
 
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.InputListInvestmentFundsDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.OutputInvestmentFundsDTO;
+import com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.InvestmentFund;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
 
-<span class="fc" id="L11">public class PFMHR010Impl extends PFMHR010Abstract {</span>
+<span class="fc" id="L12">public class PFMHR010Impl extends PFMHR010Abstract {</span>
 
-<span class="fc" id="L13">    private static final Logger LOGGER = LoggerFactory.getLogger(PFMHR010Impl.class);</span>
+<span class="fc" id="L14">    private static final Logger LOGGER = LoggerFactory.getLogger(PFMHR010Impl.class);</span>
 
     @Override
     public List&lt;OutputInvestmentFundsDTO&gt; executeGetFFMMStatements(InputListInvestmentFundsDTO input) {
-<span class="fc" id="L17">        LOGGER.info(&quot;***** PFMHR010Impl - executeGetFFMMStatements - Start || input: {} *****&quot;, input);</span>
+<span class="fc" id="L18">        LOGGER.info(&quot;***** PFMHR010Impl - executeGetFFMMStatements - Start || input: {} *****&quot;, input);</span>
 
-<span class="fc" id="L19">        List&lt;OutputInvestmentFundsDTO&gt; outputResponse = this.fmc7Connection.executeFMC7Transaction(input);</span>
-<span class="pc bpc" id="L20" title="1 of 4 branches missed.">        if (outputResponse == null || outputResponse.isEmpty()) {</span>
-<span class="fc" id="L21">            return Collections.emptyList();</span>
+<span class="fc" id="L20">        List&lt;OutputInvestmentFundsDTO&gt; outputResponse = this.fmc7Connection.executeFMC7Transaction(input);</span>
+<span class="pc bpc" id="L21" title="1 of 4 branches missed.">        if (outputResponse == null || outputResponse.isEmpty()) {</span>
+<span class="fc" id="L22">            return Collections.emptyList();</span>
         }
 
-<span class="fc" id="L24">        return outputResponse;</span>
+<span class="fc bfc" id="L25" title="All 2 branches covered.">        if (!fmc7Connection.tieneSoporteKusu()) {</span>
+<span class="fc" id="L26">            LOGGER.info(&quot;[executeGetFFMMStatements] - KUSU no disponible, se fuerza la invisibilidad de los contratos&quot;);</span>
+<span class="fc" id="L27">            marcarContratosComoNoVisibles(outputResponse);</span>
+        }
+
+<span class="fc" id="L30">        return outputResponse;</span>
     }
+
+    private void marcarContratosComoNoVisibles(List&lt;OutputInvestmentFundsDTO&gt; outputResponse) {
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        for (OutputInvestmentFundsDTO dto : outputResponse) {</span>
+<span class="pc bpc" id="L35" title="2 of 4 branches missed.">            if (dto == null || dto.getData() == null) {</span>
+<span class="nc" id="L36">                continue;</span>
+            }
+<span class="fc bfc" id="L38" title="All 2 branches covered.">            for (InvestmentFund fund : dto.getData()) {</span>
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">                if (fund != null) {</span>
+<span class="fc" id="L40">                    fund.setIsVisible(Boolean.FALSE);</span>
+                }
+<span class="fc" id="L42">            }</span>
+<span class="fc" id="L43">        }</span>
+<span class="fc" id="L44">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

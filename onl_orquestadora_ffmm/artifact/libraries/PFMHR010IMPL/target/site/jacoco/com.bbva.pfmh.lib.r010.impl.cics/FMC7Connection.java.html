@@ -33,8 +33,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -127,12 +127,12 @@ import java.util.regex.Pattern;
             }
         }
 
-<span class="fc" id="L130">        applyPagination(dtoIntInvestmentFundsList, responsefmc7.getPagination());</span>
+<span class="fc" id="L130">        attachPaginationMetadata(dtoIntInvestmentFundsList, responsefmc7.getPagination());</span>
 <span class="fc" id="L131">        LOGGER.info(&quot;***** PFMH010Impl - mapFMC7ouput - dtoIntInvestmentFundsList: {} *****&quot;, dtoIntInvestmentFundsList);</span>
 <span class="fc" id="L132">        return dtoIntInvestmentFundsList;</span>
     }
 
-    private void applyPagination(List&lt;OutputInvestmentFundsDTO&gt; funds, FFMMPagination pagination) {
+    private void attachPaginationMetadata(List&lt;OutputInvestmentFundsDTO&gt; funds, FFMMPagination pagination) {
 <span class="pc bpc" id="L136" title="1 of 4 branches missed.">        if (pagination == null || funds.isEmpty()) {</span>
 <span class="fc" id="L137">            return;</span>
         }
@@ -150,532 +150,654 @@ import java.util.regex.Pattern;
 <span class="fc" id="L150">        InvestmentFund investmentFund = new InvestmentFund();</span>
 <span class="fc" id="L151">        investmentFund.setNumber(ffmm7.getIdContr());</span>
 <span class="fc" id="L152">        investmentFund.setInvestmentFundId(ffmm7.getIdContr());</span>
-<span class="fc" id="L153">        investmentFund.setNumberType(mapOutNumberType(ffmm7.getcTipNum(), ffmm7.getdTipNum()));</span>
-<span class="fc" id="L154">        InvestmentFundType type = new InvestmentFundType();</span>
-<span class="fc" id="L155">        type.setId(INVESTMENT_FUND_TYPE_SIMPLE);</span>
-<span class="fc" id="L156">        type.setName(INVESTMENT_FUND_TYPE_SIMPLE);</span>
-<span class="fc" id="L157">        investmentFund.setInvestmentFundType(type);</span>
+<span class="fc" id="L153">        InvestmentFundNumberType numberType = mapOutNumberType(ffmm7.getcTipNum(), ffmm7.getdTipNum());</span>
+<span class="fc bfc" id="L154" title="All 2 branches covered.">        if (numberType == null) {</span>
+<span class="fc" id="L155">            LOGGER.warn(&quot;[buildOutputInvestmentFund] - contrato {} sin numberType, se descarta del resultado&quot;, ffmm7.getIdContr());</span>
+<span class="fc" id="L156">            return null;</span>
+        }
+<span class="fc" id="L158">        investmentFund.setNumberType(numberType);</span>
+<span class="fc" id="L159">        InvestmentFundType type = new InvestmentFundType();</span>
+<span class="fc" id="L160">        type.setId(INVESTMENT_FUND_TYPE_SIMPLE);</span>
+<span class="fc" id="L161">        type.setName(INVESTMENT_FUND_TYPE_SIMPLE);</span>
+<span class="fc" id="L162">        investmentFund.setInvestmentFundType(type);</span>
 
-<span class="fc bfc" id="L159" title="All 2 branches covered.">        if (hasFundData(ffmm7)) {</span>
-<span class="fc" id="L160">            investmentFund.setFunds(Collections.singletonList(fund));</span>
+<span class="pc bpc" id="L164" title="1 of 4 branches missed.">        if (hasFundData(ffmm7) &amp;&amp; fund != null) {</span>
+<span class="fc" id="L165">            investmentFund.setFunds(Collections.singletonList(fund));</span>
         }
 
-<span class="fc" id="L163">        OutputInvestmentFundsDTO output = new OutputInvestmentFundsDTO();</span>
-<span class="fc" id="L164">        output.setData(Collections.singletonList(investmentFund));</span>
-<span class="fc bfc" id="L165" title="All 2 branches covered.">        if (validarContratoEnKsanYHost(&quot;PE&quot; + ffmm7.getIdContr(), output)) {</span>
-<span class="fc" id="L166">            String profileId = StringUtils.trimToNull(input.getProfileId());</span>
-<span class="pc bpc" id="L167" title="1 of 2 branches missed.">            if (profileId == null) {</span>
-<span class="nc" id="L168">                profileId = StringUtils.trimToNull(input.getCustomerId());</span>
-<span class="nc" id="L169">                LOGGER.debug(&quot;[buildOutputInvestmentFund] - profileId no informado, usando customerId como respaldo&quot;);</span>
+<span class="fc" id="L168">        OutputInvestmentFundsDTO output = new OutputInvestmentFundsDTO();</span>
+<span class="fc" id="L169">        output.setData(Collections.singletonList(investmentFund));</span>
+<span class="fc bfc" id="L170" title="All 2 branches covered.">        if (validarContratoEnKsanYHost(&quot;PE&quot; + ffmm7.getIdContr(), output)) {</span>
+<span class="fc" id="L171">            String profileId = StringUtils.trimToNull(input.getProfileId());</span>
+<span class="pc bpc" id="L172" title="1 of 2 branches missed.">            if (profileId == null) {</span>
+<span class="nc" id="L173">                profileId = StringUtils.trimToNull(input.getCustomerId());</span>
+<span class="nc" id="L174">                LOGGER.debug(&quot;[buildOutputInvestmentFund] - profileId no informado, usando customerId como respaldo&quot;);</span>
             }
-<span class="fc" id="L171">            investmentFund.setIsVisible(getVisible(&quot;PE&quot; + ffmm7.getIdContr(), profileId));</span>
-<span class="fc" id="L172">            return output;</span>
+<span class="fc" id="L176">            investmentFund.setIsVisible(getVisible(&quot;PE&quot; + ffmm7.getIdContr(), profileId));</span>
+<span class="fc" id="L177">            return output;</span>
         }
-<span class="fc" id="L174">        return null;</span>
+<span class="fc" id="L179">        return null;</span>
     }
 
     private boolean hasFundData(FFMM7 ffmm7) {
-<span class="pc bpc" id="L178" title="2 of 6 branches missed.">        return ffmm7.getIdSubPr() != null || ffmm7.getNumCuot() != null || ffmm7.getSalCont() != null ||</span>
-<span class="pc bpc" id="L179" title="3 of 6 branches missed.">                ffmm7.getdMonEsd() != null || ffmm7.getdSubPro() != null || ffmm7.getIdMonFn() != null ||</span>
-<span class="pc bpc" id="L180" title="2 of 4 branches missed.">                ffmm7.getSalDisp() != null || ffmm7.getValCuot() != null;</span>
+<span class="fc bfc" id="L183" title="All 2 branches covered.">        if (!hasMandatoryFundFields(ffmm7)) {</span>
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">            String contractId = ffmm7 != null ? ffmm7.getIdContr() : null;</span>
+<span class="fc" id="L185">            LOGGER.warn(&quot;[hasFundData] - se omite la sección funds para el contrato {} por datos obligatorios incompletos&quot;, contractId);</span>
+<span class="fc" id="L186">            return false;</span>
+        }
+<span class="fc" id="L188">        return true;</span>
+    }
+
+    private boolean hasMandatoryFundFields(FFMM7 ffmm7) {
+<span class="pc bpc" id="L192" title="1 of 2 branches missed.">        if (ffmm7 == null) {</span>
+<span class="nc" id="L193">            return false;</span>
+        }
+<span class="fc bfc" id="L195" title="All 2 branches covered.">        return StringUtils.isNotBlank(ffmm7.getIdSubPr())</span>
+<span class="fc bfc" id="L196" title="All 2 branches covered.">                &amp;&amp; ffmm7.getNumCuot() != null</span>
+<span class="fc bfc" id="L197" title="All 2 branches covered.">                &amp;&amp; ffmm7.getSalCont() != null</span>
+<span class="pc bpc" id="L198" title="1 of 2 branches missed.">                &amp;&amp; StringUtils.isNotBlank(resolveCurrencyId(ffmm7))</span>
+<span class="fc bfc" id="L199" title="All 2 branches covered.">                &amp;&amp; ffmm7.getValCuot() != null</span>
+<span class="pc bpc" id="L200" title="1 of 2 branches missed.">                &amp;&amp; resolveAvailableAmount(ffmm7) != null;</span>
+    }
+
+    private BigDecimal resolveAvailableAmount(FFMM7 ffmm7) {
+<span class="pc bpc" id="L204" title="1 of 2 branches missed.">        if (ffmm7 == null) {</span>
+<span class="nc" id="L205">            return null;</span>
+        }
+<span class="fc bfc" id="L207" title="All 2 branches covered.">        if (ffmm7.getSalDisp() != null) {</span>
+<span class="fc" id="L208">            return ffmm7.getSalDisp();</span>
+        }
+<span class="fc" id="L210">        return ffmm7.getSalCont();</span>
+    }
+
+    private String resolveCurrencyId(FFMM7 ffmm7) {
+<span class="pc bpc" id="L214" title="1 of 2 branches missed.">        if (ffmm7 == null) {</span>
+<span class="nc" id="L215">            return null;</span>
+        }
+<span class="fc" id="L217">        String currencyId = StringUtils.trimToNull(ffmm7.getdMonEsd());</span>
+<span class="fc bfc" id="L218" title="All 2 branches covered.">        if (currencyId == null) {</span>
+<span class="fc" id="L219">            currencyId = StringUtils.trimToNull(ffmm7.getIdMonFn());</span>
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">            if (currencyId != null) {</span>
+<span class="fc" id="L221">                LOGGER.warn(&quot;[mapOutFunds] - código de moneda ausente, se usará el identificador informado por el host&quot;);</span>
+            }
+        }
+<span class="fc" id="L224">        return currencyId;</span>
     }
 
     public boolean getVisible(String globalContractId, String profileId) {
-<span class="fc bfc" id="L184" title="All 2 branches covered.">        if (!isKusuConfigured()) {</span>
-<span class="fc" id="L185">            return false;</span>
+<span class="fc bfc" id="L228" title="All 2 branches covered.">        if (!isKusuConfigured()) {</span>
+<span class="fc" id="L229">            LOGGER.info(&quot;[getVisible] - KUSU no configurado, se mantendrá la visibilidad por defecto (visible)&quot;);</span>
+<span class="fc" id="L230">            return true;</span>
         }
-<span class="fc" id="L187">        LOGGER.info(&quot;[getVisible] - globalContractId: {}&quot;, globalContractId);</span>
-<span class="fc" id="L188">        IdentificationData identificationData = resolveIdentifiers(profileId);</span>
-<span class="fc" id="L189">        LOGGER.info(&quot;[getVisible] - resolved userId: {}&quot;, identificationData.getUserId());</span>
-<span class="fc" id="L190">        LOGGER.info(&quot;[getVisible] - resolved profileId: {}&quot;, identificationData.getProfileId());</span>
+<span class="fc" id="L232">        LOGGER.info(&quot;[getVisible] - globalContractId: {}&quot;, globalContractId);</span>
+<span class="fc" id="L233">        IdentificationData identificationData = resolveIdentifiers(profileId);</span>
+<span class="fc" id="L234">        LOGGER.info(&quot;[getVisible] - resolved userId: {}&quot;, identificationData.getUserId());</span>
+<span class="fc" id="L235">        LOGGER.info(&quot;[getVisible] - resolved profileId: {}&quot;, identificationData.getProfileId());</span>
 
-<span class="fc bfc" id="L192" title="All 2 branches covered.">        if (!identificationData.hasIdentifiers()) {</span>
-<span class="fc" id="L193">            LOGGER.warn(&quot;[getVisible] - unable to resolve identifiers, returning invisible by default&quot;);</span>
-<span class="fc" id="L194">            return false;</span>
-        }
-
-<span class="fc" id="L197">        List&lt;AliasFavContractEntity&gt; contracts = fetchFavoriteContracts(globalContractId, identificationData);</span>
-<span class="fc bfc" id="L198" title="All 2 branches covered.">        if (contracts.isEmpty()) {</span>
-<span class="fc" id="L199">            return false;</span>
+<span class="fc bfc" id="L237" title="All 2 branches covered.">        if (!identificationData.hasIdentifiers()) {</span>
+<span class="fc" id="L238">            LOGGER.warn(&quot;[getVisible] - no fue posible resolver identificadores, se mantendrá la visibilidad por defecto (visible)&quot;);</span>
+<span class="fc" id="L239">            return true;</span>
         }
 
-<span class="fc" id="L202">        AliasFavContractEntity matchedContract = findMatchingContract(globalContractId, contracts);</span>
-<span class="fc bfc" id="L203" title="All 2 branches covered.">        if (matchedContract != null) {</span>
-<span class="fc" id="L204">            return resolveVisibilityFromIndicator(matchedContract);</span>
+<span class="fc" id="L242">        List&lt;AliasFavContractEntity&gt; contracts = fetchFavoriteContracts(globalContractId, identificationData);</span>
+<span class="fc bfc" id="L243" title="All 2 branches covered.">        if (contracts.isEmpty()) {</span>
+<span class="fc" id="L244">            LOGGER.warn(&quot;[getVisible] - sin contratos asociados en KUSU, se mantendrá la visibilidad por defecto (visible)&quot;);</span>
+<span class="fc" id="L245">            return true;</span>
         }
 
-<span class="fc" id="L207">        LOGGER.warn(&quot;[getVisible] - no contract matched {}, falling back to visibility indicator scan&quot;, globalContractId);</span>
-
-<span class="fc" id="L209">        VisibilityEvaluation evaluation = evaluateVisibilityFallback(contracts);</span>
-<span class="fc bfc" id="L210" title="All 2 branches covered.">        if (evaluation.hasDecision()) {</span>
-<span class="fc" id="L211">            return evaluation.getDecision();</span>
+<span class="fc" id="L248">        AliasFavContractEntity matchedContract = findMatchingContract(globalContractId, contracts);</span>
+<span class="fc bfc" id="L249" title="All 2 branches covered.">        if (matchedContract != null) {</span>
+<span class="fc" id="L250">            return resolveVisibilityFromIndicator(matchedContract);</span>
         }
-<span class="fc" id="L213">        return applyFallbackDecision(evaluation.getFallbackState());</span>
+
+<span class="fc" id="L253">        LOGGER.warn(&quot;[getVisible] - no contract matched {}, falling back to visibility indicator scan&quot;, globalContractId);</span>
+
+<span class="fc" id="L255">        VisibilityEvaluation evaluation = evaluateVisibilityFallback(contracts);</span>
+<span class="fc bfc" id="L256" title="All 2 branches covered.">        if (evaluation.hasDecision()) {</span>
+<span class="fc" id="L257">            return evaluation.getDecision();</span>
+        }
+<span class="fc" id="L259">        return applyFallbackDecision(evaluation.getFallbackState());</span>
+    }
+
+    public boolean tieneSoporteKusu() {
+        // Se expone para que la transacción pueda decidir la visibilidad ante la ausencia de KUSU.
+<span class="fc bfc" id="L264" title="All 2 branches covered.">        return kusuR325 != null;</span>
     }
 
     private boolean isKusuConfigured() {
-<span class="fc bfc" id="L217" title="All 2 branches covered.">        if (kusuR325 != null) {</span>
-<span class="fc" id="L218">            return true;</span>
+<span class="fc bfc" id="L268" title="All 2 branches covered.">        if (tieneSoporteKusu()) {</span>
+<span class="fc" id="L269">            return true;</span>
         }
-<span class="fc" id="L220">        LOGGER.warn(&quot;[getVisible] - kusur325 no configurado&quot;);</span>
-<span class="fc" id="L221">        return false;</span>
+<span class="fc" id="L271">        LOGGER.warn(&quot;[getVisible] - kusur325 no configurado&quot;);</span>
+<span class="fc" id="L272">        return false;</span>
     }
 
     private List&lt;AliasFavContractEntity&gt; fetchFavoriteContracts(String globalContractId, IdentificationData identificationData) {
-<span class="fc" id="L225">        List&lt;AliasFavContractEntity&gt; contractEntityListIn = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L226">        AliasFavContractEntity contractEntity = new AliasFavContractEntity();</span>
-<span class="fc" id="L227">        contractEntity.setGContractId(globalContractId);</span>
-<span class="fc" id="L228">        contractEntityListIn.add(contractEntity);</span>
-<span class="fc" id="L229">        LOGGER.info(&quot;[getVisible] - contractEntityListIn: {}&quot;, contractEntityListIn);</span>
+<span class="fc" id="L276">        List&lt;AliasFavContractEntity&gt; contractEntityListIn = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L277">        AliasFavContractEntity contractEntity = new AliasFavContractEntity();</span>
+<span class="fc" id="L278">        contractEntity.setGContractId(globalContractId);</span>
+<span class="fc" id="L279">        contractEntityListIn.add(contractEntity);</span>
+<span class="fc" id="L280">        LOGGER.info(&quot;[getVisible] - contractEntityListIn: {}&quot;, contractEntityListIn);</span>
 
-<span class="fc bfc" id="L231" title="All 2 branches covered.">        if (!identificationData.hasIdentifiers()) {</span>
-<span class="fc" id="L232">            LOGGER.warn(&quot;[getVisible] - identifiers not available to query kusuR325&quot;);</span>
-<span class="fc" id="L233">            return Collections.emptyList();</span>
+<span class="fc bfc" id="L282" title="All 2 branches covered.">        if (!identificationData.hasIdentifiers()) {</span>
+<span class="fc" id="L283">            LOGGER.warn(&quot;[getVisible] - identifiers not available to query kusuR325&quot;);</span>
+<span class="fc" id="L284">            return Collections.emptyList();</span>
         }
 
-<span class="fc" id="L236">        String resolvedProfileId = StringUtils.trimToNull(identificationData.getProfileId());</span>
-<span class="pc bpc" id="L237" title="1 of 2 branches missed.">        if (resolvedProfileId == null) {</span>
-<span class="nc" id="L238">            return Collections.emptyList();</span>
+<span class="fc" id="L287">        String resolvedProfileId = StringUtils.trimToNull(identificationData.getProfileId());</span>
+<span class="pc bpc" id="L288" title="1 of 2 branches missed.">        if (resolvedProfileId == null) {</span>
+<span class="nc" id="L289">            return Collections.emptyList();</span>
         }
 
-<span class="fc" id="L241">        List&lt;AliasFavContractEntity&gt; result = kusuR325.executeGetAliasFavoriteContractsList(</span>
+<span class="fc" id="L292">        List&lt;AliasFavContractEntity&gt; result = kusuR325.executeGetAliasFavoriteContractsList(</span>
                 resolvedProfileId,
                 resolvedProfileId,
                 contractEntityListIn);
-<span class="fc" id="L245">        LOGGER.info(&quot;[getVisible] - result of kusu: {}&quot;, result);</span>
-<span class="fc bfc" id="L246" title="All 2 branches covered.">        return result == null ? Collections.emptyList() : result;</span>
+<span class="fc" id="L296">        LOGGER.info(&quot;[getVisible] - result of kusu: {}&quot;, result);</span>
+<span class="fc bfc" id="L297" title="All 2 branches covered.">        return result == null ? Collections.emptyList() : result;</span>
     }
 
     private IdentificationData resolveIdentifiers(String providedProfileId) {
-<span class="fc" id="L250">        String normalizedProvided = StringUtils.trimToNull(providedProfileId);</span>
-<span class="fc bfc" id="L251" title="All 2 branches covered.">        if (normalizedProvided != null) {</span>
-<span class="fc" id="L252">            return new IdentificationData(normalizedProvided, normalizedProvided);</span>
+<span class="fc" id="L301">        String normalizedProvided = StringUtils.trimToNull(providedProfileId);</span>
+<span class="fc bfc" id="L302" title="All 2 branches covered.">        if (normalizedProvided != null) {</span>
+<span class="fc" id="L303">            return new IdentificationData(normalizedProvided, normalizedProvided);</span>
         }
 
-<span class="fc" id="L255">        CommonRequestHeader requestHeader = resolveRequestHeader();</span>
-<span class="fc" id="L256">        String headerUserId = null;</span>
-<span class="fc" id="L257">        String headerProfileId = null;</span>
+<span class="fc" id="L306">        CommonRequestHeader requestHeader = resolveRequestHeader();</span>
+<span class="fc" id="L307">        String headerUserId = null;</span>
+<span class="fc" id="L308">        String headerProfileId = null;</span>
 
-<span class="fc bfc" id="L259" title="All 2 branches covered.">        if (requestHeader != null) {</span>
-<span class="fc" id="L260">            headerUserId = readHeaderParameter(requestHeader,</span>
+<span class="fc bfc" id="L310" title="All 2 branches covered.">        if (requestHeader != null) {</span>
+<span class="fc" id="L311">            headerUserId = readHeaderParameter(requestHeader,</span>
                     RequestHeaderParamsName.USERCODE,
                     RequestHeaderParamsName.USERLOGON,
                     RequestHeaderParamsName.AGENTUSER,
                     RequestHeaderParamsName.MANAGERUSER);
-<span class="fc" id="L265">            headerProfileId = readHeaderParameter(requestHeader, RequestHeaderParamsName.PID);</span>
+<span class="fc" id="L316">            headerProfileId = readHeaderParameter(requestHeader, RequestHeaderParamsName.PID);</span>
         }
 
-<span class="fc" id="L268">        String resolvedProfileId = firstNonBlank(headerProfileId, headerUserId);</span>
-<span class="fc" id="L269">        return new IdentificationData(resolvedProfileId, resolvedProfileId);</span>
+<span class="fc" id="L319">        String resolvedProfileId = firstNonBlank(headerProfileId, headerUserId);</span>
+<span class="fc" id="L320">        return new IdentificationData(resolvedProfileId, resolvedProfileId);</span>
     }
 
     private CommonRequestHeader resolveRequestHeader() {
-<span class="fc" id="L273">        Context context = ThreadContext.get();</span>
-<span class="fc bfc" id="L274" title="All 2 branches covered.">        if (context == null) {</span>
-<span class="fc" id="L275">            LOGGER.debug(&quot;[getVisible] - request context unavailable while resolving identifiers&quot;);</span>
-<span class="fc" id="L276">            return null;</span>
+<span class="fc" id="L324">        Context context = ThreadContext.get();</span>
+<span class="fc bfc" id="L325" title="All 2 branches covered.">        if (context == null) {</span>
+<span class="fc" id="L326">            LOGGER.debug(&quot;[getVisible] - request context unavailable while resolving identifiers&quot;);</span>
+<span class="fc" id="L327">            return null;</span>
         }
 
-<span class="fc" id="L279">        TransactionRequest transactionRequest = context.getTransactionRequest();</span>
-<span class="fc bfc" id="L280" title="All 2 branches covered.">        if (transactionRequest == null) {</span>
-<span class="fc" id="L281">            LOGGER.debug(&quot;[getVisible] - transaction request unavailable while resolving identifiers&quot;);</span>
-<span class="fc" id="L282">            return null;</span>
+<span class="fc" id="L330">        TransactionRequest transactionRequest = context.getTransactionRequest();</span>
+<span class="fc bfc" id="L331" title="All 2 branches covered.">        if (transactionRequest == null) {</span>
+<span class="fc" id="L332">            LOGGER.debug(&quot;[getVisible] - transaction request unavailable while resolving identifiers&quot;);</span>
+<span class="fc" id="L333">            return null;</span>
         }
 
-<span class="fc" id="L285">        Object header = transactionRequest.getHeader();</span>
-<span class="fc bfc" id="L286" title="All 2 branches covered.">        if (!(header instanceof CommonRequestHeader)) {</span>
-<span class="fc" id="L287">            LOGGER.debug(&quot;[getVisible] - request header unavailable or incompatible while resolving identifiers&quot;);</span>
-<span class="fc" id="L288">            return null;</span>
+<span class="fc" id="L336">        Object header = transactionRequest.getHeader();</span>
+<span class="fc bfc" id="L337" title="All 2 branches covered.">        if (!(header instanceof CommonRequestHeader)) {</span>
+<span class="fc" id="L338">            LOGGER.debug(&quot;[getVisible] - request header unavailable or incompatible while resolving identifiers&quot;);</span>
+<span class="fc" id="L339">            return null;</span>
         }
 
-<span class="fc" id="L291">        return (CommonRequestHeader) header;</span>
+<span class="fc" id="L342">        return (CommonRequestHeader) header;</span>
     }
 
     private String readHeaderParameter(CommonRequestHeader requestHeader, RequestHeaderParamsName... parameterNames) {
-<span class="pc bpc" id="L295" title="2 of 4 branches missed.">        if (requestHeader == null || parameterNames == null) {</span>
-<span class="nc" id="L296">            return null;</span>
+<span class="pc bpc" id="L346" title="2 of 4 branches missed.">        if (requestHeader == null || parameterNames == null) {</span>
+<span class="nc" id="L347">            return null;</span>
         }
-<span class="pc bpc" id="L298" title="1 of 2 branches missed.">        for (RequestHeaderParamsName parameterName : parameterNames) {</span>
-<span class="pc bpc" id="L299" title="1 of 2 branches missed.">            if (parameterName == null) {</span>
-<span class="nc" id="L300">                continue;</span>
+<span class="pc bpc" id="L349" title="1 of 2 branches missed.">        for (RequestHeaderParamsName parameterName : parameterNames) {</span>
+<span class="pc bpc" id="L350" title="1 of 2 branches missed.">            if (parameterName == null) {</span>
+<span class="nc" id="L351">                continue;</span>
             }
-<span class="fc" id="L302">            Object value = requestHeader.getHeaderParameter(parameterName);</span>
-<span class="fc" id="L303">            String normalized = normalizeHeaderValue(value);</span>
-<span class="pc bpc" id="L304" title="1 of 2 branches missed.">            if (normalized != null) {</span>
-<span class="fc" id="L305">                return normalized;</span>
+<span class="fc" id="L353">            Object value = requestHeader.getHeaderParameter(parameterName);</span>
+<span class="fc" id="L354">            String normalized = normalizeHeaderValue(value);</span>
+<span class="pc bpc" id="L355" title="1 of 2 branches missed.">            if (normalized != null) {</span>
+<span class="fc" id="L356">                return normalized;</span>
             }
         }
-<span class="nc" id="L308">        return null;</span>
+<span class="nc" id="L359">        return null;</span>
     }
 
     private String firstNonBlank(String... values) {
-<span class="pc bpc" id="L312" title="1 of 2 branches missed.">        if (values == null) {</span>
-<span class="nc" id="L313">            return null;</span>
+<span class="pc bpc" id="L363" title="1 of 2 branches missed.">        if (values == null) {</span>
+<span class="nc" id="L364">            return null;</span>
         }
-<span class="fc bfc" id="L315" title="All 2 branches covered.">        for (String value : values) {</span>
-<span class="fc" id="L316">            String normalized = StringUtils.trimToNull(value);</span>
-<span class="fc bfc" id="L317" title="All 2 branches covered.">            if (normalized != null) {</span>
-<span class="fc" id="L318">                return normalized;</span>
+<span class="fc bfc" id="L366" title="All 2 branches covered.">        for (String value : values) {</span>
+<span class="fc" id="L367">            String normalized = StringUtils.trimToNull(value);</span>
+<span class="fc bfc" id="L368" title="All 2 branches covered.">            if (normalized != null) {</span>
+<span class="fc" id="L369">                return normalized;</span>
             }
         }
-<span class="fc" id="L321">        return null;</span>
+<span class="fc" id="L372">        return null;</span>
     }
 
     private String normalizeHeaderValue(Object value) {
-<span class="pc bpc" id="L325" title="1 of 2 branches missed.">        if (value == null) {</span>
-<span class="nc" id="L326">            return null;</span>
+<span class="pc bpc" id="L376" title="1 of 2 branches missed.">        if (value == null) {</span>
+<span class="nc" id="L377">            return null;</span>
         }
-<span class="fc" id="L328">        return StringUtils.trimToNull(value.toString());</span>
+<span class="fc" id="L379">        return StringUtils.trimToNull(value.toString());</span>
     }
 
     private AliasFavContractEntity findMatchingContract(String globalContractId, List&lt;AliasFavContractEntity&gt; contracts) {
-<span class="fc bfc" id="L332" title="All 2 branches covered.">        for (AliasFavContractEntity entity : contracts) {</span>
-<span class="pc bpc" id="L333" title="1 of 4 branches missed.">            if (entity != null &amp;&amp; StringUtils.equalsIgnoreCase(globalContractId, entity.getGContractId())) {</span>
-<span class="fc" id="L334">                return entity;</span>
+<span class="fc bfc" id="L383" title="All 2 branches covered.">        for (AliasFavContractEntity entity : contracts) {</span>
+<span class="pc bpc" id="L384" title="1 of 4 branches missed.">            if (entity != null &amp;&amp; StringUtils.equalsIgnoreCase(globalContractId, entity.getGContractId())) {</span>
+<span class="fc" id="L385">                return entity;</span>
             }
-<span class="fc" id="L336">        }</span>
-<span class="fc" id="L337">        return null;</span>
+<span class="fc" id="L387">        }</span>
+<span class="fc" id="L388">        return null;</span>
     }
 
     private boolean resolveVisibilityFromIndicator(AliasFavContractEntity entity) {
-<span class="fc" id="L341">        Object indicator = getVisibilityIndicator(entity);</span>
-<span class="pc bpc" id="L342" title="1 of 2 branches missed.">        if (indicator == null) {</span>
-<span class="nc" id="L343">            LOGGER.info(&quot;[getVisible] - matched contract {} has no explicit indicator, defaulting to visible&quot;,</span>
-<span class="nc" id="L344">                    entity.getGContractId());</span>
-<span class="nc" id="L345">            return true;</span>
+<span class="fc" id="L392">        Object indicator = getVisibilityIndicator(entity);</span>
+<span class="fc bfc" id="L393" title="All 2 branches covered.">        if (indicator == null) {</span>
+<span class="fc" id="L394">            LOGGER.info(&quot;[getVisible] - matched contract {} has no explicit indicator, defaulting to visible&quot;,</span>
+<span class="fc" id="L395">                    entity.getGContractId());</span>
+<span class="fc" id="L396">            return true;</span>
         }
-<span class="fc" id="L347">        boolean visible = toBoolean(indicator);</span>
-<span class="fc" id="L348">        LOGGER.info(&quot;[getVisible] - matched contract {} with indicator {} =&gt; {}&quot;,</span>
-<span class="fc" id="L349">                entity.getGContractId(), indicator, visible);</span>
-<span class="fc" id="L350">        return visible;</span>
+<span class="fc" id="L398">        boolean visible = toBoolean(indicator);</span>
+<span class="fc" id="L399">        LOGGER.info(&quot;[getVisible] - matched contract {} with indicator {} =&gt; {}&quot;,</span>
+<span class="fc" id="L400">                entity.getGContractId(), indicator, visible);</span>
+<span class="fc" id="L401">        return visible;</span>
     }
 
     private Object getVisibilityIndicator(AliasFavContractEntity entity) {
-<span class="fc bfc" id="L354" title="All 2 branches covered.">        if (entity == null) {</span>
-<span class="fc" id="L355">            return null;</span>
+<span class="fc bfc" id="L405" title="All 2 branches covered.">        if (entity == null) {</span>
+<span class="fc" id="L406">            return null;</span>
         }
 
-<span class="fc" id="L358">        Object indicator = safelyReadVisibilityIndicator(entity);</span>
-<span class="pc bpc" id="L359" title="1 of 2 branches missed.">        if (indicator == IndicatorExtractionResult.UNAVAILABLE) {</span>
-<span class="fc" id="L360">            indicator = null;</span>
+<span class="fc" id="L409">        Object indicator = safelyReadVisibilityIndicator(entity);</span>
+<span class="pc bpc" id="L410" title="1 of 2 branches missed.">        if (indicator == IndicatorExtractionResult.UNAVAILABLE) {</span>
+<span class="fc" id="L411">            indicator = null;</span>
         }
 
-<span class="pc bpc" id="L363" title="1 of 2 branches missed.">        if (indicator instanceof CharSequence) {</span>
-<span class="nc" id="L364">            String normalized = StringUtils.trimToNull(indicator.toString());</span>
-<span class="nc bnc" id="L365" title="All 2 branches missed.">            if (normalized != null) {</span>
-<span class="nc" id="L366">                return normalized;</span>
+<span class="pc bpc" id="L414" title="1 of 2 branches missed.">        if (indicator instanceof CharSequence) {</span>
+<span class="nc" id="L415">            String normalized = StringUtils.trimToNull(indicator.toString());</span>
+<span class="nc bnc" id="L416" title="All 2 branches missed.">            if (normalized != null) {</span>
+<span class="nc" id="L417">                return normalized;</span>
             }
-<span class="pc bpc" id="L368" title="1 of 2 branches missed.">        } else if (indicator != null) {</span>
-<span class="nc" id="L369">            return indicator;</span>
+<span class="pc bpc" id="L419" title="1 of 2 branches missed.">        } else if (indicator != null) {</span>
+<span class="nc" id="L420">            return indicator;</span>
         }
 
-<span class="fc" id="L372">        Object extracted = extractIndicator(entity.toString());</span>
-<span class="fc bfc" id="L373" title="All 2 branches covered.">        if (extracted == IndicatorExtractionResult.UNAVAILABLE) {</span>
-<span class="fc" id="L374">            LOGGER.warn(&quot;[getVisible] - visibility indicator not found in entity representation: {}&quot;, entity);</span>
-<span class="fc" id="L375">            return null;</span>
+<span class="fc" id="L423">        Object extracted = extractIndicator(entity.toString());</span>
+<span class="fc bfc" id="L424" title="All 2 branches covered.">        if (extracted == IndicatorExtractionResult.UNAVAILABLE) {</span>
+<span class="fc" id="L425">            LOGGER.warn(&quot;[getVisible] - visibility indicator not found in entity representation: {}&quot;, entity);</span>
+<span class="fc" id="L426">            return null;</span>
         }
-<span class="fc" id="L377">        return extracted;</span>
+<span class="fc" id="L428">        return extracted;</span>
     }
 
     private Object safelyReadVisibilityIndicator(AliasFavContractEntity entity) {
-<span class="fc" id="L381">        Method getter = findVisibilityIndicatorGetter(entity.getClass());</span>
-<span class="pc bpc" id="L382" title="1 of 2 branches missed.">        if (getter == null) {</span>
-<span class="fc" id="L383">            return IndicatorExtractionResult.UNAVAILABLE;</span>
+<span class="fc" id="L432">        Method getter = findVisibilityIndicatorGetter(entity.getClass());</span>
+<span class="pc bpc" id="L433" title="1 of 2 branches missed.">        if (getter == null) {</span>
+<span class="fc" id="L434">            return IndicatorExtractionResult.UNAVAILABLE;</span>
         }
-<span class="nc" id="L385">        Class&lt;?&gt; declaringClass = getter.getDeclaringClass();</span>
-<span class="nc bnc" id="L386" title="All 2 branches missed.">        if (!AliasFavCommons.class.equals(declaringClass)</span>
-<span class="nc bnc" id="L387" title="All 2 branches missed.">                &amp;&amp; !AliasFavContractEntity.class.equals(declaringClass)) {</span>
-<span class="nc" id="L388">            LOGGER.debug(&quot;[getVisible] - skipping visibility getter declared in {}&quot;, declaringClass.getName());</span>
-<span class="nc" id="L389">            return IndicatorExtractionResult.UNAVAILABLE;</span>
+<span class="nc" id="L436">        Class&lt;?&gt; declaringClass = getter.getDeclaringClass();</span>
+<span class="nc bnc" id="L437" title="All 2 branches missed.">        if (!AliasFavCommons.class.equals(declaringClass)</span>
+<span class="nc bnc" id="L438" title="All 2 branches missed.">                &amp;&amp; !AliasFavContractEntity.class.equals(declaringClass)) {</span>
+<span class="nc" id="L439">            LOGGER.debug(&quot;[getVisible] - skipping visibility getter declared in {}&quot;, declaringClass.getName());</span>
+<span class="nc" id="L440">            return IndicatorExtractionResult.UNAVAILABLE;</span>
         }
-<span class="nc" id="L391">        return entity.getgVisibleContractIndType();</span>
+<span class="nc" id="L442">        return entity.getgVisibleContractIndType();</span>
     }
 
     private Method findVisibilityIndicatorGetter(Class&lt;?&gt; type) {
-<span class="fc" id="L395">        Method[] methods = type.getMethods();</span>
-<span class="fc bfc" id="L396" title="All 2 branches covered.">        for (Method method : methods) {</span>
-<span class="pc bpc" id="L397" title="1 of 2 branches missed.">            if (method != null</span>
-<span class="fc bfc" id="L398" title="All 2 branches covered.">                    &amp;&amp; method.getParameterCount() == 0</span>
-<span class="pc bpc" id="L399" title="1 of 2 branches missed.">                    &amp;&amp; VISIBLE_CONTRACT_INDICATOR_GETTER.equals(method.getName())) {</span>
-<span class="nc" id="L400">                return method;</span>
+<span class="fc" id="L446">        Method[] methods = type.getMethods();</span>
+<span class="fc bfc" id="L447" title="All 2 branches covered.">        for (Method method : methods) {</span>
+<span class="pc bpc" id="L448" title="1 of 2 branches missed.">            if (method != null</span>
+<span class="fc bfc" id="L449" title="All 2 branches covered.">                    &amp;&amp; method.getParameterCount() == 0</span>
+<span class="pc bpc" id="L450" title="1 of 2 branches missed.">                    &amp;&amp; VISIBLE_CONTRACT_INDICATOR_GETTER.equals(method.getName())) {</span>
+<span class="nc" id="L451">                return method;</span>
             }
         }
-<span class="fc" id="L403">        return null;</span>
+<span class="fc" id="L454">        return null;</span>
     }
+
     private VisibilityIndicator interpretVisibility(AliasFavContractEntity entity) {
-<span class="pc bpc" id="L406" title="1 of 2 branches missed.">        if (entity == null) {</span>
-<span class="nc" id="L407">            return VisibilityIndicator.UNKNOWN;</span>
+<span class="pc bpc" id="L458" title="1 of 2 branches missed.">        if (entity == null) {</span>
+<span class="nc" id="L459">            return VisibilityIndicator.UNKNOWN;</span>
         }
-<span class="fc" id="L409">        Object indicator = getVisibilityIndicator(entity);</span>
-<span class="pc bpc" id="L410" title="1 of 4 branches missed.">        if (indicator == null || indicator == IndicatorExtractionResult.UNAVAILABLE) {</span>
-<span class="fc" id="L411">            return VisibilityIndicator.UNKNOWN;</span>
+<span class="fc" id="L461">        Object indicator = getVisibilityIndicator(entity);</span>
+<span class="pc bpc" id="L462" title="1 of 4 branches missed.">        if (indicator == null || indicator == IndicatorExtractionResult.UNAVAILABLE) {</span>
+<span class="fc" id="L463">            return VisibilityIndicator.UNKNOWN;</span>
         }
-<span class="fc bfc" id="L413" title="All 2 branches covered.">        return toBoolean(indicator) ? VisibilityIndicator.VISIBLE : VisibilityIndicator.INVISIBLE;</span>
+<span class="fc bfc" id="L465" title="All 2 branches covered.">        return toBoolean(indicator) ? VisibilityIndicator.VISIBLE : VisibilityIndicator.INVISIBLE;</span>
     }
 
     private Object extractIndicator(String representation) {
-<span class="pc bpc" id="L417" title="1 of 2 branches missed.">        if (StringUtils.isBlank(representation)) {</span>
-<span class="nc" id="L418">            return IndicatorExtractionResult.UNAVAILABLE;</span>
+<span class="pc bpc" id="L469" title="1 of 2 branches missed.">        if (StringUtils.isBlank(representation)) {</span>
+<span class="nc" id="L470">            return IndicatorExtractionResult.UNAVAILABLE;</span>
         }
-<span class="fc" id="L420">        Matcher matcher = VISIBLE_CONTRACT_INDICATOR_PATTERN.matcher(representation);</span>
-<span class="fc bfc" id="L421" title="All 2 branches covered.">        if (!matcher.find()) {</span>
-<span class="fc" id="L422">            return IndicatorExtractionResult.UNAVAILABLE;</span>
+<span class="fc" id="L472">        Matcher matcher = VISIBLE_CONTRACT_INDICATOR_PATTERN.matcher(representation);</span>
+<span class="fc bfc" id="L473" title="All 2 branches covered.">        if (!matcher.find()) {</span>
+<span class="fc" id="L474">            return IndicatorExtractionResult.UNAVAILABLE;</span>
         }
-<span class="fc" id="L424">        String raw = StringUtils.trim(matcher.group(1));</span>
-<span class="fc bfc" id="L425" title="All 4 branches covered.">        if (StringUtils.isEmpty(raw) || StringUtils.equalsIgnoreCase(raw, &quot;null&quot;)) {</span>
-<span class="fc" id="L426">            return null;</span>
+<span class="fc" id="L476">        String raw = StringUtils.trim(matcher.group(1));</span>
+<span class="fc bfc" id="L477" title="All 4 branches covered.">        if (StringUtils.isEmpty(raw) || StringUtils.equalsIgnoreCase(raw, &quot;null&quot;)) {</span>
+<span class="fc" id="L478">            return null;</span>
         }
-<span class="fc" id="L428">        raw = unquote(raw);</span>
-<span class="fc bfc" id="L429" title="All 4 branches covered.">        if (StringUtils.equalsIgnoreCase(raw, &quot;true&quot;) || StringUtils.equalsIgnoreCase(raw, &quot;false&quot;)) {</span>
-<span class="fc" id="L430">            return Boolean.valueOf(raw);</span>
+<span class="fc" id="L480">        raw = unquote(raw);</span>
+<span class="fc bfc" id="L481" title="All 4 branches covered.">        if (StringUtils.equalsIgnoreCase(raw, &quot;true&quot;) || StringUtils.equalsIgnoreCase(raw, &quot;false&quot;)) {</span>
+<span class="fc" id="L482">            return Boolean.valueOf(raw);</span>
         }
-<span class="fc" id="L432">        return raw;</span>
+<span class="fc" id="L484">        return raw;</span>
     }
 
     private String unquote(String value) {
-<span class="fc bfc" id="L436" title="All 2 branches covered.">        if (value.length() &lt; 2) {</span>
-<span class="fc" id="L437">            return value;</span>
+<span class="fc bfc" id="L488" title="All 2 branches covered.">        if (value.length() &lt; 2) {</span>
+<span class="fc" id="L489">            return value;</span>
         }
-<span class="fc" id="L439">        char first = value.charAt(0);</span>
-<span class="fc" id="L440">        char last = value.charAt(value.length() - 1);</span>
-<span class="pc bpc" id="L441" title="1 of 8 branches missed.">        if ((first == '&quot;' &amp;&amp; last == '&quot;') || (first == '\'' &amp;&amp; last == '\'')) {</span>
-<span class="fc" id="L442">            return value.substring(1, value.length() - 1);</span>
+<span class="fc" id="L491">        char first = value.charAt(0);</span>
+<span class="fc" id="L492">        char last = value.charAt(value.length() - 1);</span>
+<span class="pc bpc" id="L493" title="1 of 8 branches missed.">        if ((first == '&quot;' &amp;&amp; last == '&quot;') || (first == '\'' &amp;&amp; last == '\'')) {</span>
+<span class="fc" id="L494">            return value.substring(1, value.length() - 1);</span>
         }
-<span class="fc" id="L444">        return value;</span>
+<span class="fc" id="L496">        return value;</span>
     }
 
-<span class="fc" id="L447">    private enum IndicatorExtractionResult {</span>
-<span class="fc" id="L448">        UNAVAILABLE</span>
+<span class="fc" id="L499">    private enum IndicatorExtractionResult {</span>
+<span class="fc" id="L500">        UNAVAILABLE</span>
     }
 
-<span class="fc" id="L451">    private enum VisibilityIndicator {</span>
-<span class="fc" id="L452">        VISIBLE,</span>
-<span class="fc" id="L453">        INVISIBLE,</span>
-<span class="fc" id="L454">        UNKNOWN</span>
+<span class="fc" id="L503">    private enum VisibilityIndicator {</span>
+<span class="fc" id="L504">        VISIBLE,</span>
+<span class="fc" id="L505">        INVISIBLE,</span>
+<span class="fc" id="L506">        UNKNOWN</span>
     }
 
-<span class="fc" id="L457">    private enum VisibilityFallbackState {</span>
-<span class="fc" id="L458">        NONE,</span>
-<span class="fc" id="L459">        MISSING_INDICATOR,</span>
-<span class="fc" id="L460">        EXPLICIT_INVISIBLE</span>
+<span class="fc" id="L509">    private enum VisibilityFallbackState {</span>
+<span class="fc" id="L510">        NONE,</span>
+<span class="fc" id="L511">        MISSING_INDICATOR,</span>
+<span class="fc" id="L512">        EXPLICIT_INVISIBLE</span>
     }
 
     private static final class VisibilityEvaluation {
         private final Boolean decision;
         private final VisibilityFallbackState fallbackState;
 
-<span class="fc" id="L467">        private VisibilityEvaluation(Boolean decision, VisibilityFallbackState fallbackState) {</span>
-<span class="fc" id="L468">            this.decision = decision;</span>
-<span class="fc" id="L469">            this.fallbackState = fallbackState;</span>
-<span class="fc" id="L470">        }</span>
+<span class="fc" id="L519">        private VisibilityEvaluation(Boolean decision, VisibilityFallbackState fallbackState) {</span>
+<span class="fc" id="L520">            this.decision = decision;</span>
+<span class="fc" id="L521">            this.fallbackState = fallbackState;</span>
+<span class="fc" id="L522">        }</span>
 
         private static VisibilityEvaluation decision(boolean decision) {
-<span class="fc" id="L473">            return new VisibilityEvaluation(decision, VisibilityFallbackState.NONE);</span>
+<span class="fc" id="L525">            return new VisibilityEvaluation(decision, VisibilityFallbackState.NONE);</span>
         }
 
         private static VisibilityEvaluation withFallback(VisibilityFallbackState fallbackState) {
-<span class="fc" id="L477">            return new VisibilityEvaluation(null, fallbackState);</span>
+<span class="fc" id="L529">            return new VisibilityEvaluation(null, fallbackState);</span>
         }
 
         private boolean hasDecision() {
-<span class="fc bfc" id="L481" title="All 2 branches covered.">            return decision != null;</span>
+<span class="fc bfc" id="L533" title="All 2 branches covered.">            return decision != null;</span>
         }
 
         private boolean getDecision() {
-<span class="fc" id="L485">            return Boolean.TRUE.equals(decision);</span>
+<span class="fc" id="L537">            return Boolean.TRUE.equals(decision);</span>
         }
 
         private VisibilityFallbackState getFallbackState() {
-<span class="fc" id="L489">            return fallbackState;</span>
+<span class="fc" id="L541">            return fallbackState;</span>
         }
     }
 
     private VisibilityEvaluation evaluateVisibilityFallback(List&lt;AliasFavContractEntity&gt; contracts) {
-<span class="fc" id="L494">        VisibilityFallbackState fallbackState = VisibilityFallbackState.NONE;</span>
+<span class="fc" id="L546">        VisibilityFallbackState fallbackState = VisibilityFallbackState.NONE;</span>
 
-<span class="fc bfc" id="L496" title="All 2 branches covered.">        for (AliasFavContractEntity entity : contracts) {</span>
-<span class="fc" id="L497">            VisibilityIndicator visibility = interpretVisibility(entity);</span>
-<span class="pc bpc" id="L498" title="1 of 2 branches missed.">            String contractId = entity != null ? entity.getGContractId() : null;</span>
-<span class="pc bpc" id="L499" title="1 of 4 branches missed.">            switch (visibility) {</span>
+<span class="fc bfc" id="L548" title="All 2 branches covered.">        for (AliasFavContractEntity entity : contracts) {</span>
+<span class="fc" id="L549">            VisibilityIndicator visibility = interpretVisibility(entity);</span>
+<span class="pc bpc" id="L550" title="1 of 2 branches missed.">            String contractId = entity != null ? entity.getGContractId() : null;</span>
+<span class="pc bpc" id="L551" title="1 of 4 branches missed.">            switch (visibility) {</span>
                 case VISIBLE:
-<span class="fc" id="L501">                    LOGGER.info(&quot;[getVisible] - found visible indicator in unmatched contract {}&quot;, contractId);</span>
-<span class="fc" id="L502">                    return VisibilityEvaluation.decision(true);</span>
+<span class="fc" id="L553">                    LOGGER.info(&quot;[getVisible] - found visible indicator in unmatched contract {}&quot;, contractId);</span>
+<span class="fc" id="L554">                    return VisibilityEvaluation.decision(true);</span>
                 case INVISIBLE:
-<span class="fc" id="L504">                    LOGGER.info(&quot;[getVisible] - found explicit invisible indicator in contract {}&quot;, contractId);</span>
-<span class="fc" id="L505">                    fallbackState = VisibilityFallbackState.EXPLICIT_INVISIBLE;</span>
-<span class="fc" id="L506">                    break;</span>
+<span class="fc" id="L556">                    LOGGER.info(&quot;[getVisible] - found explicit invisible indicator in contract {}&quot;, contractId);</span>
+<span class="fc" id="L557">                    fallbackState = VisibilityFallbackState.EXPLICIT_INVISIBLE;</span>
+<span class="fc" id="L558">                    break;</span>
                 case UNKNOWN:
-<span class="fc" id="L508">                    LOGGER.info(&quot;[getVisible] - contract {} has no indicator&quot;, contractId);</span>
-<span class="pc bpc" id="L509" title="1 of 2 branches missed.">                    if (fallbackState != VisibilityFallbackState.EXPLICIT_INVISIBLE) {</span>
-<span class="fc" id="L510">                        fallbackState = VisibilityFallbackState.MISSING_INDICATOR;</span>
+<span class="fc" id="L560">                    LOGGER.info(&quot;[getVisible] - contract {} has no indicator&quot;, contractId);</span>
+<span class="pc bpc" id="L561" title="1 of 2 branches missed.">                    if (fallbackState != VisibilityFallbackState.EXPLICIT_INVISIBLE) {</span>
+<span class="fc" id="L562">                        fallbackState = VisibilityFallbackState.MISSING_INDICATOR;</span>
                     }
                     break;
                 default:
                     break;
             }
-<span class="fc" id="L516">        }</span>
+<span class="fc" id="L568">        }</span>
 
-<span class="fc" id="L518">        return VisibilityEvaluation.withFallback(fallbackState);</span>
+<span class="fc" id="L570">        return VisibilityEvaluation.withFallback(fallbackState);</span>
     }
 
     private boolean applyFallbackDecision(VisibilityFallbackState fallbackState) {
-<span class="fc bfc" id="L522" title="All 3 branches covered.">        switch (fallbackState) {</span>
+<span class="fc bfc" id="L574" title="All 3 branches covered.">        switch (fallbackState) {</span>
             case EXPLICIT_INVISIBLE:
-<span class="fc" id="L524">                LOGGER.info(&quot;[getVisible] - returning invisible due to explicit indicator&quot;);</span>
-<span class="fc" id="L525">                return false;</span>
+<span class="fc" id="L576">                LOGGER.info(&quot;[getVisible] - contrato marcado como no visible por indicador explícito&quot;);</span>
+<span class="fc" id="L577">                return false;</span>
             case MISSING_INDICATOR:
-<span class="fc" id="L527">                LOGGER.info(&quot;[getVisible] - defaulting to visible because indicators are missing&quot;);</span>
-<span class="fc" id="L528">                return true;</span>
+<span class="fc" id="L579">                LOGGER.info(&quot;[getVisible] - se usará visibilidad por defecto al no existir indicadores&quot;);</span>
+<span class="fc" id="L580">                return true;</span>
             default:
-<span class="fc" id="L530">                LOGGER.info(&quot;[getVisible] - no indicator information available, returning invisible by default&quot;);</span>
-<span class="fc" id="L531">                return false;</span>
+<span class="fc" id="L582">                LOGGER.info(&quot;[getVisible] - sin información de indicadores, se marcará no visible por defecto&quot;);</span>
+<span class="fc" id="L583">                return false;</span>
         }
     }
 
     private boolean toBoolean(Object value) {
-<span class="pc bpc" id="L536" title="1 of 2 branches missed.">        if (value == null) {</span>
-<span class="nc" id="L537">            return false;</span>
+<span class="pc bpc" id="L588" title="1 of 2 branches missed.">        if (value == null) {</span>
+<span class="nc" id="L589">            return false;</span>
         }
-<span class="fc bfc" id="L539" title="All 2 branches covered.">        if (value instanceof Boolean) {</span>
-<span class="fc" id="L540">            return (Boolean) value;</span>
+<span class="fc bfc" id="L591" title="All 2 branches covered.">        if (value instanceof Boolean) {</span>
+<span class="fc" id="L592">            return (Boolean) value;</span>
         }
-<span class="fc bfc" id="L542" title="All 2 branches covered.">        if (value instanceof Number) {</span>
-<span class="fc bfc" id="L543" title="All 2 branches covered.">            return ((Number) value).intValue() != 0;</span>
+<span class="fc bfc" id="L594" title="All 2 branches covered.">        if (value instanceof Number) {</span>
+<span class="fc bfc" id="L595" title="All 2 branches covered.">            return ((Number) value).intValue() != 0;</span>
         }
-<span class="fc" id="L545">        String normalized = StringUtils.trim(value.toString());</span>
-<span class="pc bpc" id="L546" title="1 of 2 branches missed.">        if (StringUtils.isBlank(normalized)) {</span>
-<span class="nc" id="L547">            return false;</span>
+<span class="fc" id="L597">        String normalized = StringUtils.trim(value.toString());</span>
+<span class="pc bpc" id="L598" title="1 of 2 branches missed.">        if (StringUtils.isBlank(normalized)) {</span>
+<span class="nc" id="L599">            return false;</span>
         }
-<span class="fc" id="L549">        normalized = normalized.toUpperCase(Locale.ROOT);</span>
-<span class="pc bpc" id="L550" title="1 of 2 branches missed.">        return &quot;TRUE&quot;.equals(normalized)</span>
-<span class="pc bpc" id="L551" title="1 of 2 branches missed.">                || &quot;T&quot;.equals(normalized)</span>
-<span class="fc bfc" id="L552" title="All 2 branches covered.">                || &quot;Y&quot;.equals(normalized)</span>
-<span class="pc bpc" id="L553" title="1 of 2 branches missed.">                || &quot;YES&quot;.equals(normalized)</span>
-<span class="pc bpc" id="L554" title="1 of 2 branches missed.">                || &quot;S&quot;.equals(normalized)</span>
-<span class="fc bfc" id="L555" title="All 2 branches covered.">                || &quot;SI&quot;.equals(normalized)</span>
-<span class="fc bfc" id="L556" title="All 2 branches covered.">                || &quot;SÍ&quot;.equals(normalized)</span>
-<span class="fc bfc" id="L557" title="All 2 branches covered.">                || &quot;VERDADERO&quot;.equals(normalized)</span>
-<span class="pc bpc" id="L558" title="1 of 2 branches missed.">                || &quot;1&quot;.equals(normalized);</span>
+<span class="fc" id="L601">        normalized = normalized.toUpperCase(Locale.ROOT);</span>
+<span class="pc bpc" id="L602" title="1 of 2 branches missed.">        return &quot;TRUE&quot;.equals(normalized)</span>
+<span class="pc bpc" id="L603" title="1 of 2 branches missed.">                || &quot;T&quot;.equals(normalized)</span>
+<span class="fc bfc" id="L604" title="All 2 branches covered.">                || &quot;Y&quot;.equals(normalized)</span>
+<span class="pc bpc" id="L605" title="1 of 2 branches missed.">                || &quot;YES&quot;.equals(normalized)</span>
+<span class="pc bpc" id="L606" title="1 of 2 branches missed.">                || &quot;S&quot;.equals(normalized)</span>
+<span class="fc bfc" id="L607" title="All 2 branches covered.">                || &quot;SI&quot;.equals(normalized)</span>
+<span class="fc bfc" id="L608" title="All 2 branches covered.">                || &quot;SÍ&quot;.equals(normalized)</span>
+<span class="fc bfc" id="L609" title="All 2 branches covered.">                || &quot;VERDADERO&quot;.equals(normalized)</span>
+<span class="pc bpc" id="L610" title="1 of 2 branches missed.">                || &quot;1&quot;.equals(normalized);</span>
     }
 
     private static final class IdentificationData {
         private final String userId;
         private final String profileId;
 
-<span class="fc" id="L565">        private IdentificationData(String userId, String profileId) {</span>
-<span class="fc" id="L566">            String normalizedProfileId = StringUtils.trimToNull(profileId);</span>
-<span class="fc bfc" id="L567" title="All 2 branches covered.">            if (normalizedProfileId == null) {</span>
-<span class="fc" id="L568">                normalizedProfileId = StringUtils.trimToNull(userId);</span>
+<span class="fc" id="L617">        private IdentificationData(String userId, String profileId) {</span>
+<span class="fc" id="L618">            String normalizedProfileId = StringUtils.trimToNull(profileId);</span>
+<span class="fc bfc" id="L619" title="All 2 branches covered.">            if (normalizedProfileId == null) {</span>
+<span class="fc" id="L620">                normalizedProfileId = StringUtils.trimToNull(userId);</span>
             }
-<span class="fc" id="L570">            this.profileId = normalizedProfileId;</span>
-<span class="fc" id="L571">            this.userId = normalizedProfileId;</span>
-<span class="fc" id="L572">        }</span>
+<span class="fc" id="L622">            this.profileId = normalizedProfileId;</span>
+<span class="fc" id="L623">            this.userId = normalizedProfileId;</span>
+<span class="fc" id="L624">        }</span>
 
         private String getUserId() {
-<span class="fc" id="L575">            return userId;</span>
+<span class="fc" id="L627">            return userId;</span>
         }
 
         private String getProfileId() {
-<span class="fc" id="L579">            return profileId;</span>
+<span class="fc" id="L631">            return profileId;</span>
         }
 
         private boolean hasIdentifiers() {
-<span class="pc bpc" id="L583" title="1 of 4 branches missed.">            return StringUtils.isNotBlank(userId) || StringUtils.isNotBlank(profileId);</span>
+<span class="pc bpc" id="L635" title="1 of 4 branches missed.">            return StringUtils.isNotBlank(userId) || StringUtils.isNotBlank(profileId);</span>
         }
     }
 
     public List&lt;Fund&gt; mapOutFunds(FMC7Response response) {
-<span class="fc" id="L588">        LOGGER.info(&quot;***** PFMH010Impl - mapOutFunds - Start FMC7Response: {} *****&quot;, response);</span>
-<span class="fc" id="L589">        List&lt;Fund&gt; dtoOutList = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L640">        LOGGER.info(&quot;***** PFMH010Impl - mapOutFunds - Start FMC7Response: {} *****&quot;, response);</span>
+<span class="fc" id="L641">        List&lt;Fund&gt; dtoOutList = new ArrayList&lt;&gt;();</span>
 
-<span class="fc bfc" id="L591" title="All 4 branches covered.">        if (response.getFfmm7() == null || response.getFfmm7().isEmpty()) {</span>
-<span class="fc" id="L592">            LOGGER.warn(&quot;La lista FFMM7  está vacía o es nula.&quot;);</span>
-<span class="fc" id="L593">            return dtoOutList;</span>
+<span class="pc bpc" id="L643" title="1 of 6 branches missed.">        if (response == null || response.getFfmm7() == null || response.getFfmm7().isEmpty()) {</span>
+<span class="fc" id="L644">            LOGGER.warn(&quot;La lista FFMM7  está vacía o es nula.&quot;);</span>
+<span class="fc" id="L645">            return dtoOutList;</span>
         }
-<span class="fc bfc" id="L595" title="All 2 branches covered.">        for (FFMM7 ffmm7 : response.getFfmm7()){</span>
-<span class="fc" id="L596">            Fund fund = new Fund();</span>
-<span class="fc" id="L597">            fund.setFundId(ffmm7.getIdSubPr());</span>
-<span class="fc" id="L598">            fund.setOwnedShares(ffmm7.getNumCuot());</span>
-<span class="fc" id="L599">            FundPosition fundPosition = new FundPosition();</span>
-<span class="fc" id="L600">            fundPosition.setAmount(ffmm7.getSalCont());</span>
-<span class="fc" id="L601">            fundPosition.setCurrency(ffmm7.getdMonEsd());</span>
-<span class="fc" id="L602">            fund.setFundPosition(fundPosition);</span>
-<span class="fc" id="L603">            Title title = new Title();</span>
-<span class="fc" id="L604">            title.setId(ffmm7.getIdSubPr());</span>
-<span class="fc" id="L605">            title.setName(ffmm7.getdSubPro());</span>
-<span class="fc" id="L606">            fund.setTitle(title);</span>
-<span class="fc" id="L607">            FundCurrency currency = new FundCurrency();</span>
-<span class="fc" id="L608">            currency.setId(ffmm7.getdMonEsd());</span>
-<span class="fc" id="L609">            currency.setName(ffmm7.getIdMonFn());</span>
-<span class="fc" id="L610">            fund.setCurrency(currency);</span>
-<span class="fc" id="L611">            AvailableFundPosition availableFundPosition = new AvailableFundPosition();</span>
-<span class="fc" id="L612">            availableFundPosition.setAmount(ffmm7.getSalDisp());</span>
-<span class="fc" id="L613">            availableFundPosition.setCurrency(ffmm7.getdMonEsd());</span>
-<span class="fc" id="L614">            fund.setAvailableFundPosition(availableFundPosition);</span>
-<span class="fc" id="L615">            NetAssetValue netAssetValue = new NetAssetValue();</span>
-<span class="fc" id="L616">            netAssetValue.setAmount(ffmm7.getValCuot());</span>
-<span class="fc" id="L617">            netAssetValue.setCurrency(ffmm7.getdMonEsd());</span>
-<span class="fc" id="L618">            fund.setNetAssetValue(netAssetValue);</span>
-<span class="fc" id="L619">            dtoOutList.add(fund);</span>
-<span class="fc" id="L620">        }</span>
 
-<span class="fc" id="L622">        LOGGER.info(&quot;***** PFMH010Impl - mapOutFunds - Start dtoOutList: {} *****&quot;, dtoOutList);</span>
-<span class="fc" id="L623">        return dtoOutList;</span>
+<span class="fc bfc" id="L648" title="All 2 branches covered.">        for (FFMM7 ffmm7 : response.getFfmm7()) {</span>
+<span class="fc" id="L649">            dtoOutList.add(buildFund(ffmm7));</span>
+<span class="fc" id="L650">        }</span>
+
+<span class="fc" id="L652">        LOGGER.info(&quot;***** PFMH010Impl - mapOutFunds - Start dtoOutList: {} *****&quot;, dtoOutList);</span>
+<span class="fc" id="L653">        return dtoOutList;</span>
+    }
+
+    private Fund buildFund(FFMM7 ffmm7) {
+<span class="fc bfc" id="L657" title="All 2 branches covered.">        if (!hasMandatoryFundFields(ffmm7)) {</span>
+<span class="pc bpc" id="L658" title="1 of 2 branches missed.">            String contractId = ffmm7 != null ? ffmm7.getIdContr() : null;</span>
+<span class="fc" id="L659">            LOGGER.warn(&quot;[mapOutFunds] - no se generará fund para el contrato {} por información incompleta&quot;, contractId);</span>
+<span class="fc" id="L660">            return null;</span>
+        }
+
+<span class="fc" id="L663">        Fund fund = new Fund();</span>
+<span class="fc" id="L664">        String fundId = StringUtils.trimToNull(ffmm7.getIdSubPr());</span>
+<span class="fc" id="L665">        fund.setFundId(fundId);</span>
+<span class="fc" id="L666">        fund.setOwnedShares(ffmm7.getNumCuot());</span>
+<span class="fc" id="L667">        fund.setFundPosition(buildFundPosition(ffmm7));</span>
+<span class="fc" id="L668">        fund.setTitle(buildTitle(ffmm7, fundId));</span>
+<span class="fc" id="L669">        fund.setCurrency(buildCurrency(ffmm7));</span>
+<span class="fc" id="L670">        fund.setAvailableFundPosition(buildAvailablePosition(ffmm7));</span>
+<span class="fc" id="L671">        fund.setNetAssetValue(buildNetAssetValue(ffmm7));</span>
+<span class="fc" id="L672">        return fund;</span>
+    }
+
+    private FundPosition buildFundPosition(FFMM7 ffmm7) {
+<span class="fc" id="L676">        FundPosition fundPosition = new FundPosition();</span>
+<span class="fc" id="L677">        fundPosition.setAmount(ffmm7.getSalCont());</span>
+<span class="fc" id="L678">        fundPosition.setCurrency(resolveCurrencyId(ffmm7));</span>
+<span class="fc" id="L679">        return fundPosition;</span>
+    }
+
+    private Title buildTitle(FFMM7 ffmm7, String fallbackId) {
+<span class="fc" id="L683">        Title title = new Title();</span>
+<span class="fc" id="L684">        title.setId(fallbackId);</span>
+<span class="fc" id="L685">        String titleName = StringUtils.trimToNull(ffmm7.getdSubPro());</span>
+<span class="fc bfc" id="L686" title="All 2 branches covered.">        if (titleName == null) {</span>
+<span class="fc" id="L687">            titleName = fallbackId;</span>
+<span class="fc" id="L688">            LOGGER.warn(&quot;[mapOutFunds] - título ausente para el contrato {}, se usará el identificador del fondo&quot;, ffmm7.getIdContr());</span>
+        }
+<span class="fc" id="L690">        title.setName(titleName);</span>
+<span class="fc" id="L691">        return title;</span>
+    }
+
+    private FundCurrency buildCurrency(FFMM7 ffmm7) {
+<span class="fc" id="L695">        FundCurrency currency = new FundCurrency();</span>
+<span class="fc" id="L696">        String currencyId = resolveCurrencyId(ffmm7);</span>
+<span class="fc" id="L697">        currency.setId(currencyId);</span>
+<span class="fc" id="L698">        String currencyName = StringUtils.trimToNull(ffmm7.getIdMonFn());</span>
+<span class="fc bfc" id="L699" title="All 2 branches covered.">        if (currencyName == null) {</span>
+<span class="fc" id="L700">            currencyName = currencyId;</span>
+<span class="fc" id="L701">            LOGGER.warn(&quot;[mapOutFunds] - nombre de moneda ausente para el contrato {}, se usará el código&quot;, ffmm7.getIdContr());</span>
+        }
+<span class="fc" id="L703">        currency.setName(currencyName);</span>
+<span class="fc" id="L704">        return currency;</span>
+    }
+
+    private AvailableFundPosition buildAvailablePosition(FFMM7 ffmm7) {
+<span class="pc bpc" id="L708" title="1 of 2 branches missed.">        if (ffmm7 == null) {</span>
+<span class="nc" id="L709">            LOGGER.warn(&quot;[mapOutFunds] - no es posible construir availableFundPosition sin información del contrato&quot;);</span>
+<span class="nc" id="L710">            return null;</span>
+        }
+<span class="fc" id="L712">        AvailableFundPosition availableFundPosition = new AvailableFundPosition();</span>
+<span class="fc" id="L713">        BigDecimal availableAmount = resolveAvailableAmount(ffmm7);</span>
+<span class="pc bpc" id="L714" title="1 of 4 branches missed.">        if (ffmm7.getSalDisp() == null &amp;&amp; availableAmount != null) {</span>
+<span class="fc" id="L715">            LOGGER.warn(&quot;[mapOutFunds] - monto disponible ausente para el contrato {}, se usará el saldo contable&quot;, ffmm7.getIdContr());</span>
+        }
+<span class="fc" id="L717">        availableFundPosition.setAmount(availableAmount);</span>
+<span class="fc" id="L718">        availableFundPosition.setCurrency(resolveCurrencyId(ffmm7));</span>
+<span class="fc" id="L719">        return availableFundPosition;</span>
+    }
+
+    private NetAssetValue buildNetAssetValue(FFMM7 ffmm7) {
+<span class="fc" id="L723">        NetAssetValue netAssetValue = new NetAssetValue();</span>
+<span class="fc" id="L724">        netAssetValue.setAmount(ffmm7.getValCuot());</span>
+<span class="fc" id="L725">        netAssetValue.setCurrency(resolveCurrencyId(ffmm7));</span>
+<span class="fc" id="L726">        return netAssetValue;</span>
     }
 
     public InvestmentFundNumberType mapOutNumberType(final String ctipnum, final String dtipnum) {
-<span class="fc bfc" id="L627" title="All 4 branches covered.">        if (StringUtils.isEmpty(ctipnum) &amp;&amp; StringUtils.isEmpty(dtipnum)) {</span>
-<span class="fc" id="L628">            return null;</span>
+<span class="fc" id="L730">        String code = StringUtils.trimToNull(ctipnum);</span>
+<span class="fc" id="L731">        String description = StringUtils.trimToNull(dtipnum);</span>
+
+<span class="fc bfc" id="L733" title="All 4 branches covered.">        if (StringUtils.isBlank(code) &amp;&amp; StringUtils.isBlank(description)) {</span>
+<span class="fc" id="L734">            return null;</span>
         }
-<span class="fc" id="L630">        InvestmentFundNumberType dtoOut = new InvestmentFundNumberType();</span>
-<span class="fc bfc" id="L631" title="All 2 branches covered.">        if (!StringUtils.isEmpty(ctipnum)) {</span>
-<span class="fc" id="L632">            String id = FundsNumberTypeIdOutputEnum.getValueFromKey(ctipnum);</span>
-<span class="pc bpc" id="L633" title="1 of 2 branches missed.">            dtoOut.setId(id != null ? id : ctipnum);</span>
+
+<span class="fc bfc" id="L737" title="All 2 branches covered.">        if (StringUtils.isBlank(description)) {</span>
+<span class="fc" id="L738">            description = code;</span>
+<span class="fc" id="L739">            LOGGER.warn(&quot;[mapOutNumberType] - descripción ausente para el tipo {}, se usará el código como nombre&quot;, code);</span>
         }
-<span class="fc" id="L635">        dtoOut.setName(dtipnum);</span>
-<span class="fc" id="L636">        return dtoOut;</span>
+
+<span class="fc" id="L742">        String resolvedId = FundsNumberTypeIdOutputEnum.getValueFromKey(code);</span>
+<span class="pc bpc" id="L743" title="1 of 2 branches missed.">        if (StringUtils.isBlank(resolvedId)) {</span>
+<span class="fc" id="L744">            resolvedId = code;</span>
+        }
+<span class="fc bfc" id="L746" title="All 2 branches covered.">        if (StringUtils.isBlank(resolvedId)) {</span>
+<span class="fc" id="L747">            resolvedId = description;</span>
+        }
+
+<span class="pc bpc" id="L750" title="2 of 4 branches missed.">        if (StringUtils.isBlank(resolvedId) || StringUtils.isBlank(description)) {</span>
+<span class="nc" id="L751">            LOGGER.warn(&quot;[mapOutNumberType] - no es posible construir numberType con código '{}' y descripción '{}'&quot;, code, description);</span>
+<span class="nc" id="L752">            return null;</span>
+        }
+
+<span class="fc" id="L755">        InvestmentFundNumberType dtoOut = new InvestmentFundNumberType();</span>
+<span class="fc" id="L756">        dtoOut.setId(resolvedId);</span>
+<span class="fc" id="L757">        dtoOut.setName(description);</span>
+<span class="fc" id="L758">        return dtoOut;</span>
     }
 
 
     public String matchErrorCodeHost(FMC7Response response) {
-<span class="fc bfc" id="L641" title="All 2 branches covered.">        if (uniqueErrorCodes.contains(response.getHostAdviceCode())) {</span>
-<span class="fc" id="L642">            return &quot;PFMH&quot; + response.getHostAdviceCode();</span>
+<span class="fc bfc" id="L763" title="All 2 branches covered.">        if (uniqueErrorCodes.contains(response.getHostAdviceCode())) {</span>
+<span class="fc" id="L764">            return &quot;PFMH&quot; + response.getHostAdviceCode();</span>
         } else {
-<span class="fc" id="L644">            return &quot;PFMH&quot; + defaultError;</span>
+<span class="fc" id="L766">            return &quot;PFMH&quot; + defaultError;</span>
         }
     }
 
     public void initializeErrorCodeList() {
-<span class="fc" id="L649">        defaultError = FME2026;</span>
-<span class="fc" id="L650">        uniqueErrorCodes = Arrays.asList(FME2026, FME2059, FME2099, FME2084, FME2060, FME2100, FME2092);</span>
-<span class="fc" id="L651">    }</span>
+<span class="fc" id="L771">        defaultError = FME2026;</span>
+<span class="fc" id="L772">        uniqueErrorCodes = Arrays.asList(FME2026, FME2059, FME2099, FME2084, FME2060, FME2100, FME2092);</span>
+<span class="fc" id="L773">    }</span>
 
     public boolean validarContratoEnKsanYHost(String contratoGlobal, OutputInvestmentFundsDTO dto) {
-<span class="fc bfc" id="L654" title="All 2 branches covered.">        if (contratoGlobal == null) {</span>
-<span class="fc" id="L655">            LOGGER.warn(&quot;[validarContratoEnKsanYHost] - contratoGlobal nulo&quot;);</span>
-<span class="fc" id="L656">            return false;</span>
+<span class="fc bfc" id="L776" title="All 2 branches covered.">        if (contratoGlobal == null) {</span>
+<span class="fc" id="L777">            LOGGER.warn(&quot;[validarContratoEnKsanYHost] - contratoGlobal nulo&quot;);</span>
+<span class="fc" id="L778">            return false;</span>
         }
-<span class="fc" id="L658">        return validateContractHostLocal(dto, contratoGlobal);</span>
+<span class="fc" id="L780">        return validateContractHostLocal(dto, contratoGlobal);</span>
     }
 
 
     public boolean validateContractHostLocal(OutputInvestmentFundsDTO dto, String contratoGlobal) {
-<span class="fc" id="L663">        LOGGER.info(&quot;***** PFMHR010Impl - validateContractHostLocal - Start *****&quot;);</span>
-<span class="pc bpc" id="L664" title="1 of 6 branches missed.">        if (dto == null || dto.getData() == null || dto.getData().isEmpty()) {</span>
-<span class="fc" id="L665">            LOGGER.warn(&quot;[validateContractHostLocal] - el DTO de fondos de inversión no contiene contratos&quot;);</span>
-<span class="fc" id="L666">            return false;</span>
+<span class="fc" id="L785">        LOGGER.info(&quot;***** PFMHR010Impl - validateContractHostLocal - Start *****&quot;);</span>
+<span class="pc bpc" id="L786" title="1 of 6 branches missed.">        if (dto == null || dto.getData() == null || dto.getData().isEmpty()) {</span>
+<span class="fc" id="L787">            LOGGER.warn(&quot;[validateContractHostLocal] - el DTO de fondos de inversión no contiene contratos&quot;);</span>
+<span class="fc" id="L788">            return false;</span>
         }
-<span class="fc" id="L668">        String contratoHost = contratoGlobal.substring(2); // Elimina &quot;PE&quot;</span>
-<span class="fc" id="L669">        return dto.getData().stream()</span>
-<span class="fc" id="L670">                .anyMatch(fund -&gt; contratoHost.equals(fund.getNumber()));</span>
+<span class="fc" id="L790">        String contratoHost = contratoGlobal.substring(2); // Elimina &quot;PE&quot;</span>
+<span class="fc" id="L791">        return dto.getData().stream()</span>
+<span class="fc" id="L792">                .anyMatch(fund -&gt; contratoHost.equals(fund.getNumber()));</span>
     }
 
     public void setPfmhR015(PFMHR015 pfmhR015) {
-<span class="fc" id="L674">        this.pfmhR015 = pfmhR015;</span>
-<span class="fc" id="L675">    }</span>
+<span class="fc" id="L796">        this.pfmhR015 = pfmhR015;</span>
+<span class="fc" id="L797">    }</span>
 
     public void setKusuR325(KUSUR325 kusur325) {
-<span class="fc" id="L678">        this.kusuR325 = kusur325;</span>
-<span class="fc" id="L679">    }</span>
+<span class="fc" id="L800">        this.kusuR325 = kusur325;</span>
+<span class="fc" id="L801">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
