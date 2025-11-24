@@ -19,6 +19,36 @@ public class PaginationDTO implements Serializable {
         this.DTOLinks = dtoLinks;
     }
 
+    /**
+     * Alias de acceso para serializar los enlaces como "links" en el JSON sin depender de anotaciones.
+     */
+    public LinksDTO getLinks() {
+        if (DTOLinks == null) {
+            return null;
+        }
+
+        LinksDTO copy = new LinksDTO();
+        copy.setFirst(DTOLinks.getFirst());
+        copy.setLast(DTOLinks.getLast());
+        copy.setPrevious(DTOLinks.getPrevious());
+        copy.setNext(DTOLinks.getNext());
+        return copy;
+    }
+
+    public void setLinks(LinksDTO links) {
+        if (links == null) {
+            this.DTOLinks = null;
+            return;
+        }
+
+        LinksDTO copy = new LinksDTO();
+        copy.setFirst(links.getFirst());
+        copy.setLast(links.getLast());
+        copy.setPrevious(links.getPrevious());
+        copy.setNext(links.getNext());
+        this.DTOLinks = copy;
+    }
+
     public Integer getPage() {
         return page;
     }
