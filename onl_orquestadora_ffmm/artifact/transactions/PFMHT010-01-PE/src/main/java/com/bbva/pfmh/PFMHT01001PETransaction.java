@@ -105,7 +105,6 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         this.setData(Collections.emptyList());
         this.setPagination(emptyPagination);
         this.setDTOPagination(emptyPagination);
-        this.setDTOLinks(copyLinks(emptyLinks));
         this.setSeverity(Severity.ENR);
     }
 
@@ -278,9 +277,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         PaginationDTO pagination = new PaginationDTO();
 
         if (links != null) {
-            LinksDTO c = copyLinks(links);
-            pagination.setLinks(c);
-            pagination.setDTOLinks(copyLinks(c));
+            pagination.setDTOLinks(copyLinks(links));
         }
 
         int totalElements = summary == null ? 0 : summary.getTotalElements();
@@ -316,38 +313,31 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         }
 
         if (fallback != null) {
-            pagination.setDTOLinks(fallback);
-            return fallback;
+            pagination.setDTOLinks(copyLinks(fallback));
+            return pagination.getDTOLinks();
         }
 
-        if (links == null) {
-            links = new LinksDTO();
-            pagination.setDTOLinks(links);
-        }
-
-        return links;
+        pagination.setDTOLinks(new LinksDTO());
+        return pagination.getDTOLinks();
     }
 
     private LinksDTO synchronizePaginationLinks(PaginationDTO pagination, LinksDTO paginationLinks) {
         LinksDTO resolvedLinks = paginationLinks == null ? new LinksDTO() : paginationLinks;
 
-        LinksDTO snapshot = copyLinks(resolvedLinks);
         if (pagination != null) {
-            pagination.setLinks(copyLinks(resolvedLinks));
+            pagination.setDTOLinks(copyLinks(resolvedLinks));
         }
 
-        return snapshot;
+        return copyLinks(resolvedLinks);
     }
 
     private void exposeLinks(LinksDTO exposedLinks, PaginationDTO pagination) {
         LinksDTO safeLinks = exposedLinks == null ? new LinksDTO() : exposedLinks;
 
         if (pagination != null) {
-            pagination.setLinks(copyLinks(safeLinks));
             pagination.setDTOLinks(copyLinks(safeLinks));
-        }
 
-        this.setDTOLinks(copyLinks(safeLinks));
+        }
     }
 
     private int computeStartIndex(int currentPage, Integer normalizedPageSize) {

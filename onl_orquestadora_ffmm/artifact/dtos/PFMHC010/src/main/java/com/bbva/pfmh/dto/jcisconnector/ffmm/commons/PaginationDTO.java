@@ -2,6 +2,7 @@ package com.bbva.pfmh.dto.jcisconnector.ffmm.commons;
 
 import java.io.Serializable;
 
+
 public class PaginationDTO implements Serializable {
     private static final long serialVersionUID = 8268731132101006705L;
     @SuppressWarnings("java:S116")
@@ -19,10 +20,8 @@ public class PaginationDTO implements Serializable {
         this.DTOLinks = dtoLinks;
     }
 
-    public LinksDTO getLinks() {
-        if (DTOLinks == null) {
-            return null;
-        }
+    public LinksDTO copyLinks() {
+        if (DTOLinks == null) return null;
 
         LinksDTO copy = new LinksDTO();
         copy.setFirst(DTOLinks.getFirst());
@@ -32,7 +31,7 @@ public class PaginationDTO implements Serializable {
         return copy;
     }
 
-    public void setLinks(LinksDTO links) {
+    public void syncLinks(LinksDTO links) {
         if (links == null) {
             this.DTOLinks = null;
             return;
