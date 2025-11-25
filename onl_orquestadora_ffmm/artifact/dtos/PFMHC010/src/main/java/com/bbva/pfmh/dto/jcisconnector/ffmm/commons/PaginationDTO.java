@@ -12,15 +12,10 @@ public class PaginationDTO implements Serializable {
     private Integer pageSize;
 
     public LinksDTO getDTOLinks() {
-        if (DTOLinks == null) {
-            DTOLinks = new LinksDTO();
-        }
-
         return DTOLinks;
     }
 
     public void setDTOLinks(LinksDTO dtoLinks) {
-        // Se conserva la misma referencia para respetar cualquier instancia previa
         this.DTOLinks = dtoLinks;
     }
 

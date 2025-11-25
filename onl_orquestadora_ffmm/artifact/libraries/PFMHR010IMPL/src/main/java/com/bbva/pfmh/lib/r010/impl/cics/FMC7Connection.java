@@ -229,6 +229,7 @@ public class FMC7Connection extends AbstractLibrary {
             LOGGER.info("[getVisible] - KUSU no configurado, se mantendrá la visibilidad por defecto (visible)");
             return true;
         }
+
         IdentificationData identificationData = resolveIdentifiers(profileId);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("[getVisible] - globalContractId: {}, resolved userId: {}, resolved profileId: {}",

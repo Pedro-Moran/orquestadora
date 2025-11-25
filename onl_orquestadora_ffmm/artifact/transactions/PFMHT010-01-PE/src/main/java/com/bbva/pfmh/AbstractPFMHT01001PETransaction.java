@@ -51,6 +51,7 @@ public abstract class AbstractPFMHT01001PETransaction extends AbstractTransactio
 	 * Set value for LinksDTO output parameter DTOLinks
 	 */
 	protected void setDTOLinks(final LinksDTO field){
+		this.addParameter("DTOLinks", field);
 	}
 
 	/**
