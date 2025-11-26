@@ -5,17 +5,17 @@ import java.io.Serializable;
 
 public class PaginationDTO implements Serializable {
     private static final long serialVersionUID = 8268731132101006705L;
-    private LinksDTO dtoLinks;
+    private LinksDTO dtoLinks = new LinksDTO();
     private Integer page;
     private Integer totalPages;
     private Integer totalElements;
     private Integer pageSize;
 
-    public LinksDTO getDTOLinks() {
+    public LinksDTO getDtoLinks(){
         return dtoLinks;
     }
 
-    public void setDTOLinks(LinksDTO dtoLinks) {
+    public void setDtoLinks(LinksDTO dtoLinks){
         this.dtoLinks = dtoLinks;
     }
 
