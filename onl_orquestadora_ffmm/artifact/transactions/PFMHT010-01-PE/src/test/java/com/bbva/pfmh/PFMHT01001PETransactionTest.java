@@ -194,7 +194,7 @@ public class PFMHT01001PETransactionTest {
                 links,
                 pagination);
 
-        assertEquals("0", pagination.getDTOLinks().getFirst());
+        assertEquals("0", pagination.getDtoLinks().getFirst());
         assertFalse("DTOLinks no debe salir como parámetro de primer nivel", parameters.containsKey("DTOLinks"));
     }
 
