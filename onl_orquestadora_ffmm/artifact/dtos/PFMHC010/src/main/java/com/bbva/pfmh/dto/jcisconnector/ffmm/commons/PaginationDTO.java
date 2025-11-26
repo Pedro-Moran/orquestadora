@@ -5,18 +5,19 @@ import java.io.Serializable;
 
 public class PaginationDTO implements Serializable {
     private static final long serialVersionUID = 8268731132101006705L;
-    private LinksDTO dtoLinks = new LinksDTO();
+    @SuppressWarnings("java:S116")
+    private LinksDTO DTOLinks = new LinksDTO();
     private Integer page;
     private Integer totalPages;
     private Integer totalElements;
     private Integer pageSize;
 
-    public LinksDTO getDtoLinks(){
-        return dtoLinks;
+    public LinksDTO getDTOLinks(){
+        return DTOLinks;
     }
 
-    public void setDtoLinks(LinksDTO dtoLinks){
-        this.dtoLinks = dtoLinks;
+    public void setDTOLinks(LinksDTO dtoLinks){
+        this.DTOLinks = dtoLinks;
     }
 
     public Integer getPage() {
@@ -54,7 +55,7 @@ public class PaginationDTO implements Serializable {
     @Override
     public String toString() {
         return "DTOPagination{" +
-                "DTOLinks=" + dtoLinks +
+                "DTOLinks=" + DTOLinks +
                 ", page=" + page +
                 ", totalPages=" + totalPages +
                 ", totalElements=" + totalElements +
