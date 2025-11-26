@@ -62,9 +62,11 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         LOGGER.info("DEBUG PFMHT010 - antes de construir rawResponse y paginación");
         List<OutputInvestmentFundsDTO> rawResponse = outcome.getPayload();
 
+        List<InvestmentFund> availableFunds = extractFunds(rawResponse);
+
         IntPaginationDTO paginationNode = extractPagination(rawResponse);
         List<OutputInvestmentFundsDTO> sanitizedResponse = sanitizeResponse(rawResponse);
-        List<InvestmentFund> availableFunds = extractFunds(sanitizedResponse);
+
         Integer normalizedPageSize = resolvePageSize(paginationNode, input);
         int currentPage = resolveCurrentPage(input, normalizedPageSize);
         int startIndex = computeStartIndex(currentPage, normalizedPageSize);
@@ -84,9 +86,14 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         PaginationDTO pagination = mapPagination(summary, links, normalizedPageSize, currentPage);
         LinksDTO paginationLinks = ensurePaginationLinks(pagination, summary, normalizedPageSize, currentPage);
         LinksDTO exposedLinks = synchronizePaginationLinks(pagination, paginationLinks);
-
+        LOGGER.info("DTOPagination final (antes de exponer) -> {}", pagination);
+        LOGGER.info("DTOPagination.DTOLinks final -> {}",
+                pagination != null ? pagination.getDTOLinks() : null);
         exposeLinks(exposedLinks, pagination);
 
+        if (pagination != null && pagination.getDTOLinks() == null){
+            pagination.setDTOLinks(new LinksDTO());
+        }
         applyPaginationMetadata(paginationNode, pagination);
 
         updateSeverity(summary);
@@ -317,7 +324,12 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
             return pagination.getDTOLinks();
         }
 
-        pagination.setDTOLinks(new LinksDTO());
+        LinksDTO forced = new LinksDTO();
+
+        forced.setFirst("0");
+        forced.setLast("0");
+
+        pagination.setDTOLinks(forced);
         return pagination.getDTOLinks();
     }
 
@@ -336,7 +348,6 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
         if (pagination != null) {
             pagination.setDTOLinks(copyLinks(safeLinks));
-
         }
     }
 
@@ -644,7 +655,6 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         }
 
         if (sanitized.size() != funds.size()) {
-            // Comentario en español: se omiten fondos nulos para evitar enlaces incompletos
             LOGGER.warn("DEBUG PFMHT010 - Se omitieron {} fondos nulos al generar DTOLinks", funds.size() - sanitized.size());
         }
 
@@ -656,8 +666,22 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
             return -1;
         }
 
+        String targetId = sanitizeKey(target.getInvestmentFundId());
+        String targetNumber = sanitizeKey(target.getNumber());
+
         for (int i = 0; i < funds.size(); i++) {
-            if (funds.get(i) == target) {
+            InvestmentFund f = funds.get(i);
+            if (f == null) {
+                continue;
+            }
+
+            String fId = sanitizeKey(f.getInvestmentFundId());
+            if (targetId != null && targetId.equals(fId)) {
+                return i;
+            }
+
+            String fNumber = sanitizeKey(f.getNumber());
+            if (targetNumber != null && targetNumber.equals(fNumber)) {
                 return i;
             }
         }
