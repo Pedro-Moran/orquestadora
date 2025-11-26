@@ -6,6 +6,7 @@ import com.bbva.elara.domain.transaction.Context;
 import com.bbva.elara.domain.transaction.Severity;
 import com.bbva.elara.domain.transaction.request.header.CommonRequestHeader;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.CompletionException;
@@ -2041,5 +2042,55 @@ public class PFMHT01001PETransactionTest {
                 new Class[]{InvestmentFund.class},
                 noIds);
         assertNull(id);
+    }
+
+    @Test
+    public void testDescribeFundUsaNumeroCuandoIdInvalido() throws Exception {
+        InvestmentFund fund = new InvestmentFund();
+        fund.setInvestmentFundId("   ");
+        fund.setNumber("  N-123  ");
+
+        String descriptor = invokeTransactionMethod(
+                "describeFund",
+                new Class[]{InvestmentFund.class},
+                fund);
+
+        assertEquals("N-123", descriptor);
+    }
+
+    @Test
+    public void testFilterNonNullFundsEliminaNulos() throws Exception {
+        InvestmentFund valid = createFund("VALID");
+        List<InvestmentFund> sanitized = invokeTransactionMethod(
+                "filterNonNullFunds",
+                new Class[]{List.class},
+                Arrays.asList(valid, null, null));
+
+        assertEquals(Collections.singletonList(valid), sanitized);
+    }
+
+    @Test
+    public void testComputeStartIndexControlaOverflow() throws Exception {
+        int startIndex = invokeTransactionMethod(
+                "computeStartIndex",
+                new Class[]{int.class, Integer.class},
+                2_000_000_000,
+                Integer.MAX_VALUE);
+
+        assertEquals(Integer.MAX_VALUE, startIndex);
+    }
+
+    @Test
+    public void testInvokeLibraryPropagaExcepcionNoControlada() {
+        RuntimeException fatal = new RuntimeException("fatal");
+        when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class))).thenThrow(fatal);
+
+        InvocationTargetException thrown = assertThrows(InvocationTargetException.class, () -> invokeTransactionMethod(
+                "invokeLibrary",
+                new Class[]{PFMHR010.class, InputListInvestmentFundsDTO.class},
+                pfmhR010,
+                inputListInvestmentFundsDTO));
+
+        assertSame("La causa debe propagarse tal cual", fatal, thrown.getCause());
     }
 }
