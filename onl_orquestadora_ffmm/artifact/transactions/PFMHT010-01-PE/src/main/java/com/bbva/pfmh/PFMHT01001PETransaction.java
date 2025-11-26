@@ -68,7 +68,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         List<OutputInvestmentFundsDTO> sanitizedResponse = sanitizeResponse(rawResponse);
 
         Integer normalizedPageSize = resolvePageSize(paginationNode, input);
-        int currentPage = resolveCurrentPage(input, normalizedPageSize);
+        int currentPage = resolveCurrentPage(input, paginationNode, normalizedPageSize);
         int startIndex = computeStartIndex(currentPage, normalizedPageSize);
 
         List<OutputInvestmentFundsDTO> payload = resolvePayload(sanitizedResponse, paginationNode, normalizedPageSize, startIndex);
@@ -88,11 +88,11 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         LinksDTO exposedLinks = synchronizePaginationLinks(pagination, paginationLinks);
         LOGGER.info("DTOPagination final (antes de exponer) -> {}", pagination);
         LOGGER.info("DTOPagination.DTOLinks final -> {}",
-                pagination != null ? pagination.getDtoLinks() : null);
+                pagination != null ? pagination.getDTOLinks() : null);
         exposeLinks(exposedLinks, pagination);
 
-        if (pagination != null && pagination.getDtoLinks() == null){
-            pagination.setDtoLinks(new LinksDTO());
+        if (pagination != null && pagination.getDTOLinks() == null){
+            pagination.setDTOLinks(new LinksDTO());
         }
         applyPaginationMetadata(paginationNode, pagination);
 
@@ -106,7 +106,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         emptyPagination.setPageSize(0);
         emptyPagination.setTotalElements(0);
         emptyPagination.setTotalPages(0);
-        emptyPagination.setDtoLinks(emptyLinks);
+        emptyPagination.setDTOLinks(emptyLinks);
 
         this.setResponseOut(buildEmptyEnvelope(null));
         this.setData(Collections.emptyList());
@@ -284,7 +284,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         PaginationDTO pagination = new PaginationDTO();
 
         if (links != null) {
-            pagination.setDtoLinks(copyLinks(links));
+            pagination.setDTOLinks(copyLinks(links));
         }
 
         int totalElements = summary == null ? 0 : summary.getTotalElements();
@@ -309,7 +309,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
             return new LinksDTO();
         }
 
-        LinksDTO links = pagination.getDtoLinks();
+        LinksDTO links = pagination.getDTOLinks();
         if (hasAnyLinkValue(links)) {
             return links;
         }
@@ -320,8 +320,8 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         }
 
         if (fallback != null) {
-            pagination.setDtoLinks(copyLinks(fallback));
-            return pagination.getDtoLinks();
+            pagination.setDTOLinks(copyLinks(fallback));
+            return pagination.getDTOLinks();
         }
 
         LinksDTO forced = new LinksDTO();
@@ -329,15 +329,15 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         forced.setFirst("0");
         forced.setLast("0");
 
-        pagination.setDtoLinks(forced);
-        return pagination.getDtoLinks();
+        pagination.setDTOLinks(forced);
+        return pagination.getDTOLinks();
     }
 
     private LinksDTO synchronizePaginationLinks(PaginationDTO pagination, LinksDTO paginationLinks) {
         LinksDTO resolvedLinks = paginationLinks == null ? new LinksDTO() : paginationLinks;
 
         if (pagination != null) {
-            pagination.setDtoLinks(copyLinks(resolvedLinks));
+            pagination.setDTOLinks(copyLinks(resolvedLinks));
         }
 
         return copyLinks(resolvedLinks);
@@ -347,7 +347,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         LinksDTO safeLinks = exposedLinks == null ? new LinksDTO() : exposedLinks;
 
         if (pagination != null) {
-            pagination.setDtoLinks(copyLinks(safeLinks));
+            pagination.setDTOLinks(copyLinks(safeLinks));
         }
     }
 
@@ -717,12 +717,26 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         return value == null ? null : value.longValue();
     }
 
-    private int resolveCurrentPage(InputListInvestmentFundsDTO input, Integer normalizedPageSize) {
-        if (input == null || normalizedPageSize == null || normalizedPageSize <= 0) {
+    private int resolveCurrentPage(InputListInvestmentFundsDTO input,
+                                   IntPaginationDTO paginationNode,
+                                   Integer normalizedPageSize) {
+        if (normalizedPageSize == null || normalizedPageSize <= 0) {
             return 0;
         }
 
-        return normalize(safeParse(input.getPaginationKey()));
+        String candidateKey = input == null ? null : input.getPaginationKey();
+
+        if (candidateKey == null && paginationNode != null) {
+            // Comentario en español: usar la clave de paginación del servicio cuando el cliente no envía una
+            candidateKey = paginationNode.getPaginationKey();
+        }
+
+        return normalize(safeParse(candidateKey));
+    }
+
+    // Comentario en español: sobrecarga para conservar compatibilidad con los tests existentes
+    private int resolveCurrentPage(InputListInvestmentFundsDTO input, Integer normalizedPageSize) {
+        return resolveCurrentPage(input, null, normalizedPageSize);
     }
 
     private BigInteger safeParse(String value) {

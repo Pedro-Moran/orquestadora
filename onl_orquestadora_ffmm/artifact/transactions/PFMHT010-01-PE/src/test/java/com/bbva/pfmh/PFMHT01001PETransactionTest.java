@@ -182,6 +182,22 @@ public class PFMHT01001PETransactionTest {
         assertNull(links.getNext());
     }
 
+    @Test
+    public void testExposeLinksSoloActualizaPaginacion() throws Exception {
+        PaginationDTO pagination = new PaginationDTO();
+        LinksDTO links = new LinksDTO();
+        links.setFirst("0");
+
+        invokeTransactionMethod(
+                "exposeLinks",
+                new Class[]{LinksDTO.class, PaginationDTO.class},
+                links,
+                pagination);
+
+        assertEquals("0", pagination.getDTOLinks().getFirst());
+        assertFalse("DTOLinks no debe salir como parámetro de primer nivel", parameters.containsKey("DTOLinks"));
+    }
+
     // ==========================================================
 
     @SuppressWarnings("unchecked")
@@ -260,10 +276,9 @@ public class PFMHT01001PETransactionTest {
 
         PaginationDTO dtoPagination = dtoPaginationCaptor.getValue();
         assertNotNull(dtoPagination);
-        assertNotNull(dtoPagination.getDtoLinks());
-        assertZeroLinks(dtoPagination.getDtoLinks());
+        assertNotNull(dtoPagination.getDTOLinks());
+        assertZeroLinks(dtoPagination.getDTOLinks());
 
-        verify(spyTransaction, never()).setDTOLinks(any());
     }
 
     @Test
@@ -291,13 +306,11 @@ public class PFMHT01001PETransactionTest {
         assertNull(captured.get(0).getDTOIntPagination());
         verify(spyTransaction, times(0)).setDTOIntPagination(any());
         verify(spyTransaction, times(1)).setDTOPagination(any());
-        verify(spyTransaction, never()).setDTOLinks(any());
 
         PaginationDTO dtoPagination = dtoPaginationCaptor.getValue();
         assertNotNull(dtoPagination);
-        assertZeroLinks(dtoPagination.getDtoLinks());
+        assertZeroLinks(dtoPagination.getDTOLinks());
 
-        verify(spyTransaction, never()).setDTOLinks(any());
     }
 
     @Test
@@ -308,14 +321,13 @@ public class PFMHT01001PETransactionTest {
 
         spyTransaction.execute();
 
-        verify(spyTransaction, never()).setDTOLinks(any());
 
         ArgumentCaptor<PaginationDTO> pagCaptor = ArgumentCaptor.forClass(PaginationDTO.class);
         verify(spyTransaction).setDTOPagination(pagCaptor.capture());
 
         PaginationDTO pag = pagCaptor.getValue();
-        assertNotNull(pag.getDtoLinks());
-        assertNullLinks(pag.getDtoLinks());
+        assertNotNull(pag.getDTOLinks());
+        assertNullLinks(pag.getDTOLinks());
     }
 
     @Test
@@ -405,7 +417,7 @@ public class PFMHT01001PETransactionTest {
 
         PaginationDTO dtoPagination = dtoPaginationCaptor.getValue();
         assertNotNull(dtoPagination);
-        LinksDTO links = dtoPagination.getDtoLinks();
+        LinksDTO links = dtoPagination.getDTOLinks();
         assertNotNull(links);
 
         assertEquals(fund.getInvestmentFundId(), links.getFirst());
@@ -413,7 +425,6 @@ public class PFMHT01001PETransactionTest {
         assertNull(links.getNext());
         assertNull(links.getPrevious());
 
-        verify(spyTransaction, never()).setDTOLinks(any());
 
         List<InvestmentFund> aggregatedFunds = dataCaptor.getValue();
         assertEquals(1, aggregatedFunds.size());
@@ -451,11 +462,10 @@ public class PFMHT01001PETransactionTest {
         verify(spyTransaction, times(0)).setDTOIntPagination(any());
         verify(spyTransaction, times(1)).setPagination(any());
         verify(spyTransaction, times(1)).setDTOPagination(any());
-        verify(spyTransaction, never()).setDTOLinks(any());
 
         PaginationDTO pag = dtoPaginationCaptor.getValue();
-        assertNotNull(pag.getDtoLinks());
-        assertNullLinks(pag.getDtoLinks());
+        assertNotNull(pag.getDTOLinks());
+        assertNullLinks(pag.getDTOLinks());
     }
 
     @Test
@@ -508,7 +518,6 @@ public class PFMHT01001PETransactionTest {
         verify(spyTransaction).setResponseOut(responseCaptor.capture());
         verify(spyTransaction).setPagination(pagCaptor.capture());
         verify(spyTransaction).setDTOPagination(any(PaginationDTO.class));
-        verify(spyTransaction, never()).setDTOLinks(any());
 
         assertEquals(Severity.ENR, spyTransaction.getSeverity());
 
@@ -520,8 +529,8 @@ public class PFMHT01001PETransactionTest {
 
         PaginationDTO pagination = pagCaptor.getValue();
         assertNotNull(pagination);
-        assertNotNull(pagination.getDtoLinks());
-        assertNullLinks(pagination.getDtoLinks());
+        assertNotNull(pagination.getDTOLinks());
+        assertNullLinks(pagination.getDTOLinks());
     }
 
     @SuppressWarnings("unchecked")
@@ -533,7 +542,6 @@ public class PFMHT01001PETransactionTest {
         doNothing().when(spyTransaction).setResponseOut(responseCaptor.capture());
         doNothing().when(spyTransaction).setPagination(any());
         doNothing().when(spyTransaction).setDTOPagination(any());
-        doNothing().when(spyTransaction).setDTOLinks(any());
         doNothing().when(spyTransaction).setData(any());
 
         Object outcome = invokeTransactionMethod(
@@ -609,11 +617,22 @@ public class PFMHT01001PETransactionTest {
         dto.setPaginationKey("7");
         dto.setPageSize(3);
 
-        int pagina = invokeTransactionMethod("resolveCurrentPage", new Class[]{InputListInvestmentFundsDTO.class, Integer.class}, dto, 3);
+        // Comentario en español: invocar con la firma extendida para evitar depender de sobrecargas no presentes
+        int pagina = invokeTransactionMethod(
+                "resolveCurrentPage",
+                new Class[]{InputListInvestmentFundsDTO.class, IntPaginationDTO.class, Integer.class},
+                dto,
+                null,
+                3);
         assertEquals(7, pagina);
 
         dto.setPaginationKey(null);
-        int paginaDefault = invokeTransactionMethod("resolveCurrentPage", new Class[]{InputListInvestmentFundsDTO.class, Integer.class}, dto, 3);
+        int paginaDefault = invokeTransactionMethod(
+                "resolveCurrentPage",
+                new Class[]{InputListInvestmentFundsDTO.class, IntPaginationDTO.class, Integer.class},
+                dto,
+                null,
+                3);
         assertEquals(0, paginaDefault);
     }
 
@@ -627,6 +646,28 @@ public class PFMHT01001PETransactionTest {
 
         assertEquals(1, sanitized.size());
         assertSame(present, sanitized.get(0));
+    }
+
+    @Test
+    public void testSanitizeFundsEliminaReferenciasNulas() throws Exception {
+        InvestmentFund first = createFund("F1");
+        InvestmentFund second = createFund("F2");
+
+        List<InvestmentFund> cleaned = invokeTransactionMethod(
+                "sanitizeFunds",
+                new Class[]{List.class},
+                Arrays.asList(first, null, second));
+
+        assertEquals(2, cleaned.size());
+        assertEquals("F1", cleaned.get(0).getInvestmentFundId());
+        assertEquals("F2", cleaned.get(1).getInvestmentFundId());
+
+        List<InvestmentFund> empty = invokeTransactionMethod(
+                "sanitizeFunds",
+                new Class[]{List.class},
+                Arrays.asList(null, null));
+
+        assertTrue(empty.isEmpty());
     }
 
     @Test
@@ -650,6 +691,26 @@ public class PFMHT01001PETransactionTest {
                 Integer.MAX_VALUE);
 
         assertEquals(Integer.MAX_VALUE, clamped);
+    }
+
+    @Test
+    public void testSanitizeResponseDepuraSobresYNulos() throws Exception {
+        OutputInvestmentFundsDTO envelope = buildEnvelope(createFund("ID-1"), null);
+
+        List<OutputInvestmentFundsDTO> sanitized = invokeTransactionMethod(
+                "sanitizeResponse",
+                new Class[]{List.class},
+                Arrays.asList(null, envelope));
+
+        assertEquals(1, sanitized.size());
+        assertEquals(1, sanitized.get(0).getData().size());
+
+        List<OutputInvestmentFundsDTO> empty = invokeTransactionMethod(
+                "sanitizeResponse",
+                new Class[]{List.class},
+                Collections.emptyList());
+
+        assertTrue(empty.isEmpty());
     }
 
     @Test
@@ -869,10 +930,9 @@ public class PFMHT01001PETransactionTest {
                 null,
                 pagination);
 
-        assertNotNull(pagination.getDtoLinks());
-        assertNullLinks(pagination.getDtoLinks());
+        assertNotNull(pagination.getDTOLinks());
+        assertNullLinks(pagination.getDTOLinks());
 
-        verify(spyTransaction, never()).setDTOLinks(any());
     }
 
     @Test
@@ -881,14 +941,13 @@ public class PFMHT01001PETransactionTest {
         existing.setFirst("persistente");
 
         PaginationDTO pagination = new PaginationDTO();
-        pagination.setDtoLinks(existing);
+        pagination.setDTOLinks(existing);
 
         LinksDTO exposed = new LinksDTO();
         exposed.setNext("nuevo");
 
         PFMHT01001PETransaction spyTransaction = spy(transaction);
 
-        doNothing().when(spyTransaction).setDTOLinks(any());
 
         invokeTransactionMethod(
                 "exposeLinks",
@@ -896,7 +955,7 @@ public class PFMHT01001PETransactionTest {
                 exposed,
                 pagination);
 
-        LinksDTO after = pagination.getDtoLinks();
+        LinksDTO after = pagination.getDTOLinks();
         assertNotNull(after);
 
         assertNotSame(existing, after);
@@ -906,7 +965,6 @@ public class PFMHT01001PETransactionTest {
         assertNull(after.getPrevious());
         assertEquals("nuevo", after.getNext());
 
-        verify(spyTransaction, never()).setDTOLinks(any());
     }
 
     @Test
@@ -923,11 +981,11 @@ public class PFMHT01001PETransactionTest {
                 links);
 
         assertNotSame(links, snapshot);
-        assertNotSame(snapshot, pagination.getDtoLinks());
+        assertNotSame(snapshot, pagination.getDTOLinks());
         assertEquals("A", snapshot.getFirst());
         assertEquals("B", snapshot.getLast());
-        assertEquals(snapshot.getFirst(), pagination.getDtoLinks().getFirst());
-        assertEquals(snapshot.getLast(), pagination.getDtoLinks().getLast());
+        assertEquals(snapshot.getFirst(), pagination.getDTOLinks().getFirst());
+        assertEquals(snapshot.getLast(), pagination.getDTOLinks().getLast());
     }
 
     @Test
@@ -987,6 +1045,40 @@ public class PFMHT01001PETransactionTest {
                 pagination,
                 input);
         assertEquals(Integer.valueOf(Integer.MAX_VALUE), capped);
+    }
+
+    @Test
+    public void testNormalizePageSizeGestionaValoresNoPositivosYExtremos() throws Exception {
+        Integer nullSize = invokeTransactionMethod(
+                "normalizePageSize",
+                new Class[]{Long.class},
+                new Object[]{null});
+        assertNull(nullSize);
+
+        Integer zero = invokeTransactionMethod(
+                "normalizePageSize",
+                new Class[]{Long.class},
+                0L);
+        assertNull(zero);
+
+        Integer negative = invokeTransactionMethod(
+                "normalizePageSize",
+                new Class[]{Long.class},
+                -5L);
+        assertNull(negative);
+
+        long beyondInt = (long) Integer.MAX_VALUE + 100L;
+        Integer capped = invokeTransactionMethod(
+                "normalizePageSize",
+                new Class[]{Long.class},
+                beyondInt);
+        assertEquals(Integer.valueOf(Integer.MAX_VALUE), capped);
+
+        Integer valid = invokeTransactionMethod(
+                "normalizePageSize",
+                new Class[]{Long.class},
+                25L);
+        assertEquals(Integer.valueOf(25), valid);
     }
 
     @Test
@@ -1053,15 +1145,14 @@ public class PFMHT01001PETransactionTest {
 
         spyTransaction.execute();
 
-        verify(spyTransaction, never()).setDTOLinks(any());
 
         ArgumentCaptor<PaginationDTO> pagCaptor = ArgumentCaptor.forClass(PaginationDTO.class);
         verify(spyTransaction).setDTOPagination(pagCaptor.capture());
 
         PaginationDTO pag = pagCaptor.getValue();
         assertNotNull(pag);
-        assertNotNull(pag.getDtoLinks());
-        assertNullLinks(pag.getDtoLinks());
+        assertNotNull(pag.getDTOLinks());
+        assertNullLinks(pag.getDTOLinks());
     }
 
     @Test
@@ -1093,7 +1184,6 @@ public class PFMHT01001PETransactionTest {
         doNothing().when(spyTransaction).setDTOIntPagination(any());
         doNothing().when(spyTransaction).setPagination(captor.capture());
         doNothing().when(spyTransaction).setDTOPagination(dtoPaginationCaptor.capture());
-        doNothing().when(spyTransaction).setDTOLinks(any());
         doNothing().when(spyTransaction).setData(dataCaptor.capture());
         when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class))).thenReturn(response);
 
@@ -1101,7 +1191,6 @@ public class PFMHT01001PETransactionTest {
 
         List<InvestmentFund> aggregated = dataCaptor.getValue();
         assertEquals(1, aggregated.size());
-        verify(spyTransaction, never()).setDTOLinks(any());
     }
 
     @Test
@@ -1132,7 +1221,6 @@ public class PFMHT01001PETransactionTest {
         doNothing().when(spyTransaction).setDTOIntPagination(any());
         doNothing().when(spyTransaction).setPagination(paginationCaptor.capture());
         doNothing().when(spyTransaction).setDTOPagination(dtoPaginationCaptor.capture());
-        doNothing().when(spyTransaction).setDTOLinks(any());
         doNothing().when(spyTransaction).setData(dataCaptor.capture());
         when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class))).thenReturn(response);
 
@@ -1194,7 +1282,7 @@ public class PFMHT01001PETransactionTest {
         assertEquals("2", links.getLast());
         assertEquals("0", links.getPrevious());
         assertEquals("2", links.getNext());
-        assertEquals(links, pagination.getDtoLinks());
+        assertEquals(links, pagination.getDTOLinks());
     }
 
     @Test
@@ -1215,7 +1303,7 @@ public class PFMHT01001PETransactionTest {
         assertEquals("2", links.getLast());
         assertEquals("0", links.getPrevious());
         assertEquals("2", links.getNext());
-        assertEquals(links, pagination.getDtoLinks());
+        assertEquals(links, pagination.getDTOLinks());
     }
 
     @Test
@@ -1242,7 +1330,7 @@ public class PFMHT01001PETransactionTest {
 
         PaginationDTO dtoPagination = dtoPaginationCaptor.getValue();
         assertNotNull(dtoPagination);
-        LinksDTO paginationLinks = dtoPagination.getDtoLinks();
+        LinksDTO paginationLinks = dtoPagination.getDTOLinks();
         assertNotNull(paginationLinks);
 
         List<InvestmentFund> available = output.getData();
@@ -1260,7 +1348,6 @@ public class PFMHT01001PETransactionTest {
         assertEquals(expected.getPrevious(), paginationLinks.getPrevious());
         assertEquals(expected.getNext(), paginationLinks.getNext());
 
-        verify(spyTransaction, never()).setDTOLinks(any());
     }
 
     @Test
@@ -1286,12 +1373,11 @@ public class PFMHT01001PETransactionTest {
 
         PaginationDTO dtoPagination = dtoPaginationCaptor.getValue();
         assertNotNull(dtoPagination);
-        LinksDTO paginationLinks = dtoPagination.getDtoLinks();
+        LinksDTO paginationLinks = dtoPagination.getDTOLinks();
 
         assertNotNull("DTOPagination debe exponer siempre un objeto Links", paginationLinks);
         assertZeroLinks(paginationLinks);
 
-        verify(spyTransaction, never()).setDTOLinks(any());
     }
 
     @Test
@@ -1330,8 +1416,7 @@ public class PFMHT01001PETransactionTest {
         assertNotNull(pagination);
         assertEquals(4, pagination.getPageSize().longValue());
 
-        assertNotNull(pagination.getDtoLinks());
-        verify(spyTransaction, never()).setDTOLinks(any());
+        assertNotNull(pagination.getDTOLinks());
     }
 
     @Test
@@ -1362,12 +1447,19 @@ public class PFMHT01001PETransactionTest {
         doNothing().when(spyTransaction).setDTOIntPagination(any());
         doNothing().when(spyTransaction).setPagination(captor.capture());
         doNothing().when(spyTransaction).setDTOPagination(dtoPaginationCaptor.capture());
-        doNothing().when(spyTransaction).setDTOLinks(any());
         when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class))).thenReturn(response);
 
         spyTransaction.execute();
 
-        verify(spyTransaction, never()).setDTOLinks(any());
+        PaginationDTO pagination = dtoPaginationCaptor.getValue();
+        assertNotNull(pagination);
+        LinksDTO links = pagination.getDTOLinks();
+        assertNotNull(links);
+        assertEquals("FUND-1", links.getFirst());
+        assertEquals("FUND-2", links.getLast());
+        assertNull(links.getNext());
+        assertEquals("FUND-1", links.getPrevious());
+
     }
 
     @Test
@@ -1396,12 +1488,19 @@ public class PFMHT01001PETransactionTest {
         doNothing().when(spyTransaction).setResponseOut(any());
         doNothing().when(spyTransaction).setDTOIntPagination(any());
         doNothing().when(spyTransaction).setPagination(captor.capture());
-        doNothing().when(spyTransaction).setDTOLinks(any());
         when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class))).thenReturn(response);
 
         spyTransaction.execute();
 
-        verify(spyTransaction, never()).setDTOLinks(any());
+        PaginationDTO pagination = captor.getValue();
+        assertNotNull(pagination);
+        LinksDTO links = pagination.getDTOLinks();
+        assertNotNull(links);
+        assertEquals("FUND-A", links.getFirst());
+        assertEquals("FUND-B", links.getLast());
+        assertNull(links.getPrevious());
+        assertEquals("FUND-B", links.getNext());
+
     }
 
     @Test
@@ -1426,12 +1525,19 @@ public class PFMHT01001PETransactionTest {
         doNothing().when(spyTransaction).setResponseOut(any());
         doNothing().when(spyTransaction).setDTOIntPagination(any());
         doNothing().when(spyTransaction).setPagination(captor.capture());
-        doNothing().when(spyTransaction).setDTOLinks(linksCaptor.capture());
         when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class))).thenReturn(response);
 
         spyTransaction.execute();
 
-        verify(spyTransaction, never()).setDTOLinks(any());
+        PaginationDTO pagination = captor.getValue();
+        assertNotNull(pagination);
+        LinksDTO links = pagination.getDTOLinks();
+        assertNotNull(links);
+        assertEquals("BLANK-1", links.getFirst());
+        assertEquals("BLANK-2", links.getLast());
+        assertNull(links.getPrevious());
+        assertEquals("BLANK-2", links.getNext());
+
     }
 
     @Test
@@ -1472,14 +1578,13 @@ public class PFMHT01001PETransactionTest {
 
         spyTransaction.execute();
 
-        LinksDTO links = dtoPaginationCaptor.getValue().getDtoLinks();
+        LinksDTO links = dtoPaginationCaptor.getValue().getDTOLinks();
         assertNotNull(links);
         assertEquals("F4", links.getPrevious());
         assertNull(links.getNext());
         assertEquals("F0", links.getFirst());
         assertEquals("F9", links.getLast());
 
-        verify(spyTransaction, never()).setDTOLinks(any());
     }
 
     @Test
@@ -1530,16 +1635,14 @@ public class PFMHT01001PETransactionTest {
         assertEquals(Collections.emptyList(), captured.get(0).getData());
         verify(spyTransaction, times(0)).setDTOIntPagination(any());
         verify(spyTransaction, times(1)).setDTOPagination(any());
-        verify(spyTransaction, never()).setDTOLinks(any());
 
         PaginationDTO pagination = dtoPaginationCaptor.getValue();
         assertNotNull(pagination);
 
-        LinksDTO links = pagination.getDtoLinks();
+        LinksDTO links = pagination.getDTOLinks();
         assertNotNull(links);
         assertZeroLinks(links);
 
-        verify(spyTransaction, never()).setDTOLinks(any());
     }
 
     @Test
@@ -1560,7 +1663,6 @@ public class PFMHT01001PETransactionTest {
         doNothing().when(spyTransaction).setPagination(paginationCaptor.capture());
         doNothing().when(spyTransaction).setDTOIntPagination(any());
         doNothing().when(spyTransaction).setDTOPagination(dtoPaginationCaptor.capture());
-        doNothing().when(spyTransaction).setDTOLinks(any());
         doNothing().when(spyTransaction).setData(any());
         when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class))).thenReturn(response);
 
@@ -1595,13 +1697,11 @@ public class PFMHT01001PETransactionTest {
         verify(spyTransaction, times(1)).setResponseOut(any());
         verify(spyTransaction, times(1)).setDTOIntPagination(intPag);
         verify(spyTransaction, times(1)).setDTOPagination(any());
-        verify(spyTransaction, never()).setDTOLinks(any());
 
         PaginationDTO dtoPagination = dtoPaginationCaptor.getValue();
         assertNotNull(dtoPagination);
-        assertZeroLinks(dtoPagination.getDtoLinks());
+        assertZeroLinks(dtoPagination.getDTOLinks());
 
-        verify(spyTransaction, never()).setDTOLinks(any());
     }
 
     @Test
@@ -1630,7 +1730,7 @@ public class PFMHT01001PETransactionTest {
 
         spyTransaction.execute();
 
-        LinksDTO links = paginationCaptor.getValue().getDtoLinks();
+        LinksDTO links = paginationCaptor.getValue().getDTOLinks();
         assertNotNull(links);
         assertNull(links.getNext());
         assertNull(links.getPrevious());
@@ -1681,14 +1781,13 @@ public class PFMHT01001PETransactionTest {
 
         spyTransaction.execute();
 
-        LinksDTO links = dtoPaginationCaptor.getValue().getDtoLinks();
+        LinksDTO links = dtoPaginationCaptor.getValue().getDTOLinks();
         assertNotNull(links);
         assertEquals("F4", links.getPrevious());
         assertEquals("F10", links.getNext());
         assertEquals("F0", links.getFirst());
         assertEquals("F14", links.getLast());
 
-        verify(spyTransaction, never()).setDTOLinks(any());
     }
 
     @Test
@@ -1724,14 +1823,13 @@ public class PFMHT01001PETransactionTest {
 
         spyTransaction.execute();
 
-        LinksDTO links = paginationCaptor.getValue().getDtoLinks();
+        LinksDTO links = paginationCaptor.getValue().getDTOLinks();
         assertNotNull(links);
         assertEquals("F0", links.getFirst());
         assertEquals("F3", links.getLast());
         assertNull(links.getNext());
         assertNull(links.getPrevious());
 
-        verify(spyTransaction, never()).setDTOLinks(any());
     }
 
     @Test
@@ -1757,7 +1855,6 @@ public class PFMHT01001PETransactionTest {
         doNothing().when(spyTransaction).setDTOIntPagination(any());
         doNothing().when(spyTransaction).setPagination(any());
         doNothing().when(spyTransaction).setDTOPagination(any());
-        doNothing().when(spyTransaction).setDTOLinks(any());
         doNothing().when(spyTransaction).setData(any());
         when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class))).thenReturn(response);
 
@@ -1807,10 +1904,9 @@ public class PFMHT01001PETransactionTest {
 
         spyTransaction.execute();
 
-        verify(spyTransaction, never()).setDTOLinks(any());
 
         PaginationDTO dtoPagination = dtoPaginationCaptor.getValue();
-        LinksDTO fallbackLinks = dtoPagination.getDtoLinks();
+        LinksDTO fallbackLinks = dtoPagination.getDTOLinks();
         assertNotNull(fallbackLinks);
 
         List<OutputInvestmentFundsDTO> sobresVisibles = responseCaptor.getValue();
@@ -1909,15 +2005,14 @@ public class PFMHT01001PETransactionTest {
         verify(spyTransaction).setDTOPagination(dtoPaginationCaptor.capture());
 
         PaginationDTO pagination = dtoPaginationCaptor.getValue();
-        LinksDTO links = pagination.getDtoLinks();
+        LinksDTO links = pagination.getDTOLinks();
 
         assertNotNull(pagination);
-        assertNotNull(pagination.getDtoLinks());
+        assertNotNull(pagination.getDTOLinks());
 
         assertNotNull(links);
         assertEquals("FUND-A", links.getFirst());
         assertEquals("FUND-B", links.getLast());
-        verify(spyTransaction, never()).setDTOLinks(any());
     }
 
     @Test
@@ -1975,7 +2070,7 @@ public class PFMHT01001PETransactionTest {
         PaginationDTO pagination = new PaginationDTO();
         LinksDTO existing = new LinksDTO();
         existing.setFirst("A");
-        pagination.setDtoLinks(existing);
+        pagination.setDTOLinks(existing);
 
         Object summary = invokeTransactionMethod(
                 "summarizeResponse",
