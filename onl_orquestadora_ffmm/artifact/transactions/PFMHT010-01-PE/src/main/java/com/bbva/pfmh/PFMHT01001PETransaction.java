@@ -92,6 +92,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
                 pagination != null ? pagination.getDTOLinks() : null);
         exposeLinks(normalizedLinks, pagination);
         applyPaginationMetadata(paginationNode, pagination);
+        propagatePaginationToEnvelopes(payload, pagination);
 
         updateSeverity(summary);
     }
@@ -105,7 +106,11 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         emptyPagination.setTotalPages(0);
         emptyPagination.setDTOLinks(emptyLinks);
 
-        this.setResponseOut(buildEmptyEnvelope(null));
+        List<OutputInvestmentFundsDTO> emptyEnvelope = buildEmptyEnvelope(null);
+
+        propagatePaginationToEnvelopes(emptyEnvelope, emptyPagination);
+
+        this.setResponseOut(emptyEnvelope);
         this.setData(Collections.emptyList());
         this.setPagination(emptyPagination);
         this.setDTOPagination(emptyPagination);
@@ -247,6 +252,20 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         this.setDTOPagination(pagination);
     }
 
+    private void propagatePaginationToEnvelopes(List<OutputInvestmentFundsDTO> payload,
+                                                PaginationDTO pagination) {
+        if (payload == null || payload.isEmpty()) {
+            return;
+        }
+
+        for (OutputInvestmentFundsDTO dto : payload) {
+            if (dto == null) {
+                continue;
+            }
+            dto.setDTOPagination(clonePagination(pagination));
+        }
+    }
+
     private void updateSeverity(ResponseSummary summary) {
         Severity severity = summary.hasVisibleFunds() ? Severity.OK : Severity.ENR;
         this.setSeverity(severity);
@@ -370,6 +389,20 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         pagination.setDTOLinks(copyLinks(metadataLinks));
 
         return copyLinks(metadataLinks);
+    }
+
+    private PaginationDTO clonePagination(PaginationDTO pagination) {
+        if (pagination == null) {
+            return null;
+        }
+
+        PaginationDTO clone = new PaginationDTO();
+        clone.setPage(pagination.getPage());
+        clone.setPageSize(pagination.getPageSize());
+        clone.setTotalElements(pagination.getTotalElements());
+        clone.setTotalPages(pagination.getTotalPages());
+        clone.setDTOLinks(copyLinks(pagination.getDTOLinks()));
+        return clone;
     }
 
     private void exposeLinks(LinksDTO exposedLinks, PaginationDTO pagination) {

@@ -515,13 +515,13 @@ public class PFMHT01001PETransactionTest {
 
         invokeTransactionMethod(spyTransaction, "handleFailure", new Class[]{});
 
-        verify(spyTransaction).setResponseOut(responseCaptor.capture());
+        verify(spyTransaction, times(2)).setResponseOut(responseCaptor.capture());
         verify(spyTransaction).setPagination(pagCaptor.capture());
         verify(spyTransaction).setDTOPagination(any(PaginationDTO.class));
 
         assertEquals(Severity.ENR, spyTransaction.getSeverity());
 
-        List<OutputInvestmentFundsDTO> response = responseCaptor.getValue();
+        List<OutputInvestmentFundsDTO> response = responseCaptor.getAllValues().get(1);
         assertNotNull(response);
         assertEquals(1, response.size());
         assertEquals(Collections.emptyList(), response.get(0).getData());
@@ -745,6 +745,22 @@ public class PFMHT01001PETransactionTest {
     }
 
     @Test
+    public void testApplyPageSizeSaltaSobrePrimerSobreCuandoOffsetLoExige() throws Exception {
+        OutputInvestmentFundsDTO first = buildEnvelope(createFund("F0"));
+        OutputInvestmentFundsDTO second = buildEnvelope(createFund("F1"));
+
+        List<OutputInvestmentFundsDTO> limited = invokeTransactionMethod(
+                "applyPageSize",
+                new Class[]{List.class, Integer.class, int.class},
+                Arrays.asList(first, second),
+                1,
+                2);
+
+        assertEquals(1, limited.size());
+        assertEquals("F1", limited.get(0).getData().get(0).getInvestmentFundId());
+    }
+
+    @Test
     public void testApplyPaginationMetadataSinPaginationSoloExponeIntNode() throws Exception {
         PFMHT01001PETransaction spyTransaction = spy(transaction);
         IntPaginationDTO node = new IntPaginationDTO();
@@ -817,6 +833,52 @@ public class PFMHT01001PETransactionTest {
         assertEquals("2", fallback.getLast());
         assertEquals("1", fallback.getPrevious());
         assertNull(fallback.getNext());
+    }
+
+    @Test
+    public void testBuildFallbackLinksRechazaEscenariosInvalidos() throws Exception {
+        Object summarySinFondos = invokeTransactionMethod(
+                "summarizeResponse",
+                new Class[]{List.class, List.class},
+                Collections.emptyList(),
+                Collections.emptyList());
+
+        LinksDTO nuloPorTotal = invokeTransactionMethod(
+                "buildFallbackLinks",
+                new Class[]{getResponseSummaryClass(), Integer.class, int.class},
+                summarySinFondos,
+                2,
+                0);
+        assertNull(nuloPorTotal);
+
+        LinksDTO nuloSinSummary = invokeTransactionMethod(
+                "buildFallbackLinks",
+                new Class[]{getResponseSummaryClass(), Integer.class, int.class},
+                null,
+                2,
+                0);
+        assertNull(nuloSinSummary);
+    }
+
+    @Test
+    public void testBuildFallbackLinksGeneraPrevYNexConDatosValidos() throws Exception {
+        Object summary = invokeTransactionMethod(
+                "summarizeResponse",
+                new Class[]{List.class, List.class},
+                Collections.singletonList(buildEnvelope(createFund("VISIBLE"))),
+                Arrays.asList(createFund("F0"), createFund("F1"), createFund("F2"), createFund("F3"), createFund("F4"), createFund("F5")));
+
+        LinksDTO fallback = invokeTransactionMethod(
+                "buildFallbackLinks",
+                new Class[]{getResponseSummaryClass(), Integer.class, int.class},
+                summary,
+                2,
+                1);
+
+        assertEquals("0", fallback.getFirst());
+        assertEquals("0", fallback.getPrevious());
+        assertEquals("2", fallback.getNext());
+        assertEquals("2", fallback.getLast());
     }
 
     @Test
@@ -916,6 +978,42 @@ public class PFMHT01001PETransactionTest {
         assertEquals(source.getLast(), copy.getLast());
         assertEquals(source.getPrevious(), copy.getPrevious());
         assertEquals(source.getNext(), copy.getNext());
+    }
+
+    @Test
+    public void testNormalizeResponseRetornaListaVacia() throws Exception {
+        List<OutputInvestmentFundsDTO> normalized = invokeTransactionMethod(
+                "normalizeResponse",
+                new Class[]{List.class},
+                new Object[]{null});
+
+        assertNotNull(normalized);
+        assertTrue(normalized.isEmpty());
+    }
+
+    @Test
+    public void testClonePaginationCopiaValoresYLinks() throws Exception {
+        PaginationDTO pagination = new PaginationDTO();
+        pagination.setPage(3);
+        pagination.setPageSize(10);
+        pagination.setTotalElements(50);
+        pagination.setTotalPages(5);
+
+        LinksDTO links = new LinksDTO();
+        links.setFirst("X0");
+        links.setLast("X9");
+        pagination.setDTOLinks(links);
+
+        PaginationDTO clone = invokeTransactionMethod("clonePagination", new Class[]{PaginationDTO.class}, pagination);
+
+        assertNotSame(pagination, clone);
+        assertEquals(Integer.valueOf(3), clone.getPage());
+        assertEquals(Integer.valueOf(10), clone.getPageSize());
+        assertEquals(Integer.valueOf(50), clone.getTotalElements());
+        assertEquals(Integer.valueOf(5), clone.getTotalPages());
+        assertNotSame(links, clone.getDTOLinks());
+        assertEquals("X0", clone.getDTOLinks().getFirst());
+        assertEquals("X9", clone.getDTOLinks().getLast());
     }
 
     @Test
@@ -1973,6 +2071,23 @@ public class PFMHT01001PETransactionTest {
         assertThrows(AssertionError.class, spyTransaction::execute);
 
         verify(spyTransaction, never()).setResponseOut(any());
+    }
+
+    @Test
+    public void testInvokeLibraryPropagaErroresDesconocidos() {
+        RuntimeException fatal = new RuntimeException("fatal");
+        when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class)))
+                .thenThrow(fatal);
+
+        InvocationTargetException thrown = assertThrows(
+                InvocationTargetException.class,
+                () -> invokeTransactionMethod(
+                        "invokeLibrary",
+                        new Class[]{PFMHR010.class, InputListInvestmentFundsDTO.class},
+                        pfmhR010,
+                        inputListInvestmentFundsDTO));
+
+        assertSame(fatal, thrown.getCause());
     }
 
     @Test
