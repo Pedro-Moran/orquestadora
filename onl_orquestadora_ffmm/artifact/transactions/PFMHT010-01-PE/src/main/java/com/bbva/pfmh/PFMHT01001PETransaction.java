@@ -86,14 +86,11 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         PaginationDTO pagination = mapPagination(summary, links, normalizedPageSize, currentPage);
         LinksDTO paginationLinks = ensurePaginationLinks(pagination, summary, normalizedPageSize, currentPage);
         LinksDTO exposedLinks = synchronizePaginationLinks(pagination, paginationLinks);
+        LinksDTO normalizedLinks = normalizePaginationLinks(exposedLinks, pagination);
         LOGGER.info("DTOPagination final (antes de exponer) -> {}", pagination);
         LOGGER.info("DTOPagination.DTOLinks final -> {}",
                 pagination != null ? pagination.getDTOLinks() : null);
-        exposeLinks(exposedLinks, pagination);
-
-        if (pagination != null && pagination.getDTOLinks() == null){
-            pagination.setDTOLinks(new LinksDTO());
-        }
+        exposeLinks(normalizedLinks, pagination);
         applyPaginationMetadata(paginationNode, pagination);
 
         updateSeverity(summary);
@@ -233,7 +230,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
                                               List<InvestmentFund> availableFunds) {
         List<InvestmentFund> visibleFunds = extractFunds(payload);
         int totalElements = availableFunds == null ? 0 : availableFunds.size();
-        return new ResponseSummary(visibleFunds, totalElements);
+        return new ResponseSummary(visibleFunds, availableFunds, totalElements);
     }
 
     private void applyPaginationMetadata(IntPaginationDTO paginationNode,
@@ -257,15 +254,23 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
     private final class ResponseSummary {
         private final List<InvestmentFund> visibleFunds;
+        private final List<InvestmentFund> availableFunds;
         private final int totalElements;
 
-        private ResponseSummary(List<InvestmentFund> visibleFunds, int totalElements) {
+        private ResponseSummary(List<InvestmentFund> visibleFunds,
+                                 List<InvestmentFund> availableFunds,
+                                 int totalElements) {
             this.visibleFunds = visibleFunds == null ? Collections.emptyList() : visibleFunds;
+            this.availableFunds = availableFunds == null ? Collections.emptyList() : availableFunds;
             this.totalElements = totalElements;
         }
 
         private List<InvestmentFund> getVisibleFunds() {
             return visibleFunds;
+        }
+
+        private List<InvestmentFund> getAvailableFunds() {
+            return availableFunds;
         }
 
         private boolean hasVisibleFunds() {
@@ -314,7 +319,15 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
             return links;
         }
 
-        LinksDTO fallback = buildFallbackLinks(summary, normalizedPageSize, currentPage);
+        // Comentario en español: usar la información de los fondos visibles como primera opción de respaldo
+        LinksDTO fallback = summary == null
+                ? null
+                : buildPositionalLinks(summary.getAvailableFunds(), summary.getVisibleFunds());
+
+        if (fallback == null) {
+            fallback = buildFallbackLinks(summary, normalizedPageSize, currentPage);
+        }
+
         if (fallback == null) {
             fallback = buildPaginationLinksFromMetadata(pagination);
         }
@@ -324,31 +337,46 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
             return pagination.getDTOLinks();
         }
 
-        LinksDTO forced = new LinksDTO();
-
-        forced.setFirst("0");
-        forced.setLast("0");
-
-        pagination.setDTOLinks(forced);
-        return pagination.getDTOLinks();
+        // Comentario en español: si no se pudo construir ningún enlace, exponemos un objeto vacío sin valores
+        LinksDTO empty = new LinksDTO();
+        pagination.setDTOLinks(empty);
+        return empty;
     }
 
     private LinksDTO synchronizePaginationLinks(PaginationDTO pagination, LinksDTO paginationLinks) {
         LinksDTO resolvedLinks = paginationLinks == null ? new LinksDTO() : paginationLinks;
 
-        if (pagination != null) {
-            pagination.setDTOLinks(copyLinks(resolvedLinks));
-        }
+        // Comentario en español: pagination siempre está inicializado, sincronizamos los enlaces sin condicionales redundantes
+        pagination.setDTOLinks(copyLinks(resolvedLinks));
 
         return copyLinks(resolvedLinks);
+    }
+
+    private LinksDTO normalizePaginationLinks(LinksDTO links, PaginationDTO pagination) {
+        // Comentario en español: aseguramos que DTOLinks nunca sea nulo y complete valores vacíos con la metadata disponible
+        LinksDTO normalized = links == null ? new LinksDTO() : copyLinks(links);
+
+        // Comentario en español: si ya hay algún valor de enlace, no sobreescribimos con metadata
+        if (hasAnyLinkValue(normalized)) {
+            pagination.setDTOLinks(copyLinks(normalized));
+            return normalized;
+        }
+
+        LinksDTO metadataLinks = buildPaginationLinksFromMetadata(pagination);
+        if (metadataLinks == null) {
+            return normalized;
+        }
+
+        pagination.setDTOLinks(copyLinks(metadataLinks));
+
+        return copyLinks(metadataLinks);
     }
 
     private void exposeLinks(LinksDTO exposedLinks, PaginationDTO pagination) {
         LinksDTO safeLinks = exposedLinks == null ? new LinksDTO() : exposedLinks;
 
-        if (pagination != null) {
-            pagination.setDTOLinks(copyLinks(safeLinks));
-        }
+        // Comentario en español: pagination nunca es nulo en el flujo feliz; sincronizamos directamente
+        pagination.setDTOLinks(copyLinks(safeLinks));
     }
 
     private int computeStartIndex(int currentPage, Integer normalizedPageSize) {
