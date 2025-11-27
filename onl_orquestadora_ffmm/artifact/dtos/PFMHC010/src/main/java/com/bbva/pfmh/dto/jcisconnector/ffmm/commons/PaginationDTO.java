@@ -1,11 +1,17 @@
 package com.bbva.pfmh.dto.jcisconnector.ffmm.commons;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 
 
+// Comentario en español: se obliga a exponer siempre el nodo de enlaces en la paginación
+@JsonInclude(JsonInclude.Include.ALWAYS)
 public class PaginationDTO implements Serializable {
     private static final long serialVersionUID = 8268731132101006705L;
     @SuppressWarnings("java:S116")
+    @JsonProperty("DTOLinks")
     private LinksDTO DTOLinks = new LinksDTO();
     private Integer page;
     private Integer totalPages;
