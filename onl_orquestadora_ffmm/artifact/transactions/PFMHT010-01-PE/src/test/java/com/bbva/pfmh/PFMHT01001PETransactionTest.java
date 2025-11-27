@@ -20,6 +20,8 @@ import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.OutputInvestmentFundsDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.commons.PaginationDTO;
 import com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.*;
 import com.bbva.pfmh.lib.r010.PFMHR010;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -198,6 +200,46 @@ public class PFMHT01001PETransactionTest {
         assertFalse("DTOLinks no debe salir como parámetro de primer nivel", parameters.containsKey("DTOLinks"));
     }
 
+    @Test
+    public void testExposeLinksAdmiteNulosSinEnlaces() throws Exception {
+        PaginationDTO pagination = new PaginationDTO();
+
+        invokeTransactionMethod(
+                "exposeLinks",
+                new Class[]{LinksDTO.class, PaginationDTO.class},
+                null,
+                pagination);
+
+        assertNotNull("DTOLinks no debe ser nulo al exponer enlaces nulos", pagination.getDtoLinks());
+        assertNullLinks(pagination.getDtoLinks());
+    }
+
+    @Test
+    public void testExecute_PublicaDTOLinksEnTablaDeParametros() {
+        List<OutputInvestmentFundsDTO> response = Collections.singletonList(
+                buildEnvelope(createFund("F1"), createFund("F2"), createFund("F3")));
+
+        when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class))).thenReturn(response);
+
+        transaction.execute();
+
+        Object paginationParam = parameters.get("DTOPagination");
+        assertNotNull("DTOPagination debe propagarse en los parámetros", paginationParam);
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> paginationMap = mapper.convertValue(paginationParam, new TypeReference<Map<String, Object>>() {});
+
+        assertTrue("La tabla debe exponer DTOLinks en mayúsculas", paginationMap.containsKey("DTOLinks"));
+        assertFalse("La tabla no debe exponer la clave en minúsculas", paginationMap.containsKey("dtolinks"));
+        assertTrue(paginationMap.containsKey("page"));
+        assertTrue(paginationMap.containsKey("totalPages"));
+        assertTrue(paginationMap.containsKey("totalElements"));
+        assertTrue(paginationMap.containsKey("pageSize"));
+
+        Map<String, Object> linksMap = mapper.convertValue(paginationMap.get("DTOLinks"), new TypeReference<Map<String, Object>>() {});
+        assertNotNull(linksMap);
+    }
+
     // ==========================================================
 
     @SuppressWarnings("unchecked")
@@ -233,6 +275,20 @@ public class PFMHT01001PETransactionTest {
                 0);
 
         assertSame(sanitized, resolved);
+    }
+
+    @Test
+    public void testEnsurePaginationLinksManejaPaginacionNula() throws Exception {
+        LinksDTO links = invokeTransactionMethod(
+                "ensurePaginationLinks",
+                new Class[]{PaginationDTO.class, Object.class, Integer.class, int.class},
+                null,
+                null,
+                null,
+                0);
+
+        assertNotNull("Debe devolverse un DTOLinks vacío cuando la paginación es nula", links);
+        assertNullLinks(links);
     }
 
     @Test
@@ -761,6 +817,22 @@ public class PFMHT01001PETransactionTest {
     }
 
     @Test
+    public void testApplyPageSizeDescuentaOffsetDeSobresPrevios() throws Exception {
+        OutputInvestmentFundsDTO first = buildEnvelope(createFund("F0"));
+        OutputInvestmentFundsDTO second = buildEnvelope(createFund("F1"));
+
+        List<OutputInvestmentFundsDTO> limited = invokeTransactionMethod(
+                "applyPageSize",
+                new Class[]{List.class, Integer.class, int.class},
+                Arrays.asList(first, second),
+                1,
+                1);
+
+        assertEquals(1, limited.size());
+        assertEquals("F1", limited.get(0).getData().get(0).getInvestmentFundId());
+    }
+
+    @Test
     public void testApplyPaginationMetadataSinPaginationSoloExponeIntNode() throws Exception {
         PFMHT01001PETransaction spyTransaction = spy(transaction);
         IntPaginationDTO node = new IntPaginationDTO();
@@ -858,6 +930,18 @@ public class PFMHT01001PETransactionTest {
                 2,
                 0);
         assertNull(nuloSinSummary);
+    }
+
+    @Test
+    public void testUnwrapRetornaThrowableOriginalCuandoNoEsCompletion() throws Exception {
+        Throwable cause = new IllegalStateException("error intencional");
+
+        Throwable unwrapped = invokeTransactionMethod(
+                "unwrap",
+                new Class[]{Throwable.class},
+                cause);
+
+        assertSame("Debe devolver la excepción original cuando no es CompletionException", cause, unwrapped);
     }
 
     @Test

@@ -250,6 +250,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
         this.setPagination(pagination);
         this.setDTOPagination(pagination);
+        publishPaginationParameterTable(pagination);
     }
 
     private void propagatePaginationToEnvelopes(List<OutputInvestmentFundsDTO> payload,
@@ -403,6 +404,18 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         clone.setTotalPages(pagination.getTotalPages());
         clone.setDTOLinks(copyLinks(pagination.getDTOLinks()));
         return clone;
+    }
+
+    private void publishPaginationParameterTable(PaginationDTO pagination) {
+        if (pagination == null) {
+            return;
+        }
+
+        // Comentario en español: reutilizamos el propio DTO (ya anotado con JsonProperty) para exponer "DTOLinks"
+        // en mayúsculas, clonando la instancia para evitar efectos colaterales al serializar.
+        PaginationDTO safePagination = clonePagination(pagination);
+        this.addParameter("pagination", safePagination);
+        this.addParameter("DTOPagination", safePagination);
     }
 
     private void exposeLinks(LinksDTO exposedLinks, PaginationDTO pagination) {
