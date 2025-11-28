@@ -1,0 +1,1599 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<transaction xmlns="http://www.w3schools.com" transactionName="CCSET002" application="CCSE" version="01" country="CO" language="ES">
+	<paramsIn>
+		<parameter order="1" name="idProcesoExec" mandatory="1" type="String" size="50"/>
+		<parameter order="2" name="cantparent" mandatory="0" type="Long" size="50"/>
+		<parameter order="3" name="impuestoanual" mandatory="0" type="String" size="50"/>
+		<parameter order="4" name="totalprimaanual" mandatory="0" type="String" size="50"/>
+		<parameter order="5" name="totalprimaperiodica" mandatory="0" type="String" size="50"/>
+		<parameter order="6" name="nomcampodatos" mandatory="0" type="String" size="50"/>
+		<parameter order="7" name="indvetoboletin" mandatory="0" type="String" size="60"/>
+		<parameter order="8" name="codrev" mandatory="0" type="String" size="60"/>
+		<parameter order="9" name="idestmultinivel" mandatory="0" type="String" size="50"/>
+		<parameter order="10" name="descripcanal" mandatory="0" type="String" size="150"/>
+		<parameter order="11" name="identificationDigit" mandatory="0" type="String" size="50"/>
+		<parameter order="12" name="firstName" mandatory="0" type="String" size="50"/>
+		<parameter order="13" name="secondName" mandatory="0" type="String" size="50"/>
+		<parameter order="14" name="firstLastName" mandatory="0" type="String" size="50"/>
+		<parameter order="15" name="secondLastName" mandatory="0" type="String" size="50"/>
+		<parameter order="16" name="dateOfBirth" mandatory="0" type="Long" size="10"/>
+		<parameter order="17" name="countryOfResidence" mandatory="0" type="String" size="3"/>
+		<parameter order="18" name="gender" mandatory="0" type="String" size="2"/>
+		<parameter order="19" name="address" mandatory="0" type="String" size="100"/>
+		<parameter order="20" name="age" mandatory="0" type="String" size="2"/>
+		<parameter order="21" name="geographicCodeDepartment" mandatory="0" type="String" size="5"/>
+		<parameter order="22" name="geographicCodeTown" mandatory="0" type="String" size="5"/>
+		<parameter order="23" name="residenceAddress" mandatory="0" type="String" size="100"/>
+		<parameter order="24" name="address2" mandatory="0" type="String" size="100"/>
+		<parameter order="25" name="address3" mandatory="0" type="String" size="100"/>
+		<parameter order="26" name="address4" mandatory="0" type="String" size="100"/>
+		<parameter order="27" name="address5" mandatory="0" type="String" size="100"/>
+		<parameter order="28" name="address6" mandatory="0" type="String" size="100"/>
+		<parameter order="29" name="address7" mandatory="0" type="String" size="100"/>
+		<parameter order="30" name="townOfResidence" mandatory="0" type="String" size="5"/>
+		<parameter order="31" name="departmentOfResidence" mandatory="0" type="String" size="5"/>
+		<parameter order="32" name="phone1" mandatory="0" type="String" size="50"/>
+		<parameter order="33" name="phone2" mandatory="0" type="String" size="50"/>
+		<parameter order="34" name="email" mandatory="0" type="String" size="100"/>
+		<parameter order="35" name="profession" mandatory="0" type="String" size="10"/>
+		<parameter order="36" name="activityEconomy" mandatory="0" type="String" size="20"/>
+		<parameter order="37" name="accountNumber1" mandatory="0" type="String" size="20"/>
+		<parameter order="38" name="accountNumber2" mandatory="0" type="String" size="20"/>
+		<parameter order="39" name="accountNumber3" mandatory="0" type="String" size="20"/>
+		<parameter order="40" name="accountNumber4" mandatory="0" type="String" size="20"/>
+		<parameter order="41" name="accountNumber5" mandatory="0" type="String" size="20"/>
+		<parameter order="42" name="accountNumber6" mandatory="0" type="String" size="20"/>
+		<parameter order="43" name="accountNumber7" mandatory="0" type="String" size="20"/>
+		<parameter order="44" name="typeIdInsured" mandatory="0" type="String" size="3"/>
+		<parameter order="45" name="municipalityBirth" mandatory="0" type="String" size="5"/>
+		<parameter order="46" name="departmentOfBirth" mandatory="0" type="String" size="5"/>
+		<parameter order="47" name="countryOfBirth" mandatory="0" type="String" size="3"/>
+		<parameter order="48" name="phoneResidence" mandatory="0" type="String" size="10"/>
+		<parameter order="49" name="cellResidency" mandatory="0" type="String" size="10"/>
+		<parameter order="50" name="occupation" mandatory="0" type="String" size="10"/>
+		<parameter order="51" name="codeProfession" mandatory="0" type="String" size="6"/>
+		<parameter order="52" name="independent" mandatory="0" type="String" size="1"/>
+		<parameter order="53" name="position" mandatory="0" type="String" size="20"/>
+		<parameter order="54" name="companyName" mandatory="0" type="String" size="50"/>
+		<parameter order="55" name="companyAddress" mandatory="0" type="String" size="50"/>
+		<parameter order="56" name="companyTelephone" mandatory="0" type="String" size="50"/>
+		<parameter order="57" name="companyCellPhone" mandatory="0" type="String" size="10"/>
+		<parameter order="58" name="destinationOriginFunds" mandatory="0" type="String" size="100"/>
+		<parameter order="59" name="incomeMonthly" mandatory="0" type="Long" size="17"/>
+		<parameter order="60" name="expenseMonthly" mandatory="0" type="Long" size="17"/>
+		<parameter order="61" name="otherExpenses" mandatory="0" type="Long" size="17"/>
+		<parameter order="62" name="otherIncome" mandatory="0" type="Long" size="17"/>
+		<parameter order="63" name="destinationOtherIncome" mandatory="0" type="String" size="30"/>
+		<parameter order="64" name="totalAssets" mandatory="0" type="Long" size="17"/>
+		<parameter order="65" name="totalLiabilities" mandatory="0" type="Long" size="17"/>
+		<parameter order="66" name="typeOfForeignCurrencyProduct" mandatory="0" type="String" size="10"/>
+		<parameter order="67" name="productForeignCurrencyAccount" mandatory="0" type="String" size="20"/>
+		<parameter order="68" name="entityForeignCurrency" mandatory="0" type="String" size="15"/>
+		<parameter order="69" name="amountForeignCurrency" mandatory="0" type="Long" size="17"/>
+		<parameter order="70" name="cityForeignCurrency" mandatory="0" type="String" size="3"/>
+		<parameter order="71" name="countryForeignCurrency" mandatory="0" type="String" size="3"/>
+		<parameter order="72" name="foreignCurrency" mandatory="0" type="String" size="3"/>
+		<parameter order="73" name="datesSarlaft" mandatory="0" type="String" size="10"/>
+		<parameter order="74" name="customerImport" mandatory="0" type="String" size="10"/>
+		<parameter order="75" name="investment" mandatory="0" type="String" size="10"/>
+		<parameter order="76" name="paymentServices" mandatory="0" type="String" size="10"/>
+		<parameter order="77" name="loan" mandatory="0" type="String" size="10"/>
+		<parameter order="78" name="customerExport" mandatory="0" type="String" size="10"/>
+		<parameter order="79" name="officeCode1" mandatory="0" type="String" size="10"/>
+		<parameter order="80" name="openingDate1" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+		<parameter order="81" name="byProduct1" mandatory="0" type="String" size="10"/>
+		<parameter order="82" name="accountType1" mandatory="0" type="String" size="10"/>
+		<parameter order="83" name="mainChannel1" mandatory="0" type="String" size="10"/>
+		<parameter order="84" name="officeCode2" mandatory="0" type="String" size="10"/>
+		<parameter order="85" name="openingDate2" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+		<parameter order="86" name="byProduct2" mandatory="0" type="String" size="10"/>
+		<parameter order="87" name="accountType2" mandatory="0" type="String" size="10"/>
+		<parameter order="88" name="mainChannel2" mandatory="0" type="String" size="10"/>
+		<parameter order="89" name="officeCode3" mandatory="0" type="String" size="10"/>
+		<parameter order="90" name="openingDate3" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+		<parameter order="91" name="byProduct3" mandatory="0" type="String" size="10"/>
+		<parameter order="92" name="accountType3" mandatory="0" type="String" size="10"/>
+		<parameter order="93" name="mainChannel3" mandatory="0" type="String" size="10"/>
+		<parameter order="94" name="officeCode4" mandatory="0" type="String" size="10"/>
+		<parameter order="95" name="openingDate4" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+		<parameter order="96" name="byProduct4" mandatory="0" type="String" size="10"/>
+		<parameter order="97" name="accountType4" mandatory="0" type="String" size="10"/>
+		<parameter order="98" name="mainChannel4" mandatory="0" type="String" size="10"/>
+		<parameter order="99" name="officeCode5" mandatory="0" type="String" size="10"/>
+		<parameter order="100" name="openingDate5" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+		<parameter order="101" name="byProduct5" mandatory="0" type="String" size="10"/>
+		<parameter order="102" name="accountType5" mandatory="0" type="String" size="10"/>
+		<parameter order="103" name="mainChannel5" mandatory="0" type="String" size="10"/>
+		<parameter order="104" name="officeCode6" mandatory="0" type="String" size="10"/>
+		<parameter order="105" name="openingDate6" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+		<parameter order="106" name="byProduct6" mandatory="0" type="String" size="10"/>
+		<parameter order="107" name="accountType6" mandatory="0" type="String" size="10"/>
+		<parameter order="108" name="mainChannel6" mandatory="0" type="String" size="10"/>
+		<parameter order="109" name="officeCode7" mandatory="0" type="String" size="10"/>
+		<parameter order="110" name="openingDate7" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+		<parameter order="111" name="byProduct7" mandatory="0" type="String" size="10"/>
+		<parameter order="112" name="accountType7" mandatory="0" type="String" size="10"/>
+		<parameter order="113" name="mainChannel7" mandatory="0" type="String" size="10"/>
+		<parameter order="114" name="orderBy" mandatory="0" type="String" size="30"/>
+		<parameter order="115" name="pageSize" mandatory="0" type="Long" size="10"/>
+		<parameter order="116" name="paginationKey" mandatory="0" type="String" size="20"/>
+		<parameter order="117" name="digitoIdentificacion" mandatory="0" type="String" size="1"/>
+		<parameter order="118" name="primerNombre" mandatory="0" type="String" size="50"/>
+		<parameter order="119" name="segundoNombre" mandatory="0" type="String" size="50"/>
+		<parameter order="120" name="primerApellido" mandatory="0" type="String" size="50"/>
+		<parameter order="121" name="segundoApellido" mandatory="0" type="String" size="50"/>
+		<parameter order="122" name="fechaDeNacimiento" mandatory="0" type="Long" size="10"/>
+		<parameter order="123" name="paisDeResidencia" mandatory="0" type="String" size="3"/>
+		<parameter order="124" name="sexo" mandatory="0" type="String" size="10"/>
+		<parameter order="125" name="edad" mandatory="0" type="String" size="2"/>
+		<parameter order="126" name="codigoGeograficoCiudad" mandatory="0" type="String" size="10"/>
+		<parameter order="127" name="codigoGeograficoDepartamento" mandatory="0" type="String" size="10"/>
+		<parameter order="128" name="direccionResidencia" mandatory="0" type="String" size="200"/>
+		<parameter order="129" name="direccion2" mandatory="0" type="String" size="200"/>
+		<parameter order="130" name="direccion3" mandatory="0" type="String" size="200"/>
+		<parameter order="131" name="direccion4" mandatory="0" type="String" size="200"/>
+		<parameter order="132" name="direccion5" mandatory="0" type="String" size="200"/>
+		<parameter order="133" name="direccion6" mandatory="0" type="String" size="200"/>
+		<parameter order="134" name="direccion7" mandatory="0" type="String" size="200"/>
+		<parameter order="135" name="ciudadDeResidencia" mandatory="0" type="String" size="5"/>
+		<parameter order="136" name="departamentoDeResidencia" mandatory="0" type="String" size="5"/>
+		<parameter order="137" name="telefono1" mandatory="0" type="String" size="30"/>
+		<parameter order="138" name="telefono2" mandatory="0" type="String" size="30"/>
+		<parameter order="139" name="telefono3" mandatory="0" type="String" size="30"/>
+		<parameter order="140" name="profesion" mandatory="0" type="String" size="5"/>
+		<parameter order="141" name="actividadEconomica" mandatory="0" type="String" size="10"/>
+		<parameter order="142" name="numeroCuenta1" mandatory="0" type="String" size="20"/>
+		<parameter order="143" name="numeroCuenta2" mandatory="0" type="String" size="20"/>
+		<parameter order="144" name="numeroCuenta3" mandatory="0" type="String" size="20"/>
+		<parameter order="145" name="numeroCuenta4" mandatory="0" type="String" size="20"/>
+		<parameter order="146" name="numeroCuenta5" mandatory="0" type="String" size="20"/>
+		<parameter order="147" name="numeroCuenta6" mandatory="0" type="String" size="20"/>
+		<parameter order="148" name="numeroCuenta7" mandatory="0" type="String" size="20"/>
+		<parameter order="149" name="tipoIdentificacionAsegurado" mandatory="0" type="String" size="5"/>
+		<parameter order="150" name="municipioDeNacimiento" mandatory="0" type="String" size="10"/>
+		<parameter order="151" name="departamentoDeNacimiento" mandatory="0" type="String" size="10"/>
+		<parameter order="152" name="paisDeNacimiento" mandatory="0" type="String" size="5"/>
+		<parameter order="153" name="telefonoResidencia" mandatory="0" type="String" size="10"/>
+		<parameter order="154" name="celularResidencia" mandatory="0" type="String" size="12"/>
+		<parameter order="155" name="ocupacion" mandatory="0" type="String" size="5"/>
+		<parameter order="156" name="codigoProfesion" mandatory="0" type="String" size="10"/>
+		<parameter order="157" name="independiente" mandatory="0" type="String" size="5"/>
+		<parameter order="158" name="posicion" mandatory="0" type="String" size="20"/>
+		<parameter order="159" name="nombreEmpresa" mandatory="0" type="String" size="50"/>
+		<parameter order="160" name="direccionEmpresa" mandatory="0" type="String" size="200"/>
+		<parameter order="161" name="telefonoEmpresa" mandatory="0" type="String" size="12"/>
+		<parameter order="162" name="celularEmpresa" mandatory="0" type="String" size="12"/>
+		<parameter order="163" name="descripcionOrigenFondos" mandatory="0" type="String" size="100"/>
+		<parameter order="164" name="ingresoMensual" mandatory="0" type="Long" size="17"/>
+		<parameter order="165" name="gastoMensual" mandatory="0" type="Long" size="17"/>
+		<parameter order="166" name="otrosGastos" mandatory="0" type="Long" size="17"/>
+		<parameter order="167" name="otrosIngresos" mandatory="0" type="Long" size="17"/>
+		<parameter order="168" name="destinoOtrosIngresos" mandatory="0" type="String" size="30"/>
+		<parameter order="169" name="totalActivos" mandatory="0" type="Long" size="17"/>
+		<parameter order="170" name="totalPasivos" mandatory="0" type="Long" size="17"/>
+		<parameter order="171" name="tipoProductoMonedaExtranjera" mandatory="0" type="String" size="5"/>
+		<parameter order="172" name="productoCuentaMonedaExtranjera" mandatory="0" type="String" size="20"/>
+		<parameter order="173" name="entidadMonedaExtranjera" mandatory="0" type="String" size="20"/>
+		<parameter order="174" name="cantidadMonedaExtranjera" mandatory="0" type="Long" size="17"/>
+		<parameter order="175" name="ciudadMonedaExtranjera" mandatory="0" type="String" size="5"/>
+		<parameter order="176" name="paisMonedaExtranjera" mandatory="0" type="String" size="5"/>
+		<parameter order="177" name="monedaExtranjera" mandatory="0" type="String" size="5"/>
+		<parameter order="178" name="fechaSarlaft" mandatory="0" type="String" size="30"/>
+		<parameter order="179" name="importeCliente" mandatory="0" type="String" size="5"/>
+		<parameter order="180" name="inversion" mandatory="0" type="String" size="5"/>
+		<parameter order="181" name="serviciosPago" mandatory="0" type="String" size="5"/>
+		<parameter order="182" name="prestamo" mandatory="0" type="String" size="5"/>
+		<parameter order="183" name="exportacionCliente" mandatory="0" type="String" size="10"/>
+		<parameter order="184" name="codigoOficina1" mandatory="0" type="String" size="10"/>
+		<parameter order="185" name="fechaApertura1" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+		<parameter order="186" name="porProducto1" mandatory="0" type="String" size="10"/>
+		<parameter order="187" name="tipoCuenta1" mandatory="0" type="String" size="10"/>
+		<parameter order="188" name="canalPrincipal1" mandatory="0" type="String" size="10"/>
+		<parameter order="189" name="codigoOficina2" mandatory="0" type="String" size="10"/>
+		<parameter order="190" name="fechaApertura2" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+		<parameter order="191" name="porProducto2" mandatory="0" type="String" size="10"/>
+		<parameter order="192" name="tipoCuenta2" mandatory="0" type="String" size="10"/>
+		<parameter order="193" name="canalPrincipal2" mandatory="0" type="String" size="10"/>
+		<parameter order="194" name="codigoOficina3" mandatory="0" type="String" size="10"/>
+		<parameter order="195" name="fechaApertura3" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+		<parameter order="196" name="porProducto3" mandatory="0" type="String" size="10"/>
+		<parameter order="197" name="tipoCuenta3" mandatory="0" type="String" size="10"/>
+		<parameter order="198" name="canalPrincipal3" mandatory="0" type="String" size="10"/>
+		<parameter order="199" name="codigoOficina4" mandatory="0" type="String" size="10"/>
+		<parameter order="200" name="fechaApertura4" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+		<parameter order="201" name="porProducto4" mandatory="0" type="String" size="10"/>
+		<parameter order="202" name="tipoCuenta4" mandatory="0" type="String" size="10"/>
+		<parameter order="203" name="canalPrincipal4" mandatory="0" type="String" size="10"/>
+		<parameter order="204" name="codigoOficina5" mandatory="0" type="String" size="10"/>
+		<parameter order="205" name="fechaApertura5" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+		<parameter order="206" name="porProducto5" mandatory="0" type="String" size="10"/>
+		<parameter order="207" name="tipoCuenta5" mandatory="0" type="String" size="10"/>
+		<parameter order="208" name="canalPrincipal5" mandatory="0" type="String" size="10"/>
+		<parameter order="209" name="codigoOficina6" mandatory="0" type="String" size="10"/>
+		<parameter order="210" name="fechaApertura6" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+		<parameter order="211" name="porProducto6" mandatory="0" type="String" size="10"/>
+		<parameter order="212" name="tipoCuenta6" mandatory="0" type="String" size="10"/>
+		<parameter order="213" name="canalPrincipal6" mandatory="0" type="String" size="10"/>
+		<parameter order="214" name="codigoOficina7" mandatory="0" type="String" size="10"/>
+		<parameter order="215" name="fechaApertura7" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+		<parameter order="216" name="porProducto7" mandatory="0" type="String" size="10"/>
+		<parameter order="217" name="tipoCuenta7" mandatory="0" type="String" size="10"/>
+		<parameter order="218" name="canalPrincipal7" mandatory="0" type="String" size="10"/>
+		<parameter order="219" name="textofinal" mandatory="0" type="String" size="20000"/>
+		<parameter order="220" name="textopreg" mandatory="0" type="String" size="20000"/>
+		<parameter order="221" name="orden" mandatory="0" type="Long" size="10"/>
+		<parameter order="222" name="indstop" mandatory="0" type="String" size="10"/>
+		<parameter order="223" name="msgsi" mandatory="0" type="String" size="100"/>
+		<parameter order="224" name="msgno" mandatory="0" type="String" size="100"/>
+		<list order="225" name="cuentasdisponibles" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="200"/>
+		</list>
+		<parameter order="226" name="renovacionautomatica" mandatory="0" type="String" size="60"/>
+		<list order="227" name="mediospago" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="200"/>
+		</list>
+		<parameter order="228" name="tipogenero" mandatory="0" type="String" size="60"/>
+		<parameter order="229" name="descripciongenero" mandatory="0" type="String" size="200"/>
+		<parameter order="230" name="idgenero" mandatory="0" type="String" size="60"/>
+		<parameter order="231" name="valueCheckIndem" mandatory="0" type="String" size="60"/>
+		<parameter order="232" name="valueCheckReclamo" mandatory="0" type="String" size="60"/>
+		<parameter order="233" name="valor" mandatory="0" type="String" size="150"/>
+		<parameter order="234" name="compania" mandatory="0" type="String" size="60"/>
+		<parameter order="235" name="ramo" mandatory="0" type="String" size="60"/>
+		<parameter order="236" name="anio" mandatory="0" type="String" size="10"/>
+		<parameter order="237" name="ideaseg" mandatory="0" type="String" size="60"/>
+		<parameter order="238" name="actividad" mandatory="0" type="String" size="150"/>
+		<parameter order="239" name="infoadic" mandatory="0" type="String" size="60"/>
+		<parameter order="240" name="numplaca" mandatory="0" type="String" size="60"/>
+		<parameter order="241" name="numpisos" mandatory="0" type="String" size="60"/>
+		<parameter order="242" name="indbis2" mandatory="0" type="String" size="60"/>
+		<parameter order="243" name="literal2" mandatory="0" type="String" size="60"/>
+		<parameter order="244" name="indbis1" mandatory="0" type="String" size="50"/>
+		<parameter order="245" name="literal" mandatory="0" type="String" size="60"/>
+		<parameter order="246" name="estructura" mandatory="0" type="String" size="60"/>
+		<parameter order="247" name="tipopropiedad" mandatory="0" type="String" size="60"/>
+		<parameter order="248" name="tipoinmueble" mandatory="0" type="String" size="60"/>
+		<parameter order="249" name="tipovia" mandatory="0" type="String" size="60"/>
+		<parameter order="250" name="tipoter" mandatory="0" type="String" size="60"/>
+		<parameter order="251" name="zip" mandatory="0" type="String" size="60"/>
+		<parameter order="252" name="piso" mandatory="0" type="String" size="60"/>
+		<parameter order="253" name="tipoestructura" mandatory="0" type="String" size="60"/>
+		<parameter order="254" name="tiporiesgo" mandatory="0" type="String" size="60"/>
+		<parameter order="255" name="codorientacion2" mandatory="0" type="String" size="60"/>
+		<parameter order="256" name="codorientacion" mandatory="0" type="String" size="60"/>
+		<parameter order="257" name="dirvalinterseccion" mandatory="0" type="String" size="60"/>
+		<parameter order="258" name="codcalle" mandatory="0" type="String" size="60"/>
+		<parameter order="259" name="numero" mandatory="0" type="Long" size="10"/>
+		<parameter order="260" name="coddepartamento" mandatory="0" type="String" size="60"/>
+		<parameter order="261" name="codgrpusr" mandatory="0" type="String" size="8"/>
+		<parameter order="262" name="codprod" mandatory="0" type="String" size="60"/>
+		<parameter order="263" name="codusr" mandatory="0" type="String" size="15"/>
+		<parameter order="264" name="codplan" mandatory="0" type="String" size="6"/>
+		<parameter order="265" name="revplan" mandatory="0" type="String" size="4"/>
+		<parameter order="266" name="codcanal" mandatory="0" type="String" size="4"/>
+		<parameter order="267" name="codsubcanal" mandatory="0" type="String" size="4"/>
+		<parameter order="268" name="codlval" mandatory="0" type="String" size="15"/>
+		<parameter order="269" name="tipolval" mandatory="0" type="String" size="8"/>
+		<parameter order="270" name="tipoid" mandatory="0" type="String" size="3"/>
+		<parameter order="271" name="numid" mandatory="0" type="Long" size="15"/>
+		<parameter order="272" name="codcli" mandatory="0" type="String" size="30"/>
+		<parameter order="273" name="idepol" mandatory="0" type="Long" size="14"/>
+		<parameter order="274" name="numpol" mandatory="0" type="String" size="50"/>
+		<parameter order="275" name="stspol" mandatory="0" type="String" size="3"/>
+		<parameter order="276" name="stssin" mandatory="0" type="String" size="50"/>
+		<parameter order="277" name="sumaAseg" mandatory="0" type="Long" size="30"/>
+		<parameter order="278" name="periodicidadPago" mandatory="0" type="String" size="50"/>
+		<parameter order="279" name="departamento" mandatory="0" type="String" size="30"/>
+		<parameter order="280" name="ciudad" mandatory="0" type="String" size="50"/>
+		<parameter order="281" name="anioConstruccion" mandatory="0" type="String" size="4"/>
+		<parameter order="282" name="nomter" mandatory="0" type="String" size="100"/>
+		<parameter order="283" name="apeter" mandatory="0" type="String" size="100"/>
+		<parameter order="284" name="dvid" mandatory="0" type="String" size="2"/>
+		<parameter order="285" name="direccion" mandatory="0" type="String" size="200"/>
+		<parameter order="286" name="fecnac" mandatory="0" type="String" size="30"/>
+		<parameter order="287" name="descrip" mandatory="0" type="String" size="200"/>
+		<parameter order="288" name="codpais" mandatory="0" type="String" size="3"/>
+		<parameter order="289" name="indben" mandatory="0" type="String" size="1"/>
+		<parameter order="290" name="indcobert" mandatory="0" type="String" size="1"/>
+		<parameter order="291" name="stscert" mandatory="0" type="String" size="50"/>
+		<parameter order="292" name="fecinivig" mandatory="0" type="String" size="30"/>
+		<parameter order="293" name="fecfinvig" mandatory="0" type="String" size="30"/>
+		<parameter order="294" name="codestado" mandatory="0" type="String" size="3"/>
+		<parameter order="295" name="descestado" mandatory="0" type="String" size="50"/>
+		<parameter order="296" name="zonageografica" mandatory="0" type="String" size="50"/>
+		<parameter order="297" name="descciudad" mandatory="0" type="String" size="100"/>
+		<parameter order="298" name="codciudad" mandatory="0" type="String" size="3"/>
+		<parameter order="299" name="estrato" mandatory="0" type="Long" size="3"/>
+		<parameter order="300" name="codramocert" mandatory="0" type="String" size="4"/>
+		<parameter order="301" name="numcot" mandatory="0" type="Long" size="14"/>
+		<parameter order="302" name="idecotiza" mandatory="0" type="Long" size="14"/>
+		<parameter order="303" name="clasebien" mandatory="0" type="String" size="3"/>
+		<parameter order="304" name="codbien" mandatory="0" type="String" size="4"/>
+		<parameter order="305" name="descbien" mandatory="0" type="String" size="50"/>
+		<parameter order="306" name="montobien" mandatory="0" type="Long" size="30"/>
+		<parameter order="307" name="ideclau" mandatory="0" type="Long" size="14"/>
+		<parameter order="308" name="descclau" mandatory="0" type="String" size="300"/>
+		<parameter order="309" name="parentesco" mandatory="0" type="String" size="30"/>
+		<parameter order="310" name="codparentesco" mandatory="0" type="String" size="10"/>
+		<parameter order="311" name="nomben" mandatory="0" type="String" size="150"/>
+		<parameter order="312" name="numben" mandatory="0" type="Long" size="14"/>
+		<parameter order="313" name="idaseg" mandatory="0" type="String" size="30"/>
+		<parameter order="314" name="porcpart" mandatory="0" type="Long" size="10"/>
+		<parameter order="315" name="grupopol" mandatory="0" type="String" size="30"/>
+		<parameter order="316" name="numcanttc" mandatory="0" type="Long" size="30"/>
+		<parameter order="317" name="induserasis" mandatory="0" type="String" size="30"/>
+		<parameter order="318" name="indasegadic" mandatory="0" type="String" size="30"/>
+		<parameter order="319" name="tipotomador" mandatory="0" type="String" size="50"/>
+		<parameter order="320" name="codmunicipio" mandatory="0" type="String" size="3"/>
+		<parameter order="321" name="municipio" mandatory="0" type="String" size="30"/>
+		<parameter order="322" name="numordimp" mandatory="0" type="String" size="3"/>
+		<parameter order="323" name="pais" mandatory="0" type="String" size="50"/>
+		<parameter order="324" name="codcobert" mandatory="0" type="String" size="4"/>
+		<parameter order="325" name="desccobert" mandatory="0" type="String" size="150"/>
+		<parameter order="326" name="porcreca" mandatory="0" type="Long" size="6"/>
+		<parameter order="327" name="nomusr" mandatory="0" type="String" size="50"/>
+		<parameter order="328" name="codsuc" mandatory="0" type="String" size="6"/>
+		<parameter order="329" name="codcia" mandatory="0" type="String" size="2"/>
+		<parameter order="330" name="codgrppol" mandatory="0" type="String" size="6"/>
+		<parameter order="331" name="desccanal" mandatory="0" type="String" size="200"/>
+		<parameter order="332" name="descsubcanal" mandatory="0" type="String" size="200"/>
+		<parameter order="333" name="codofibanc" mandatory="0" type="Long" size="15"/>
+		<parameter order="334" name="idesmultinivel" mandatory="0" type="String" size="50"/>
+		<parameter order="335" name="nomest" mandatory="0" type="String" size="50"/>
+		<parameter order="336" name="desclval" mandatory="0" type="String" size="50"/>
+		<parameter order="337" name="numcert" mandatory="0" type="Long" size="15"/>
+		<parameter order="338" name="indcargabdacsel" mandatory="0" type="String" size="50"/>
+		<parameter order="339" name="indcontproc" mandatory="0" type="String" size="50"/>
+		<parameter order="340" name="nomtabla" mandatory="0" type="String" size="50"/>
+		<parameter order="341" name="desccampo" mandatory="0" type="String" size="100"/>
+		<parameter order="342" name="blkweb" mandatory="0" type="String" size="50"/>
+		<parameter order="343" name="ordenblkweb" mandatory="0" type="String" size="100"/>
+		<parameter order="344" name="indtipodato" mandatory="0" type="String" size="50"/>
+		<parameter order="345" name="isfixed" mandatory="0" type="String" size="50"/>
+		<parameter order="346" name="panelkey" mandatory="0" type="String" size="50"/>
+		<parameter order="347" name="ordensubpanel" mandatory="0" type="String" size="50"/>
+		<parameter order="348" name="iseditable" mandatory="0" type="String" size="50"/>
+		<parameter order="349" name="isrequired" mandatory="0" type="String" size="50"/>
+		<parameter order="350" name="afectacampo" mandatory="0" type="String" size="100"/>
+		<parameter order="351" name="typepresenter" mandatory="0" type="String" size="100"/>
+		<list order="352" name="tarjetasaseguradas" mandatory="0">
+			<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.CardsDTO" artifactId="CCSEC002">
+				<parameter order="1" name="tipo" mandatory="0" type="String" size="200"/>
+				<parameter order="2" name="numero" mandatory="0" type="String" size="50"/>
+			</dto>
+		</list>
+		<parameter order="353" name="descplanprod" mandatory="0" type="String" size="150"/>
+		<parameter order="354" name="descprod" mandatory="0" type="String" size="150"/>
+		<parameter order="355" name="indafinnity" mandatory="0" type="String" size="50"/>
+		<parameter order="356" name="idSessionExec" mandatory="0" type="String" size="60"/>
+		<parameter order="357" name="message" mandatory="0" type="String" size="200000"/>
+		<parameter order="358" name="codofiges" mandatory="0" type="String" size="60"/>
+		<parameter order="359" name="checkbenefley" mandatory="0" type="String" size="60"/>
+		<parameter order="360" name="checkbenefoneroso" mandatory="0" type="String" size="60"/>
+		<parameter order="361" name="genero" mandatory="0" type="String" size="60"/>
+		<parameter order="362" name="apellido" mandatory="0" type="String" size="60"/>
+		<parameter order="363" name="nombre" mandatory="0" type="String" size="60"/>
+		<parameter order="364" name="codgenero" mandatory="0" type="String" size="60"/>
+		<parameter order="365" name="descgenero" mandatory="0" type="String" size="60"/>
+		<parameter order="366" name="tipooperacion" mandatory="0" type="String" size="60"/>
+		<parameter order="367" name="numoper" mandatory="0" type="String" size="60"/>
+		<parameter order="368" name="metodoreporte" mandatory="0" type="String" size="60"/>
+		<parameter order="369" name="apuntamiento" mandatory="0" type="String" size="60"/>
+		<parameter order="370" name="id" mandatory="0" type="String" size="60"/>
+		<parameter order="371" name="helptopicid" mandatory="0" type="String" size="60"/>
+		<parameter order="372" name="apeben" mandatory="0" type="String" size="60"/>
+		<parameter order="373" name="gobalcondlaboral" mandatory="0" type="String" size="60"/>
+		<parameter order="374" name="method" mandatory="0" type="String" size="60"/>
+		<parameter order="375" name="text" mandatory="0" type="String" size="60"/>
+		<parameter order="376" name="bean" mandatory="0" type="String" size="60"/>
+		<parameter order="377" name="selected" mandatory="0" type="String" size="60"/>
+		<parameter order="378" name="codarea" mandatory="0" type="String" size="60"/>
+		<parameter order="379" name="stsprod" mandatory="0" type="String" size="60"/>
+		<parameter order="380" name="idpolcot" mandatory="0" type="String" size="60"/>
+		<parameter order="381" name="numctto" mandatory="0" type="String" size="60"/>
+		<parameter order="382" name="stscot" mandatory="0" type="String" size="60"/>
+		<parameter order="383" name="fecsolic" mandatory="0" type="String" size="60"/>
+		<parameter order="384" name="proveedor" mandatory="0" type="String" size="60"/>
+		<parameter order="385" name="territorial" mandatory="0" type="String" size="60"/>
+		<parameter order="386" name="zona" mandatory="0" type="String" size="60"/>
+		<parameter order="387" name="sucursal" mandatory="0" type="String" size="60"/>
+		<parameter order="388" name="fecren" mandatory="0" type="String" size="60"/>
+		<parameter order="389" name="fecfin" mandatory="0" type="String" size="60"/>
+		<parameter order="390" name="fecing" mandatory="0" type="String" size="60"/>
+		<parameter order="391" name="formpago" mandatory="0" type="String" size="60"/>
+		<parameter order="392" name="cnumcot" mandatory="0" type="String" size="60"/>
+		<parameter order="393" name="pnumcot" mandatory="0" type="String" size="60"/>
+		<parameter order="394" name="ciuedo" mandatory="0" type="String" size="60"/>
+		<parameter order="395" name="cuotacamp" mandatory="0" type="String" size="60"/>
+		<parameter order="396" name="porccamp" mandatory="0" type="String" size="60"/>
+		<parameter order="397" name="idecamp" mandatory="0" type="String" size="60"/>
+		<parameter order="398" name="utilidad" mandatory="0" type="String" size="60"/>
+		<parameter order="399" name="plan" mandatory="0" type="String" size="60"/>
+		<parameter order="400" name="codmoneda" mandatory="0" type="String" size="60"/>
+		<parameter order="401" name="primaadic" mandatory="0" type="String" size="60"/>
+		<parameter order="402" name="primagf" mandatory="0" type="String" size="60"/>
+		<parameter order="403" name="cantidad" mandatory="0" type="String" size="60"/>
+		<parameter order="404" name="codparent" mandatory="0" type="String" size="60"/>
+		<parameter order="405" name="codramoplan" mandatory="0" type="String" size="60"/>
+		<list order="406" name="telefono1Array" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="200"/>
+		</list>
+		<list order="407" name="telefono2Array" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="200"/>
+		</list>
+		<list order="408" name="telefono3Array" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="200"/>
+		</list>
+		<list order="409" name="direccioncorrespondencia" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="200"/>
+		</list>
+		<list order="410" name="direccionresidenciarray" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="200"/>
+		</list>
+		<list order="411" name="emailarray" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="200"/>
+		</list>
+		<parameter order="412" name="codmediopago" mandatory="0" type="String" size="60"/>
+		<parameter order="413" name="descmediopago" mandatory="0" type="String" size="100"/>
+		<parameter order="414" name="indbenefone" mandatory="0" type="String" size="60"/>
+		<parameter order="415" name="induseasis" mandatory="0" type="String" size="60"/>
+		<parameter order="416" name="benfone" mandatory="0" type="String" size="60"/>
+		<parameter order="417" name="useasis" mandatory="0" type="String" size="60"/>
+		<parameter order="418" name="filtro" mandatory="0" type="String" size="60"/>
+		<parameter order="419" name="documento" mandatory="0" type="String" size="60"/>
+		<parameter order="420" name="fechaini" mandatory="0" type="String" size="30"/>
+		<parameter order="421" name="fechafin" mandatory="0" type="String" size="30"/>
+		<parameter order="422" name="status" mandatory="0" type="String" size="60"/>
+		<parameter order="423" name="numcertini" mandatory="0" type="String" size="60"/>
+		<parameter order="424" name="numcertfin" mandatory="0" type="String" size="60"/>
+		<parameter order="425" name="codformpago" mandatory="0" type="String" size="60"/>
+		<parameter order="426" name="codofiemi" mandatory="0" type="String" size="60"/>
+		<parameter order="427" name="fecinipol" mandatory="0" type="String" size="60"/>
+		<parameter order="428" name="fechainicio" mandatory="0" type="String" size="60"/>
+		<parameter order="429" name="fechfecoper" mandatory="0" type="String" size="60"/>
+		<parameter order="430" name="compnumpol" mandatory="0" type="String" size="60"/>
+		<parameter order="431" name="fecoper" mandatory="0" type="String" size="60"/>
+		<parameter order="432" name="codgestor" mandatory="0" type="String" size="60"/>
+		<parameter order="433" name="codofisusc" mandatory="0" type="String" size="60"/>
+		<parameter order="434" name="motivo" mandatory="0" type="String" size="60"/>
+		<parameter order="435" name="gestor" mandatory="0" type="String" size="60"/>
+		<parameter order="436" name="fecexc" mandatory="0" type="String" size="60"/>
+		<parameter order="437" name="fechainipol" mandatory="0" type="String" size="60"/>
+		<parameter order="438" name="fecfincotiza" mandatory="0" type="String" size="60"/>
+		<parameter order="439" name="nompercotiza" mandatory="0" type="String" size="60"/>
+		<parameter order="440" name="idcliente" mandatory="0" type="String" size="60"/>
+		<parameter order="441" name="codperiodicpago" mandatory="0" type="String" size="60"/>
+		<parameter order="442" name="cotestado" mandatory="0" type="String" size="60"/>
+		<parameter order="443" name="indrenauto" mandatory="0" type="String" size="60"/>
+		<parameter order="444" name="direc" mandatory="0" type="String" size="200"/>
+		<parameter order="445" name="codsuplemento" mandatory="0" type="String" size="60"/>
+		<parameter order="446" name="suplemento" mandatory="0" type="String" size="60"/>
+		<parameter order="447" name="codmotivo" mandatory="0" type="String" size="60"/>
+		<parameter order="448" name="codsubmotivo" mandatory="0" type="String" size="60"/>
+		<parameter order="449" name="submotivo" mandatory="0" type="String" size="60"/>
+		<parameter order="450" name="fechasuplemento" mandatory="0" type="String" size="60"/>
+		<parameter order="451" name="includemode" mandatory="0" type="String" size="60"/>
+		<parameter order="452" name="primaperi" mandatory="0" type="String" size="60"/>
+		<parameter order="453" name="primaperidica" mandatory="0" type="String" size="60"/>
+		<parameter order="454" name="primaanual" mandatory="0" type="String" size="60"/>
+		<parameter order="455" name="coaseguro" mandatory="0" type="String" size="60"/>
+		<parameter order="456" name="periodicidad" mandatory="0" type="String" size="60"/>
+		<parameter order="457" name="sumaasegurado" mandatory="0" type="String" size="60"/>
+		<parameter order="458" name="direccioncorr" mandatory="0" type="String" size="200"/>
+		<parameter order="459" name="direccionres" mandatory="0" type="String" size="200"/>
+		<parameter order="460" name="tipocuenta" mandatory="0" type="String" size="60"/>
+		<parameter order="461" name="celular" mandatory="0" type="String" size="60"/>
+		<parameter order="462" name="checkrenauto" mandatory="0" type="String" size="60"/>
+		<parameter order="463" name="cambiorenauto" mandatory="0" type="String" size="60"/>
+		<parameter order="464" name="codexclusion" mandatory="0" type="String" size="60"/>
+		<parameter order="465" name="motivoexclusion" mandatory="0" type="String" size="60"/>
+		<parameter order="466" name="observacion" mandatory="0" type="String" size="60"/>
+		<parameter order="467" name="codramo" mandatory="0" type="String" size="60"/>
+		<parameter order="468" name="capital" mandatory="0" type="String" size="60"/>
+		<parameter order="469" name="indicevariable" mandatory="0" type="String" size="60"/>
+		<parameter order="470" name="prima" mandatory="0" type="String" size="60"/>
+		<parameter order="471" name="sobreprima" mandatory="0" type="String" size="60"/>
+		<parameter order="472" name="extraprima" mandatory="0" type="String" size="60"/>
+		<parameter order="473" name="deducible" mandatory="0" type="String" size="60"/>
+		<parameter order="474" name="stscobert" mandatory="0" type="String" size="60"/>
+		<parameter order="475" name="indcobertoblig" mandatory="0" type="String" size="60"/>
+		<parameter order="476" name="idecobert" mandatory="0" type="String" size="60"/>
+		<parameter order="477" name="tasa" mandatory="0" type="String" size="60"/>
+		<parameter order="478" name="bbvasbr" mandatory="0" type="String" size="60"/>
+		<parameter order="479" name="othersbr" mandatory="0" type="String" size="60"/>
+		<parameter order="480" name="nosbr" mandatory="0" type="String" size="60"/>
+		<parameter order="481" name="clasecli" mandatory="0" type="String" size="60"/>
+		<parameter order="482" name="fecanul" mandatory="0" type="String" size="60"/>
+		<parameter order="483" name="frcinipol" mandatory="0" type="String" size="60"/>
+		<parameter order="484" name="tiposusc" mandatory="0" type="String" size="60"/>
+		<parameter order="485" name="tiposuscprod" mandatory="0" type="String" size="60"/>
+		<parameter order="486" name="idedirec" mandatory="0" type="String" size="60"/>
+		<parameter order="487" name="codtipovia" mandatory="0" type="String" size="60"/>
+		<parameter order="488" name="numero2" mandatory="0" type="String" size="60"/>
+		<parameter order="489" name="descripstatus" mandatory="0" type="String" size="60"/>
+		<parameter order="490" name="indasegtitular" mandatory="0" type="String" size="60"/>
+		<parameter order="491" name="numsolicitud" mandatory="0" type="String" size="60"/>
+		<parameter order="492" name="stsaseg" mandatory="0" type="String" size="60"/>
+		<parameter order="493" name="descexclusion" mandatory="0" type="String" size="60"/>
+		<parameter order="494" name="efecto" mandatory="0" type="String" size="60"/>
+		<parameter order="495" name="emision" mandatory="0" type="String" size="60"/>
+		<parameter order="496" name="cobertura" mandatory="0" type="String" size="300"/>
+		<parameter order="497" name="codcapital" mandatory="0" type="String" size="60"/>
+		<parameter order="498" name="fechaexc" mandatory="0" type="String" size="30"/>
+		<parameter order="499" name="stscobertura" mandatory="0" type="String" size="60"/>
+		<parameter order="500" name="participacion" mandatory="0" type="String" size="60"/>
+		<parameter order="501" name="recibo" mandatory="0" type="String" size="60"/>
+		<parameter order="502" name="tipoop" mandatory="0" type="String" size="60"/>
+		<parameter order="503" name="saldo" mandatory="0" type="String" size="60"/>
+		<parameter order="504" name="clave" mandatory="0" type="String" size="60"/>
+		<parameter order="505" name="poliza" mandatory="0" type="String" size="60"/>
+		<parameter order="506" name="responsabledepago" mandatory="0" type="String" size="60"/>
+		<parameter order="507" name="numdocumento" mandatory="0" type="String" size="60"/>
+		<parameter order="508" name="primabruta" mandatory="0" type="String" size="60"/>
+		<parameter order="509" name="numfinanc" mandatory="0" type="String" size="60"/>
+		<parameter order="510" name="n" mandatory="0" type="String" size="60"/>
+		<parameter order="511" name="retribucion" mandatory="0" type="String" size="60"/>
+		<parameter order="512" name="iva" mandatory="0" type="String" size="60"/>
+		<parameter order="513" name="reteiva" mandatory="0" type="String" size="60"/>
+		<parameter order="514" name="reteica" mandatory="0" type="String" size="60"/>
+		<parameter order="515" name="retefue" mandatory="0" type="String" size="60"/>
+		<parameter order="516" name="ordenpago" mandatory="0" type="String" size="60"/>
+		<parameter order="517" name="nrogiro" mandatory="0" type="String" size="60"/>
+		<parameter order="518" name="fechacobro" mandatory="0" type="String" size="30"/>
+		<parameter order="519" name="recpagouordpago" mandatory="0" type="String" size="60"/>
+		<parameter order="520" name="sldofactmoneda" mandatory="0" type="String" size="60"/>
+		<parameter order="521" name="nivel" mandatory="0" type="String" size="60"/>
+		<parameter order="522" name="codigo" mandatory="0" type="String" size="60"/>
+		<parameter order="523" name="clausula" mandatory="0" type="String" size="200"/>
+		<parameter order="524" name="anexo" mandatory="0" type="String" size="60"/>
+		<parameter order="525" name="ideclaucert" mandatory="0" type="String" size="60"/>
+		<parameter order="526" name="texto" mandatory="0" type="String" size="20000"/>
+		<parameter order="527" name="siniestro" mandatory="0" type="String" size="60"/>
+		<parameter order="528" name="fnotificacion" mandatory="0" type="String" size="60"/>
+		<parameter order="529" name="causa" mandatory="0" type="String" size="60"/>
+		<parameter order="530" name="fsiniestro" mandatory="0" type="String" size="60"/>
+		<parameter order="531" name="fmodificacion" mandatory="0" type="String" size="60"/>
+		<parameter order="532" name="boton" mandatory="0" type="String" size="60"/>
+		<parameter order="533" name="servicio" mandatory="0" type="String" size="60"/>
+		<parameter order="534" name="codmodalidad" mandatory="0" type="String" size="60"/>
+		<parameter order="535" name="modalidad" mandatory="0" type="String" size="60"/>
+		<parameter order="536" name="option" mandatory="0" type="String" size="60"/>
+		<parameter order="537" name="customeridtype" mandatory="0" type="String" size="60"/>
+		<parameter order="538" name="customeridnumber" mandatory="0" type="String" size="60"/>
+		<parameter order="539" name="renewaltype" mandatory="0" type="String" size="60"/>
+		<parameter order="540" name="policystatus" mandatory="0" type="String" size="60"/>
+		<parameter order="541" name="paymentperiod" mandatory="0" type="String" size="60"/>
+		<parameter order="542" name="effectivestartdate" mandatory="0" type="String" size="60"/>
+		<parameter order="543" name="renewaldate" mandatory="0" type="String" size="30"/>
+		<parameter order="544" name="directdebitaccount" mandatory="0" type="String" size="200"/>
+		<parameter order="545" name="insuredvalue" mandatory="0" type="String" size="60"/>
+		<parameter order="546" name="managementoffice" mandatory="0" type="String" size="60"/>
+		<parameter order="547" name="insuranceproductcode" mandatory="0" type="String" size="60"/>
+		<parameter order="548" name="usermanagingpolicy" mandatory="0" type="String" size="60"/>
+		<parameter order="549" name="operationdate" mandatory="0" type="String" size="60"/>
+		<parameter order="550" name="premiumamount" mandatory="0" type="String" size="60"/>
+		<parameter order="551" name="altamiraaccountnumber" mandatory="0" type="String" size="60"/>
+		<parameter order="552" name="paymentreference" mandatory="0" type="String" size="60"/>
+		<parameter order="553" name="amountvalue" mandatory="0" type="String" size="60"/>
+		<parameter order="554" name="operationtime" mandatory="0" type="String" size="60"/>
+		<parameter order="555" name="userresponsible" mandatory="0" type="String" size="60"/>
+		<parameter order="556" name="description" mandatory="0" type="String" size="500"/>
+		<parameter order="557" name="policynumberweb" mandatory="0" type="String" size="60"/>
+		<parameter order="558" name="customerpolicynumber" mandatory="0" type="String" size="60"/>
+		<list order="559" name="ocupacionarray" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="60"/>
+		</list>
+		<list order="560" name="planarray" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="60"/>
+		</list>
+		<list order="561" name="departamentoarray" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="60"/>
+		</list>
+		<list order="562" name="ciudadarray" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="60"/>
+		</list>
+		<list order="563" name="estratoarray" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="60"/>
+		</list>
+		<parameter order="564" name="dni" mandatory="0" type="String" size="60"/>
+		<parameter order="565" name="descdni" mandatory="0" type="String" size="300"/>
+		<parameter order="566" name="tipofecha" mandatory="0" type="String" size="60"/>
+		<parameter order="567" name="certificadoinicial" mandatory="0" type="String" size="60"/>
+		<parameter order="568" name="certificadofinal" mandatory="0" type="String" size="60"/>
+		<parameter order="569" name="producto" mandatory="0" type="String" size="60"/>
+		<parameter order="570" name="oper" mandatory="0" type="String" size="60"/>
+		<parameter order="571" name="tproduc" mandatory="0" type="String" size="60"/>
+		<parameter order="572" name="cpoliza" mandatory="0" type="String" size="60"/>
+		<parameter order="573" name="tpoliza" mandatory="0" type="String" size="60"/>
+		<parameter order="574" name="bmodpag" mandatory="0" type="String" size="60"/>
+		<parameter order="575" name="fefecto" mandatory="0" type="String" size="60"/>
+		<parameter order="576" name="cperson" mandatory="0" type="String" size="60"/>
+		<parameter order="577" name="tdninit" mandatory="0" type="String" size="60"/>
+		<parameter order="578" name="tapell1" mandatory="0" type="String" size="60"/>
+		<parameter order="579" name="tapell2" mandatory="0" type="String" size="60"/>
+		<parameter order="580" name="nombre1" mandatory="0" type="String" size="60"/>
+		<parameter order="581" name="bestado" mandatory="0" type="String" size="60"/>
+		<parameter order="582" name="cproduc" mandatory="0" type="String" size="60"/>
+		<parameter order="583" name="trotulo1" mandatory="0" type="String" size="60"/>
+		<parameter order="584" name="cmodali" mandatory="0" type="String" size="60"/>
+		<parameter order="585" name="nvermod" mandatory="0" type="String" size="60"/>
+		<parameter order="586" name="trotulo2" mandatory="0" type="String" size="60"/>
+		<parameter order="587" name="coficin" mandatory="0" type="String" size="60"/>
+		<parameter order="588" name="tnombre" mandatory="0" type="String" size="60"/>
+		<parameter order="589" name="ccompan" mandatory="0" type="String" size="60"/>
+		<parameter order="590" name="cmotivodesc" mandatory="0" type="String" size="300"/>
+		<parameter order="591" name="nmovimi" mandatory="0" type="String" size="60"/>
+		<parameter order="592" name="btipmov" mandatory="0" type="String" size="60"/>
+		<parameter order="593" name="femisio" mandatory="0" type="String" size="60"/>
+		<parameter order="594" name="cmotivo" mandatory="0" type="String" size="60"/>
+		<parameter order="595" name="crecibo" mandatory="0" type="String" size="60"/>
+		<parameter order="596" name="tusuari" mandatory="0" type="String" size="60"/>
+		<parameter order="597" name="ttermin" mandatory="0" type="String" size="60"/>
+		<parameter order="598" name="nhormov" mandatory="0" type="String" size="60"/>
+		<parameter order="599" name="nanexos" mandatory="0" type="String" size="60"/>
+		<parameter order="600" name="bmotivo" mandatory="0" type="String" size="60"/>
+		<parameter order="601" name="brepalt" mandatory="0" type="String" size="60"/>
+		<parameter order="602" name="tipogarantia" mandatory="0" type="String" size="60"/>
+		<parameter order="603" name="amparo" mandatory="0" type="String" size="60"/>
+		<parameter order="604" name="tipo" mandatory="0" type="String" size="200"/>
+		<parameter order="605" name="agente" mandatory="0" type="String" size="60"/>
+		<parameter order="606" name="femision" mandatory="0" type="String" size="60"/>
+		<parameter order="607" name="fcobro" mandatory="0" type="String" size="60"/>
+		<parameter order="608" name="primas" mandatory="0" type="String" size="60"/>
+		<parameter order="609" name="rcop" mandatory="0" type="String" size="60"/>
+		<parameter order="610" name="estado" mandatory="0" type="String" size="60"/>
+		<parameter order="611" name="treca" mandatory="0" type="String" size="60"/>
+		<parameter order="612" name="td" mandatory="0" type="String" size="60"/>
+		<parameter order="613" name="ctabarrido" mandatory="0" type="String" size="60"/>
+		<parameter order="614" name="rol" mandatory="0" type="String" size="60"/>
+		<parameter order="615" name="nit" mandatory="0" type="String" size="60"/>
+		<parameter order="616" name="relva" mandatory="0" type="String" size="60"/>
+		<parameter order="617" name="retlva" mandatory="0" type="String" size="60"/>
+		<parameter order="618" name="retfue" mandatory="0" type="String" size="60"/>
+		<parameter order="619" name="ordpago" mandatory="0" type="String" size="60"/>
+		<parameter order="620" name="reccaja" mandatory="0" type="String" size="60"/>
+		<parameter order="621" name="garantia" mandatory="0" type="String" size="60"/>
+		<parameter order="622" name="importa" mandatory="0" type="String" size="60"/>
+		<parameter order="623" name="nombrereporte" mandatory="0" type="String" size="60"/>
+		<parameter order="624" name="indacsel" mandatory="0" type="String" size="60"/>
+		<parameter order="625" name="indefront" mandatory="0" type="String" size="60"/>
+		<parameter order="626" name="indaplus" mandatory="0" type="String" size="60"/>
+		<list order="627" name="cliente" mandatory="0">
+			<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.ClientesDTO" artifactId="CCSEC002">
+				<parameter order="1" name="cedula" mandatory="0" type="String" size="20"/>
+				<parameter order="2" name="nombre" mandatory="0" type="String" size="100"/>
+				<parameter order="3" name="direccion" mandatory="0" type="String" size="200"/>
+				<parameter order="4" name="cuenta" mandatory="0" type="String" size="60"/>
+				<parameter order="5" name="tipocuenta" mandatory="0" type="String" size="60"/>
+			</dto>
+		</list>
+		<list order="628" name="beneficiario" mandatory="0">
+			<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.BeneficiariosDTO" artifactId="CCSEC002">
+				<parameter order="1" name="cedula" mandatory="0" type="String" size="20"/>
+				<parameter order="2" name="nombre" mandatory="0" type="String" size="100"/>
+				<parameter order="3" name="parentesco" mandatory="0" type="String" size="60"/>
+				<parameter order="4" name="porcpart" mandatory="0" type="String" size="60"/>
+				<parameter order="5" name="asegurado" mandatory="0" type="String" size="60"/>
+			</dto>
+		</list>
+		<list order="629" name="certificado" mandatory="0">
+			<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.CertificadosDTO" artifactId="CCSEC002">
+				<parameter order="1" name="fivig" mandatory="0" type="String" size="60"/>
+				<parameter order="2" name="ffvig" mandatory="0" type="String" size="60"/>
+				<parameter order="3" name="cartera" mandatory="0" type="String" size="60"/>
+				<parameter order="4" name="gestor" mandatory="0" type="String" size="60"/>
+				<parameter order="5" name="duracion" mandatory="0" type="String" size="60"/>
+				<parameter order="6" name="modpago" mandatory="0" type="String" size="60"/>
+				<parameter order="7" name="periodicidad" mandatory="0" type="String" size="60"/>
+				<parameter order="8" name="coaseguro" mandatory="0" type="String" size="60"/>
+				<parameter order="9" name="crecimiento" mandatory="0" type="String" size="60"/>
+				<parameter order="10" name="utilidad" mandatory="0" type="String" size="60"/>
+				<parameter order="11" name="administrativos" mandatory="0" type="String" size="60"/>
+				<parameter order="12" name="comision" mandatory="0" type="String" size="60"/>
+				<parameter order="13" name="capitalprincipal" mandatory="0" type="String" size="60"/>
+			</dto>
+		</list>
+		<list order="630" name="retribuciones" mandatory="0">
+			<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.RetribucionesDTO" artifactId="CCSEC002">
+				<parameter order="1" name="rol" mandatory="0" type="String" size="60"/>
+				<parameter order="2" name="nit" mandatory="0" type="String" size="60"/>
+				<parameter order="3" name="nombre" mandatory="0" type="String" size="60"/>
+				<parameter order="4" name="retribucion" mandatory="0" type="String" size="60"/>
+				<parameter order="5" name="desaut" mandatory="0" type="String" size="60"/>
+				<parameter order="6" name="causacion" mandatory="0" type="String" size="60"/>
+				<parameter order="7" name="finicio" mandatory="0" type="String" size="60"/>
+				<parameter order="8" name="flimite" mandatory="0" type="String" size="60"/>
+			</dto>
+		</list>
+		<list order="631" name="agentes" mandatory="0">
+			<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.AgentesDTO" artifactId="CCSEC002">
+				<parameter order="1" name="nombre" mandatory="0" type="String" size="60"/>
+				<parameter order="2" name="participacion" mandatory="0" type="String" size="60"/>
+				<parameter order="3" name="comision" mandatory="0" type="String" size="60"/>
+				<parameter order="4" name="porcentajecomision" mandatory="0" type="String" size="60"/>
+			</dto>
+		</list>
+		<list order="632" name="garantias" mandatory="0">
+			<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.GarantiasDTO" artifactId="CCSEC002">
+				<parameter order="1" name="ramo" mandatory="0" type="String" size="60"/>
+				<parameter order="2" name="amparo" mandatory="0" type="String" size="60"/>
+				<parameter order="3" name="emision" mandatory="0" type="String" size="60"/>
+				<parameter order="4" name="fefecto" mandatory="0" type="String" size="60"/>
+				<parameter order="5" name="capital" mandatory="0" type="String" size="60"/>
+				<parameter order="6" name="indicevariable" mandatory="0" type="String" size="60"/>
+				<parameter order="7" name="primaanualunica" mandatory="0" type="String" size="60"/>
+				<parameter order="8" name="sobreprima" mandatory="0" type="String" size="60"/>
+				<parameter order="9" name="extraprima" mandatory="0" type="String" size="60"/>
+			</dto>
+		</list>
+		<list order="633" name="bienes" mandatory="0">
+			<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.BienesDTO" artifactId="CCSEC002">
+				<parameter order="1" name="desc" mandatory="0" type="String" size="60"/>
+				<parameter order="2" name="porcentaje" mandatory="0" type="String" size="60"/>
+				<parameter order="3" name="tar" mandatory="0" type="String" size="60"/>
+				<parameter order="4" name="capital" mandatory="0" type="String" size="60"/>
+				<parameter order="5" name="ind" mandatory="0" type="String" size="60"/>
+			</dto>
+		</list>
+		<list order="634" name="recibos" mandatory="0">
+			<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.RecibosDTO" artifactId="CCSEC002">
+				<parameter order="1" name="recibo" mandatory="0" type="String" size="60"/>
+				<parameter order="2" name="tipo" mandatory="0" type="String" size="200"/>
+				<parameter order="3" name="fefecto" mandatory="0" type="String" size="60"/>
+				<parameter order="4" name="fvencimiento" mandatory="0" type="String" size="60"/>
+				<parameter order="5" name="financiado" mandatory="0" type="String" size="60"/>
+				<parameter order="6" name="coaseguro" mandatory="0" type="String" size="60"/>
+				<parameter order="7" name="importe" mandatory="0" type="String" size="60"/>
+				<parameter order="8" name="saldo" mandatory="0" type="String" size="60"/>
+				<parameter order="9" name="estado" mandatory="0" type="String" size="60"/>
+			</dto>
+		</list>
+		<list order="635" name="autorizaciones" mandatory="0">
+			<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.AutorizacionesDTO" artifactId="CCSEC002">
+				<parameter order="1" name="nivel" mandatory="0" type="String" size="60"/>
+				<parameter order="2" name="autorizacion" mandatory="0" type="String" size="60"/>
+				<parameter order="3" name="motivo" mandatory="0" type="String" size="60"/>
+				<parameter order="4" name="faut" mandatory="0" type="String" size="60"/>
+				<parameter order="5" name="usuario" mandatory="0" type="String" size="60"/>
+				<parameter order="6" name="causal" mandatory="0" type="String" size="60"/>
+				<parameter order="7" name="descripcion" mandatory="0" type="String" size="300"/>
+				<parameter order="8" name="estado" mandatory="0" type="String" size="60"/>
+			</dto>
+		</list>
+		<list order="636" name="clausulas" mandatory="0">
+			<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.ClausulasDTO" artifactId="CCSEC002">
+				<parameter order="1" name="nivel" mandatory="0" type="String" size="60"/>
+				<parameter order="2" name="codigo" mandatory="0" type="String" size="60"/>
+				<parameter order="3" name="tipo" mandatory="0" type="String" size="200"/>
+				<parameter order="4" name="clausula" mandatory="0" type="String" size="200"/>
+				<parameter order="5" name="anexo" mandatory="0" type="String" size="60"/>
+				<parameter order="6" name="fefecto" mandatory="0" type="String" size="60"/>
+				<parameter order="7" name="estado" mandatory="0" type="String" size="60"/>
+			</dto>
+		</list>
+		<parameter order="637" name="codval" mandatory="0" type="String" size="60"/>
+		<parameter order="638" name="tipoparam" mandatory="0" type="String" size="60"/>
+		<parameter order="639" name="codparam" mandatory="0" type="String" size="60"/>
+		<parameter order="640" name="descparam" mandatory="0" type="String" size="60"/>
+		<parameter order="641" name="refparam" mandatory="0" type="String" size="60"/>
+		<parameter order="642" name="codsql" mandatory="0" type="String" size="60"/>
+		<parameter order="643" name="totalregs" mandatory="0" type="String" size="60"/>
+		<list order="644" name="values" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="100"/>
+		</list>
+		<list order="645" name="types" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="100"/>
+		</list>
+		<list order="646" name="anioconstruccionarray" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="100"/>
+		</list>
+		<list order="647" name="periodicidadpagoarray" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="100"/>
+		</list>
+		<list order="648" name="sumaasegarray" mandatory="0">
+			<parameter order="1" name="Type" mandatory="0" type="String" size="100"/>
+		</list>
+		<parameter order="649" name="stsbien" mandatory="0" type="String" size="100"/>
+		<parameter order="650" name="additionalinfo" mandatory="0" type="String" size="1000"/>
+		<parameter order="651" name="codocupac" mandatory="0" type="String" size="60"/>
+		<parameter order="652" name="fechaefecto" mandatory="0" type="String" size="40"/>
+		<parameter order="653" name="fechaemision" mandatory="0" type="String" size="40"/>
+		<parameter order="654" name="porcpago" mandatory="0" type="String" size="10"/>
+		<parameter order="655" name="descripcion" mandatory="0" type="String" size="1000"/>
+		<parameter order="656" name="mediodepago" mandatory="0" type="String" size="100"/>
+		<parameter order="657" name="barridodecuenta" mandatory="0" type="String" size="100"/>
+		<parameter order="658" name="cancelacionsaldos" mandatory="0" type="String" size="100"/>
+		<parameter order="659" name="idbien" mandatory="0" type="String" size="100"/>
+		<parameter order="660" name="tipocli" mandatory="0" type="String" size="100"/>
+		<parameter order="661" name="apemat" mandatory="0" type="String" size="100"/>
+		<parameter order="662" name="descoaseguro" mandatory="0" type="String" size="100"/>
+		<parameter order="663" name="numpreformalizado" mandatory="0" type="String" size="100"/>
+		<parameter order="664" name="consecutivo" mandatory="0" type="String" size="100"/>
+		<parameter order="665" name="valaproxnueva" mandatory="0" type="String" size="30"/>
+		<parameter order="666" name="valaproxactual" mandatory="0" type="String" size="30"/>
+		<parameter order="667" name="codigoautoriza" mandatory="0" type="String" size="30"/>
+		<parameter order="668" name="codinterf" mandatory="0" type="String" size="60"/>
+		<parameter order="669" name="horainicio" mandatory="0" type="String" size="40"/>
+		<parameter order="670" name="calendario" mandatory="0" type="String" size="2000"/>
+		<parameter order="671" name="nombrejob" mandatory="0" type="String" size="100"/>
+	</paramsIn>
+	<paramsOut>
+		<list order="1" name="data" mandatory="1">
+			<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.PolicyDTO" artifactId="CCSEC002">
+				<parameter order="1" name="cantparent" mandatory="0" type="Long" size="50"/>
+				<parameter order="2" name="impuestoanual" mandatory="0" type="String" size="50"/>
+				<parameter order="3" name="totalprimaanual" mandatory="0" type="String" size="50"/>
+				<parameter order="4" name="totalprimaperiodica" mandatory="0" type="String" size="50"/>
+				<parameter order="5" name="nomcampodatos" mandatory="0" type="String" size="50"/>
+				<parameter order="6" name="indvetoboletin" mandatory="0" type="String" size="60"/>
+				<parameter order="7" name="codrev" mandatory="0" type="String" size="60"/>
+				<parameter order="8" name="idestmultinivel" mandatory="0" type="String" size="50"/>
+				<parameter order="9" name="descripcanal" mandatory="0" type="String" size="150"/>
+				<parameter order="10" name="digitoIdentificacion" mandatory="0" type="String" size="1"/>
+				<parameter order="11" name="primerNombre" mandatory="0" type="String" size="50"/>
+				<parameter order="12" name="segundoNombre" mandatory="0" type="String" size="50"/>
+				<parameter order="13" name="primerApellido" mandatory="0" type="String" size="50"/>
+				<parameter order="14" name="segundoApellido" mandatory="0" type="String" size="50"/>
+				<parameter order="15" name="fechaDeNacimiento" mandatory="0" type="Long" size="10"/>
+				<parameter order="16" name="paisDeResidencia" mandatory="0" type="String" size="3"/>
+				<parameter order="17" name="sexo" mandatory="0" type="String" size="10"/>
+				<parameter order="18" name="edad" mandatory="0" type="String" size="2"/>
+				<parameter order="19" name="codigoGeograficoCiudad" mandatory="0" type="String" size="10"/>
+				<parameter order="20" name="codigoGeograficoDepartamento" mandatory="0" type="String" size="10"/>
+				<parameter order="21" name="direccionResidencia" mandatory="0" type="String" size="200"/>
+				<parameter order="22" name="direccion2" mandatory="0" type="String" size="200"/>
+				<parameter order="23" name="direccion3" mandatory="0" type="String" size="200"/>
+				<parameter order="24" name="direccion4" mandatory="0" type="String" size="200"/>
+				<parameter order="25" name="direccion5" mandatory="0" type="String" size="200"/>
+				<parameter order="26" name="direccion6" mandatory="0" type="String" size="200"/>
+				<parameter order="27" name="direccion7" mandatory="0" type="String" size="200"/>
+				<parameter order="28" name="ciudadDeResidencia" mandatory="0" type="String" size="5"/>
+				<parameter order="29" name="departamentoDeResidencia" mandatory="0" type="String" size="5"/>
+				<parameter order="30" name="telefono1" mandatory="0" type="String" size="30"/>
+				<parameter order="31" name="telefono2" mandatory="0" type="String" size="30"/>
+				<parameter order="32" name="telefono3" mandatory="0" type="String" size="30"/>
+				<parameter order="33" name="profesion" mandatory="0" type="String" size="5"/>
+				<parameter order="34" name="actividadEconomica" mandatory="0" type="String" size="10"/>
+				<parameter order="35" name="numeroCuenta1" mandatory="0" type="String" size="20"/>
+				<parameter order="36" name="numeroCuenta2" mandatory="0" type="String" size="20"/>
+				<parameter order="37" name="numeroCuenta3" mandatory="0" type="String" size="20"/>
+				<parameter order="38" name="numeroCuenta4" mandatory="0" type="String" size="20"/>
+				<parameter order="39" name="numeroCuenta5" mandatory="0" type="String" size="20"/>
+				<parameter order="40" name="numeroCuenta6" mandatory="0" type="String" size="20"/>
+				<parameter order="41" name="numeroCuenta7" mandatory="0" type="String" size="20"/>
+				<parameter order="42" name="tipoIdentificacionAsegurado" mandatory="0" type="String" size="5"/>
+				<parameter order="43" name="municipioDeNacimiento" mandatory="0" type="String" size="10"/>
+				<parameter order="44" name="departamentoDeNacimiento" mandatory="0" type="String" size="10"/>
+				<parameter order="45" name="paisDeNacimiento" mandatory="0" type="String" size="5"/>
+				<parameter order="46" name="telefonoResidencia" mandatory="0" type="String" size="10"/>
+				<parameter order="47" name="celularResidencia" mandatory="0" type="String" size="12"/>
+				<parameter order="48" name="ocupacion" mandatory="0" type="String" size="5"/>
+				<parameter order="49" name="codigoProfesion" mandatory="0" type="String" size="10"/>
+				<parameter order="50" name="independiente" mandatory="0" type="String" size="5"/>
+				<parameter order="51" name="posicion" mandatory="0" type="String" size="20"/>
+				<parameter order="52" name="nombreEmpresa" mandatory="0" type="String" size="50"/>
+				<parameter order="53" name="direccionEmpresa" mandatory="0" type="String" size="200"/>
+				<parameter order="54" name="telefonoEmpresa" mandatory="0" type="String" size="12"/>
+				<parameter order="55" name="celularEmpresa" mandatory="0" type="String" size="12"/>
+				<parameter order="56" name="descripcionOrigenFondos" mandatory="0" type="String" size="100"/>
+				<parameter order="57" name="ingresoMensual" mandatory="0" type="Long" size="17"/>
+				<parameter order="58" name="gastoMensual" mandatory="0" type="Long" size="17"/>
+				<parameter order="59" name="otrosGastos" mandatory="0" type="Long" size="17"/>
+				<parameter order="60" name="otrosIngresos" mandatory="0" type="Long" size="17"/>
+				<parameter order="61" name="destinoOtrosIngresos" mandatory="0" type="String" size="30"/>
+				<parameter order="62" name="totalActivos" mandatory="0" type="Long" size="17"/>
+				<parameter order="63" name="totalPasivos" mandatory="0" type="Long" size="17"/>
+				<parameter order="64" name="tipoProductoMonedaExtranjera" mandatory="0" type="String" size="5"/>
+				<parameter order="65" name="productoCuentaMonedaExtranjera" mandatory="0" type="String" size="20"/>
+				<parameter order="66" name="entidadMonedaExtranjera" mandatory="0" type="String" size="20"/>
+				<parameter order="67" name="cantidadMonedaExtranjera" mandatory="0" type="Long" size="17"/>
+				<parameter order="68" name="ciudadMonedaExtranjera" mandatory="0" type="String" size="5"/>
+				<parameter order="69" name="paisMonedaExtranjera" mandatory="0" type="String" size="5"/>
+				<parameter order="70" name="monedaExtranjera" mandatory="0" type="String" size="5"/>
+				<parameter order="71" name="fechaSarlaft" mandatory="0" type="String" size="30"/>
+				<parameter order="72" name="importeCliente" mandatory="0" type="String" size="5"/>
+				<parameter order="73" name="inversion" mandatory="0" type="String" size="5"/>
+				<parameter order="74" name="serviciosPago" mandatory="0" type="String" size="5"/>
+				<parameter order="75" name="prestamo" mandatory="0" type="String" size="5"/>
+				<parameter order="76" name="exportacionCliente" mandatory="0" type="String" size="10"/>
+				<parameter order="77" name="codigoOficina1" mandatory="0" type="String" size="10"/>
+				<parameter order="78" name="fechaApertura1" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+				<parameter order="79" name="porProducto1" mandatory="0" type="String" size="10"/>
+				<parameter order="80" name="tipoCuenta1" mandatory="0" type="String" size="10"/>
+				<parameter order="81" name="canalPrincipal1" mandatory="0" type="String" size="10"/>
+				<parameter order="82" name="codigoOficina2" mandatory="0" type="String" size="10"/>
+				<parameter order="83" name="fechaApertura2" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+				<parameter order="84" name="porProducto2" mandatory="0" type="String" size="10"/>
+				<parameter order="85" name="tipoCuenta2" mandatory="0" type="String" size="10"/>
+				<parameter order="86" name="canalPrincipal2" mandatory="0" type="String" size="10"/>
+				<parameter order="87" name="codigoOficina3" mandatory="0" type="String" size="10"/>
+				<parameter order="88" name="fechaApertura3" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+				<parameter order="89" name="porProducto3" mandatory="0" type="String" size="10"/>
+				<parameter order="90" name="tipoCuenta3" mandatory="0" type="String" size="10"/>
+				<parameter order="91" name="canalPrincipal3" mandatory="0" type="String" size="10"/>
+				<parameter order="92" name="codigoOficina4" mandatory="0" type="String" size="10"/>
+				<parameter order="93" name="fechaApertura4" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+				<parameter order="94" name="porProducto4" mandatory="0" type="String" size="10"/>
+				<parameter order="95" name="tipoCuenta4" mandatory="0" type="String" size="10"/>
+				<parameter order="96" name="canalPrincipal4" mandatory="0" type="String" size="10"/>
+				<parameter order="97" name="codigoOficina5" mandatory="0" type="String" size="10"/>
+				<parameter order="98" name="fechaApertura5" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+				<parameter order="99" name="porProducto5" mandatory="0" type="String" size="10"/>
+				<parameter order="100" name="tipoCuenta5" mandatory="0" type="String" size="10"/>
+				<parameter order="101" name="canalPrincipal5" mandatory="0" type="String" size="10"/>
+				<parameter order="102" name="codigoOficina6" mandatory="0" type="String" size="10"/>
+				<parameter order="103" name="fechaApertura6" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+				<parameter order="104" name="porProducto6" mandatory="0" type="String" size="10"/>
+				<parameter order="105" name="tipoCuenta6" mandatory="0" type="String" size="10"/>
+				<parameter order="106" name="canalPrincipal6" mandatory="0" type="String" size="10"/>
+				<parameter order="107" name="codigoOficina7" mandatory="0" type="String" size="10"/>
+				<parameter order="108" name="fechaApertura7" mandatory="0" type="Date (YYYY-MM-DD)" size="0"/>
+				<parameter order="109" name="porProducto7" mandatory="0" type="String" size="10"/>
+				<parameter order="110" name="tipoCuenta7" mandatory="0" type="String" size="10"/>
+				<parameter order="111" name="canalPrincipal7" mandatory="0" type="String" size="10"/>
+				<parameter order="112" name="textofinal" mandatory="0" type="String" size="20000"/>
+				<parameter order="113" name="textopreg" mandatory="0" type="String" size="20000"/>
+				<parameter order="114" name="orden" mandatory="0" type="Long" size="10"/>
+				<parameter order="115" name="indstop" mandatory="0" type="String" size="10"/>
+				<parameter order="116" name="msgsi" mandatory="0" type="String" size="100"/>
+				<parameter order="117" name="msgno" mandatory="0" type="String" size="100"/>
+				<list order="118" name="cuentasdisponibles" mandatory="0">
+					<parameter order="1" name="Type" mandatory="0" type="String" size="200"/>
+				</list>
+				<parameter order="119" name="renovacionautomatica" mandatory="0" type="String" size="60"/>
+				<list order="120" name="mediospago" mandatory="0">
+					<parameter order="1" name="Type" mandatory="0" type="String" size="200"/>
+				</list>
+				<parameter order="121" name="tipogenero" mandatory="0" type="String" size="60"/>
+				<parameter order="122" name="descripciongenero" mandatory="0" type="String" size="200"/>
+				<parameter order="123" name="idgenero" mandatory="0" type="String" size="60"/>
+				<parameter order="124" name="valueCheckIndem" mandatory="0" type="String" size="60"/>
+				<parameter order="125" name="valueCheckReclamo" mandatory="0" type="String" size="60"/>
+				<parameter order="126" name="valor" mandatory="0" type="String" size="150"/>
+				<parameter order="127" name="compania" mandatory="0" type="String" size="60"/>
+				<parameter order="128" name="ramo" mandatory="0" type="String" size="60"/>
+				<parameter order="129" name="anio" mandatory="0" type="String" size="60"/>
+				<parameter order="130" name="ideaseg" mandatory="0" type="String" size="60"/>
+				<parameter order="131" name="actividad" mandatory="0" type="String" size="150"/>
+				<parameter order="132" name="infoadic" mandatory="0" type="String" size="60"/>
+				<parameter order="133" name="numplaca" mandatory="0" type="String" size="60"/>
+				<parameter order="134" name="numpisos" mandatory="0" type="String" size="60"/>
+				<parameter order="135" name="indbis2" mandatory="0" type="String" size="60"/>
+				<parameter order="136" name="literal2" mandatory="0" type="String" size="60"/>
+				<parameter order="137" name="indbis1" mandatory="0" type="String" size="60"/>
+				<parameter order="138" name="literal" mandatory="0" type="String" size="60"/>
+				<parameter order="139" name="estructura" mandatory="0" type="String" size="60"/>
+				<parameter order="140" name="tipopropiedad" mandatory="0" type="String" size="60"/>
+				<parameter order="141" name="tipoinmueble" mandatory="0" type="String" size="60"/>
+				<parameter order="142" name="tipovia" mandatory="0" type="String" size="60"/>
+				<parameter order="143" name="tipoter" mandatory="0" type="String" size="60"/>
+				<parameter order="144" name="zip" mandatory="0" type="String" size="60"/>
+				<parameter order="145" name="piso" mandatory="0" type="String" size="60"/>
+				<parameter order="146" name="tipoestructura" mandatory="0" type="String" size="60"/>
+				<parameter order="147" name="tiporiesgo" mandatory="0" type="String" size="60"/>
+				<parameter order="148" name="codorientacion2" mandatory="0" type="String" size="60"/>
+				<parameter order="149" name="codorientacion" mandatory="0" type="String" size="60"/>
+				<parameter order="150" name="dirvalinterseccion" mandatory="0" type="String" size="60"/>
+				<parameter order="151" name="codcalle" mandatory="0" type="String" size="60"/>
+				<parameter order="152" name="numero" mandatory="0" type="Long" size="20"/>
+				<parameter order="153" name="coddepartamento" mandatory="0" type="String" size="60"/>
+				<parameter order="154" name="codgrpusr" mandatory="0" type="String" size="8"/>
+				<parameter order="155" name="codprod" mandatory="0" type="String" size="60"/>
+				<parameter order="156" name="codusr" mandatory="0" type="String" size="15"/>
+				<parameter order="157" name="codplan" mandatory="0" type="String" size="6"/>
+				<parameter order="158" name="revplan" mandatory="0" type="String" size="4"/>
+				<parameter order="159" name="codcanal" mandatory="0" type="String" size="4"/>
+				<parameter order="160" name="codsubcanal" mandatory="0" type="String" size="4"/>
+				<parameter order="161" name="codlval" mandatory="0" type="String" size="15"/>
+				<parameter order="162" name="tipolval" mandatory="0" type="String" size="8"/>
+				<parameter order="163" name="tipoid" mandatory="0" type="String" size="3"/>
+				<parameter order="164" name="numid" mandatory="0" type="Long" size="15"/>
+				<parameter order="165" name="codcli" mandatory="0" type="String" size="30"/>
+				<parameter order="166" name="idepol" mandatory="0" type="Long" size="14"/>
+				<parameter order="167" name="numpol" mandatory="0" type="String" size="50"/>
+				<parameter order="168" name="stspol" mandatory="0" type="String" size="3"/>
+				<parameter order="169" name="stssin" mandatory="0" type="String" size="50"/>
+				<parameter order="170" name="sumaAseg" mandatory="0" type="Long" size="30"/>
+				<parameter order="171" name="periodicidadPago" mandatory="0" type="String" size="50"/>
+				<parameter order="172" name="departamento" mandatory="0" type="String" size="30"/>
+				<parameter order="173" name="ciudad" mandatory="0" type="String" size="50"/>
+				<parameter order="174" name="anioConstruccion" mandatory="0" type="String" size="4"/>
+				<parameter order="175" name="nomter" mandatory="0" type="String" size="100"/>
+				<parameter order="176" name="apeter" mandatory="0" type="String" size="100"/>
+				<parameter order="177" name="dvid" mandatory="0" type="String" size="2"/>
+				<parameter order="178" name="direccion" mandatory="0" type="String" size="200"/>
+				<parameter order="179" name="fecnac" mandatory="0" type="String" size="30"/>
+				<parameter order="180" name="descrip" mandatory="0" type="String" size="200"/>
+				<parameter order="181" name="codpais" mandatory="0" type="String" size="3"/>
+				<parameter order="182" name="indben" mandatory="0" type="String" size="1"/>
+				<parameter order="183" name="indcobert" mandatory="0" type="String" size="1"/>
+				<parameter order="184" name="stscert" mandatory="0" type="String" size="50"/>
+				<parameter order="185" name="fecinivig" mandatory="0" type="String" size="30"/>
+				<parameter order="186" name="fecfinvig" mandatory="0" type="String" size="30"/>
+				<parameter order="187" name="codestado" mandatory="0" type="String" size="3"/>
+				<parameter order="188" name="descestado" mandatory="0" type="String" size="50"/>
+				<parameter order="189" name="zonageografica" mandatory="0" type="String" size="50"/>
+				<parameter order="190" name="descciudad" mandatory="0" type="String" size="100"/>
+				<parameter order="191" name="codciudad" mandatory="0" type="String" size="3"/>
+				<parameter order="192" name="estrato" mandatory="0" type="Long" size="3"/>
+				<parameter order="193" name="codramocert" mandatory="0" type="String" size="4"/>
+				<parameter order="194" name="numcot" mandatory="0" type="Long" size="14"/>
+				<parameter order="195" name="idecotiza" mandatory="0" type="Long" size="14"/>
+				<parameter order="196" name="clasebien" mandatory="0" type="String" size="3"/>
+				<parameter order="197" name="codbien" mandatory="0" type="String" size="4"/>
+				<parameter order="198" name="descbien" mandatory="0" type="String" size="50"/>
+				<parameter order="199" name="montobien" mandatory="0" type="Long" size="30"/>
+				<parameter order="200" name="ideclau" mandatory="0" type="Long" size="14"/>
+				<parameter order="201" name="descclau" mandatory="0" type="String" size="300"/>
+				<parameter order="202" name="parentesco" mandatory="0" type="String" size="30"/>
+				<parameter order="203" name="codparentesco" mandatory="0" type="String" size="10"/>
+				<parameter order="204" name="nomben" mandatory="0" type="String" size="150"/>
+				<parameter order="205" name="numben" mandatory="0" type="Long" size="14"/>
+				<parameter order="206" name="idaseg" mandatory="0" type="String" size="30"/>
+				<parameter order="207" name="porcpart" mandatory="0" type="Long" size="10"/>
+				<parameter order="208" name="grupopol" mandatory="0" type="String" size="30"/>
+				<parameter order="209" name="numcanttc" mandatory="0" type="Long" size="30"/>
+				<parameter order="210" name="induserasis" mandatory="0" type="String" size="30"/>
+				<parameter order="211" name="indasegadic" mandatory="0" type="String" size="30"/>
+				<parameter order="212" name="tipotomador" mandatory="0" type="String" size="50"/>
+				<parameter order="213" name="codmunicipio" mandatory="0" type="String" size="3"/>
+				<parameter order="214" name="municipio" mandatory="0" type="String" size="30"/>
+				<parameter order="215" name="numordimp" mandatory="0" type="String" size="3"/>
+				<parameter order="216" name="pais" mandatory="0" type="String" size="50"/>
+				<parameter order="217" name="codcobert" mandatory="0" type="String" size="4"/>
+				<parameter order="218" name="desccobert" mandatory="0" type="String" size="150"/>
+				<parameter order="219" name="porcreca" mandatory="0" type="Long" size="6"/>
+				<parameter order="220" name="nomusr" mandatory="0" type="String" size="50"/>
+				<parameter order="221" name="codsuc" mandatory="0" type="String" size="6"/>
+				<parameter order="222" name="codcia" mandatory="0" type="String" size="2"/>
+				<parameter order="223" name="codgrppol" mandatory="0" type="String" size="6"/>
+				<parameter order="224" name="desccanal" mandatory="0" type="String" size="200"/>
+				<parameter order="225" name="descsubcanal" mandatory="0" type="String" size="200"/>
+				<parameter order="226" name="codofibanc" mandatory="0" type="Long" size="15"/>
+				<parameter order="227" name="idesmultinivel" mandatory="0" type="String" size="50"/>
+				<parameter order="228" name="nomest" mandatory="0" type="String" size="50"/>
+				<parameter order="229" name="desclval" mandatory="0" type="String" size="50"/>
+				<parameter order="230" name="numcert" mandatory="0" type="Long" size="15"/>
+				<parameter order="231" name="indcargabdacsel" mandatory="0" type="String" size="50"/>
+				<parameter order="232" name="indcontproc" mandatory="0" type="String" size="50"/>
+				<parameter order="233" name="nomtabla" mandatory="0" type="String" size="50"/>
+				<parameter order="234" name="desccampo" mandatory="0" type="String" size="100"/>
+				<parameter order="235" name="blkweb" mandatory="0" type="String" size="50"/>
+				<parameter order="236" name="ordenblkweb" mandatory="0" type="String" size="100"/>
+				<parameter order="237" name="indtipodato" mandatory="0" type="String" size="50"/>
+				<parameter order="238" name="isfixed" mandatory="0" type="String" size="50"/>
+				<parameter order="239" name="panelkey" mandatory="0" type="String" size="50"/>
+				<parameter order="240" name="ordensubpanel" mandatory="0" type="String" size="50"/>
+				<parameter order="241" name="iseditable" mandatory="0" type="String" size="50"/>
+				<parameter order="242" name="isrequired" mandatory="0" type="String" size="50"/>
+				<parameter order="243" name="afectacampo" mandatory="0" type="String" size="100"/>
+				<parameter order="244" name="typepresenter" mandatory="0" type="String" size="100"/>
+				<list order="245" name="tarjetasaseguradas" mandatory="0">
+					<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.CardsDTO" artifactId="CCSEC002">
+						<parameter order="1" name="tipo" mandatory="0" type="String" size="200"/>
+						<parameter order="2" name="numero" mandatory="0" type="String" size="50"/>
+					</dto>
+				</list>
+				<parameter order="246" name="idSessionExec" mandatory="0" type="String" size="60"/>
+				<parameter order="247" name="message" mandatory="0" type="String" size="200000"/>
+				<parameter order="248" name="descplanprod" mandatory="0" type="String" size="150"/>
+				<parameter order="249" name="descprod" mandatory="0" type="String" size="150"/>
+				<parameter order="250" name="indafinnity" mandatory="0" type="String" size="150"/>
+				<parameter order="251" name="email" mandatory="0" type="String" size="100"/>
+				<parameter order="252" name="codofiges" mandatory="0" type="String" size="60"/>
+				<parameter order="253" name="checkbenefley" mandatory="0" type="String" size="60"/>
+				<parameter order="254" name="checkbenefoneroso" mandatory="0" type="String" size="60"/>
+				<parameter order="255" name="genero" mandatory="0" type="String" size="60"/>
+				<parameter order="256" name="apellido" mandatory="0" type="String" size="60"/>
+				<parameter order="257" name="nombre" mandatory="0" type="String" size="60"/>
+				<parameter order="258" name="codgenero" mandatory="0" type="String" size="60"/>
+				<parameter order="259" name="descgenero" mandatory="0" type="String" size="60"/>
+				<parameter order="260" name="apuntamiento" mandatory="0" type="String" size="60"/>
+				<parameter order="261" name="id" mandatory="0" type="String" size="60"/>
+				<parameter order="262" name="helptopicid" mandatory="0" type="String" size="60"/>
+				<parameter order="263" name="apeben" mandatory="0" type="String" size="60"/>
+				<parameter order="264" name="gobalcondlaboral" mandatory="0" type="String" size="60"/>
+				<parameter order="265" name="method" mandatory="0" type="String" size="60"/>
+				<parameter order="266" name="text" mandatory="0" type="String" size="60"/>
+				<parameter order="267" name="bean" mandatory="0" type="String" size="60"/>
+				<parameter order="268" name="selected" mandatory="0" type="String" size="60"/>
+				<parameter order="269" name="codarea" mandatory="0" type="String" size="60"/>
+				<parameter order="270" name="stsprod" mandatory="0" type="String" size="60"/>
+				<parameter order="271" name="idpolcot" mandatory="0" type="String" size="60"/>
+				<parameter order="272" name="numctto" mandatory="0" type="String" size="60"/>
+				<parameter order="273" name="stscot" mandatory="0" type="String" size="60"/>
+				<parameter order="274" name="fecsolic" mandatory="0" type="String" size="60"/>
+				<parameter order="275" name="proveedor" mandatory="0" type="String" size="60"/>
+				<parameter order="276" name="territorial" mandatory="0" type="String" size="60"/>
+				<parameter order="277" name="zona" mandatory="0" type="String" size="60"/>
+				<parameter order="278" name="sucursal" mandatory="0" type="String" size="60"/>
+				<parameter order="279" name="fecren" mandatory="0" type="String" size="60"/>
+				<parameter order="280" name="fecfin" mandatory="0" type="String" size="60"/>
+				<parameter order="281" name="fecing" mandatory="0" type="String" size="60"/>
+				<parameter order="282" name="formpago" mandatory="0" type="String" size="60"/>
+				<parameter order="283" name="cnumcot" mandatory="0" type="String" size="60"/>
+				<parameter order="284" name="pnumcot" mandatory="0" type="String" size="60"/>
+				<parameter order="285" name="ciuedo" mandatory="0" type="String" size="60"/>
+				<parameter order="286" name="cuotacamp" mandatory="0" type="String" size="60"/>
+				<parameter order="287" name="porccamp" mandatory="0" type="String" size="60"/>
+				<parameter order="288" name="idecamp" mandatory="0" type="String" size="60"/>
+				<parameter order="289" name="utilidad" mandatory="0" type="String" size="60"/>
+				<parameter order="290" name="plan" mandatory="0" type="String" size="60"/>
+				<parameter order="291" name="codmoneda" mandatory="0" type="String" size="60"/>
+				<parameter order="292" name="primaadic" mandatory="0" type="String" size="60"/>
+				<parameter order="293" name="primagf" mandatory="0" type="String" size="60"/>
+				<parameter order="294" name="cantidad" mandatory="0" type="String" size="60"/>
+				<parameter order="295" name="codparent" mandatory="0" type="String" size="60"/>
+				<parameter order="296" name="codramoplan" mandatory="0" type="String" size="60"/>
+				<list order="297" name="telefono1Array" mandatory="0">
+					<parameter order="1" name="Type" mandatory="0" type="String" size="200"/>
+				</list>
+				<list order="298" name="telefono2Array" mandatory="0">
+					<parameter order="1" name="Type" mandatory="0" type="String" size="200"/>
+				</list>
+				<list order="299" name="telefono3Array" mandatory="0">
+					<parameter order="1" name="Type" mandatory="0" type="String" size="200"/>
+				</list>
+				<list order="300" name="direccioncorrespondencia" mandatory="0">
+					<parameter order="1" name="Type" mandatory="0" type="String" size="200"/>
+				</list>
+				<list order="301" name="direccionresidenciarray" mandatory="0">
+					<parameter order="1" name="Type" mandatory="0" type="String" size="200"/>
+				</list>
+				<list order="302" name="emailarray" mandatory="0">
+					<parameter order="1" name="Type" mandatory="0" type="String" size="200"/>
+				</list>
+				<parameter order="303" name="codmediopago" mandatory="0" type="String" size="60"/>
+				<parameter order="304" name="descmediopago" mandatory="0" type="String" size="100"/>
+				<parameter order="305" name="indbenefone" mandatory="0" type="String" size="60"/>
+				<parameter order="306" name="induseasis" mandatory="0" type="String" size="60"/>
+				<parameter order="307" name="benfone" mandatory="0" type="String" size="60"/>
+				<parameter order="308" name="useasis" mandatory="0" type="String" size="60"/>
+				<parameter order="309" name="filtro" mandatory="0" type="String" size="60"/>
+				<parameter order="310" name="documento" mandatory="0" type="String" size="60"/>
+				<parameter order="311" name="fechaini" mandatory="0" type="String" size="30"/>
+				<parameter order="312" name="fechafin" mandatory="0" type="String" size="30"/>
+				<parameter order="313" name="status" mandatory="0" type="String" size="60"/>
+				<parameter order="314" name="numcertini" mandatory="0" type="String" size="60"/>
+				<parameter order="315" name="numcertfin" mandatory="0" type="String" size="60"/>
+				<parameter order="316" name="codformpago" mandatory="0" type="String" size="60"/>
+				<parameter order="317" name="codofiemi" mandatory="0" type="String" size="60"/>
+				<parameter order="318" name="fecinipol" mandatory="0" type="String" size="60"/>
+				<parameter order="319" name="fechainicio" mandatory="0" type="String" size="60"/>
+				<parameter order="320" name="fechfecoper" mandatory="0" type="String" size="60"/>
+				<parameter order="321" name="compnumpol" mandatory="0" type="String" size="60"/>
+				<parameter order="322" name="fecoper" mandatory="0" type="String" size="60"/>
+				<parameter order="323" name="codgestor" mandatory="0" type="String" size="60"/>
+				<parameter order="324" name="codofisusc" mandatory="0" type="String" size="60"/>
+				<parameter order="325" name="motivo" mandatory="0" type="String" size="60"/>
+				<parameter order="326" name="gestor" mandatory="0" type="String" size="60"/>
+				<parameter order="327" name="fecexc" mandatory="0" type="String" size="60"/>
+				<parameter order="328" name="fechainipol" mandatory="0" type="String" size="60"/>
+				<parameter order="329" name="fecfincotiza" mandatory="0" type="String" size="60"/>
+				<parameter order="330" name="nompercotiza" mandatory="0" type="String" size="60"/>
+				<parameter order="331" name="idcliente" mandatory="0" type="String" size="60"/>
+				<parameter order="332" name="codperiodicpago" mandatory="0" type="String" size="60"/>
+				<parameter order="333" name="cotestado" mandatory="0" type="String" size="60"/>
+				<parameter order="334" name="indrenauto" mandatory="0" type="String" size="60"/>
+				<parameter order="335" name="direc" mandatory="0" type="String" size="200"/>
+				<parameter order="336" name="codsuplemento" mandatory="0" type="String" size="60"/>
+				<parameter order="337" name="suplemento" mandatory="0" type="String" size="60"/>
+				<parameter order="338" name="codmotivo" mandatory="0" type="String" size="60"/>
+				<parameter order="339" name="codsubmotivo" mandatory="0" type="String" size="60"/>
+				<parameter order="340" name="submotivo" mandatory="0" type="String" size="60"/>
+				<parameter order="341" name="fechasuplemento" mandatory="0" type="String" size="60"/>
+				<parameter order="342" name="includemode" mandatory="0" type="String" size="60"/>
+				<parameter order="343" name="primaperi" mandatory="0" type="String" size="60"/>
+				<parameter order="344" name="primaperidica" mandatory="0" type="String" size="60"/>
+				<parameter order="345" name="primaanual" mandatory="0" type="String" size="60"/>
+				<parameter order="346" name="coaseguro" mandatory="0" type="String" size="60"/>
+				<parameter order="347" name="sumaasegurado" mandatory="0" type="String" size="60"/>
+				<parameter order="348" name="periodicidad" mandatory="0" type="String" size="60"/>
+				<parameter order="349" name="direccioncorr" mandatory="0" type="String" size="200"/>
+				<parameter order="350" name="direccionres" mandatory="0" type="String" size="200"/>
+				<parameter order="351" name="tipocuenta" mandatory="0" type="String" size="60"/>
+				<parameter order="352" name="celular" mandatory="0" type="String" size="60"/>
+				<parameter order="353" name="checkrenauto" mandatory="0" type="String" size="60"/>
+				<parameter order="354" name="cambiorenauto" mandatory="0" type="String" size="60"/>
+				<parameter order="355" name="codexclusion" mandatory="0" type="String" size="60"/>
+				<parameter order="356" name="motivoexclusion" mandatory="0" type="String" size="60"/>
+				<parameter order="357" name="observacion" mandatory="0" type="String" size="60"/>
+				<parameter order="358" name="codramo" mandatory="0" type="String" size="60"/>
+				<parameter order="359" name="fefecto" mandatory="0" type="String" size="60"/>
+				<parameter order="360" name="capital" mandatory="0" type="String" size="60"/>
+				<parameter order="361" name="prima" mandatory="0" type="String" size="60"/>
+				<parameter order="362" name="sobreprima" mandatory="0" type="String" size="60"/>
+				<parameter order="363" name="extraprima" mandatory="0" type="String" size="60"/>
+				<parameter order="364" name="deducible" mandatory="0" type="String" size="60"/>
+				<parameter order="365" name="stscobert" mandatory="0" type="String" size="60"/>
+				<parameter order="366" name="indcobertoblig" mandatory="0" type="String" size="60"/>
+				<parameter order="367" name="tasa" mandatory="0" type="String" size="60"/>
+				<parameter order="368" name="bbvasbr" mandatory="0" type="String" size="60"/>
+				<parameter order="369" name="othersbr" mandatory="0" type="String" size="60"/>
+				<parameter order="370" name="nosbr" mandatory="0" type="String" size="60"/>
+				<parameter order="371" name="clasecli" mandatory="0" type="String" size="60"/>
+				<parameter order="372" name="fecanul" mandatory="0" type="String" size="60"/>
+				<parameter order="373" name="frcinipol" mandatory="0" type="String" size="60"/>
+				<parameter order="374" name="tiposusc" mandatory="0" type="String" size="60"/>
+				<parameter order="375" name="tiposuscprod" mandatory="0" type="String" size="60"/>
+				<parameter order="376" name="codtipovia" mandatory="0" type="String" size="60"/>
+				<parameter order="377" name="idedirec" mandatory="0" type="String" size="60"/>
+				<parameter order="378" name="numero2" mandatory="0" type="String" size="60"/>
+				<parameter order="379" name="descripstatus" mandatory="0" type="String" size="60"/>
+				<parameter order="380" name="numsolicitud" mandatory="0" type="String" size="60"/>
+				<parameter order="381" name="indasegtitular" mandatory="0" type="String" size="60"/>
+				<parameter order="382" name="stsaseg" mandatory="0" type="String" size="60"/>
+				<parameter order="383" name="descexclusion" mandatory="0" type="String" size="60"/>
+				<parameter order="384" name="efecto" mandatory="0" type="String" size="60"/>
+				<parameter order="385" name="emision" mandatory="0" type="String" size="60"/>
+				<parameter order="386" name="cobertura" mandatory="0" type="String" size="300"/>
+				<parameter order="387" name="indicevariable" mandatory="0" type="String" size="60"/>
+				<parameter order="388" name="codcapital" mandatory="0" type="String" size="60"/>
+				<parameter order="389" name="fechaexc" mandatory="0" type="String" size="30"/>
+				<parameter order="390" name="stscobertura" mandatory="0" type="String" size="60"/>
+				<parameter order="391" name="participacion" mandatory="0" type="String" size="60"/>
+				<parameter order="392" name="recibo" mandatory="0" type="String" size="60"/>
+				<parameter order="393" name="tipoop" mandatory="0" type="String" size="60"/>
+				<parameter order="394" name="saldo" mandatory="0" type="String" size="60"/>
+				<parameter order="395" name="poliza" mandatory="0" type="String" size="60"/>
+				<parameter order="396" name="clave" mandatory="0" type="String" size="60"/>
+				<parameter order="397" name="responsabledepago" mandatory="0" type="String" size="60"/>
+				<parameter order="398" name="numdocumento" mandatory="0" type="String" size="60"/>
+				<parameter order="399" name="primabruta" mandatory="0" type="String" size="60"/>
+				<parameter order="400" name="numfinanc" mandatory="0" type="String" size="60"/>
+				<parameter order="401" name="retribucion" mandatory="0" type="String" size="60"/>
+				<parameter order="402" name="n" mandatory="0" type="String" size="60"/>
+				<parameter order="403" name="iva" mandatory="0" type="String" size="60"/>
+				<parameter order="404" name="reteiva" mandatory="0" type="String" size="60"/>
+				<parameter order="405" name="reteica" mandatory="0" type="String" size="60"/>
+				<parameter order="406" name="retefue" mandatory="0" type="String" size="60"/>
+				<parameter order="407" name="ordenpago" mandatory="0" type="String" size="60"/>
+				<parameter order="408" name="nrogiro" mandatory="0" type="String" size="60"/>
+				<parameter order="409" name="fechacobro" mandatory="0" type="String" size="30"/>
+				<parameter order="410" name="recpagouordpago" mandatory="0" type="String" size="60"/>
+				<parameter order="411" name="idefact" mandatory="0" type="String" size="60"/>
+				<parameter order="412" name="sldofactmoneda" mandatory="0" type="String" size="60"/>
+				<parameter order="413" name="nivel" mandatory="0" type="String" size="60"/>
+				<parameter order="414" name="codigo" mandatory="0" type="String" size="60"/>
+				<parameter order="415" name="clausula" mandatory="0" type="String" size="200"/>
+				<parameter order="416" name="anexo" mandatory="0" type="String" size="60"/>
+				<parameter order="417" name="ideclaucert" mandatory="0" type="String" size="60"/>
+				<parameter order="418" name="texto" mandatory="0" type="String" size="20000"/>
+				<parameter order="419" name="siniestro" mandatory="0" type="String" size="60"/>
+				<parameter order="420" name="fnotificacion" mandatory="0" type="String" size="60"/>
+				<parameter order="421" name="fsiniestro" mandatory="0" type="String" size="60"/>
+				<parameter order="422" name="fmodificacion" mandatory="0" type="String" size="60"/>
+				<parameter order="423" name="causa" mandatory="0" type="String" size="60"/>
+				<parameter order="424" name="boton" mandatory="0" type="String" size="60"/>
+				<parameter order="425" name="servicio" mandatory="0" type="String" size="60"/>
+				<parameter order="426" name="codmodalidad" mandatory="0" type="String" size="60"/>
+				<parameter order="427" name="modalidad" mandatory="0" type="String" size="60"/>
+				<parameter order="428" name="nota" mandatory="0" type="String" size="60"/>
+				<parameter order="429" name="policynumberweb" mandatory="0" type="String" size="60"/>
+				<parameter order="430" name="option" mandatory="0" type="String" size="60"/>
+				<parameter order="431" name="customeridtype" mandatory="0" type="String" size="60"/>
+				<parameter order="432" name="renewaltype" mandatory="0" type="String" size="60"/>
+				<parameter order="433" name="customeridnumber" mandatory="0" type="String" size="60"/>
+				<parameter order="434" name="policystatus" mandatory="0" type="String" size="60"/>
+				<parameter order="435" name="paymentperiod" mandatory="0" type="String" size="60"/>
+				<parameter order="436" name="effectivestartdate" mandatory="0" type="String" size="60"/>
+				<parameter order="437" name="renewaldate" mandatory="0" type="String" size="30"/>
+				<parameter order="438" name="directdebitaccount" mandatory="0" type="String" size="200"/>
+				<parameter order="439" name="insuredvalue" mandatory="0" type="String" size="60"/>
+				<parameter order="440" name="managementoffice" mandatory="0" type="String" size="60"/>
+				<parameter order="441" name="insuranceproductcode" mandatory="0" type="String" size="60"/>
+				<parameter order="442" name="usermanagingpolicy" mandatory="0" type="String" size="60"/>
+				<parameter order="443" name="operationdate" mandatory="0" type="String" size="60"/>
+				<parameter order="444" name="premiumamount" mandatory="0" type="String" size="60"/>
+				<parameter order="445" name="altamiraaccountnumber" mandatory="0" type="String" size="60"/>
+				<parameter order="446" name="paymentreference" mandatory="0" type="String" size="60"/>
+				<parameter order="447" name="amountvalue" mandatory="0" type="String" size="60"/>
+				<parameter order="448" name="operationtime" mandatory="0" type="String" size="60"/>
+				<parameter order="449" name="userresponsible" mandatory="0" type="String" size="60"/>
+				<parameter order="450" name="description" mandatory="0" type="String" size="500"/>
+				<parameter order="451" name="customerpolicynumber" mandatory="0" type="String" size="60"/>
+				<list order="452" name="ocupacionarray" mandatory="0">
+					<parameter order="1" name="Type" mandatory="0" type="String" size="60"/>
+				</list>
+				<list order="453" name="planarray" mandatory="0">
+					<parameter order="1" name="Type" mandatory="0" type="String" size="60"/>
+				</list>
+				<list order="454" name="departamentoarray" mandatory="0">
+					<parameter order="1" name="Type" mandatory="0" type="String" size="60"/>
+				</list>
+				<list order="455" name="ciudadarray" mandatory="0">
+					<parameter order="1" name="Type" mandatory="0" type="String" size="60"/>
+				</list>
+				<list order="456" name="estratoarray" mandatory="0">
+					<parameter order="1" name="Type" mandatory="0" type="String" size="60"/>
+				</list>
+				<parameter order="457" name="idecobert" mandatory="0" type="String" size="60"/>
+				<parameter order="458" name="nombrereporte" mandatory="0" type="String" size="60"/>
+				<parameter order="459" name="nit" mandatory="0" type="String" size="60"/>
+				<parameter order="460" name="ctabarrido" mandatory="0" type="String" size="60"/>
+				<parameter order="461" name="rol" mandatory="0" type="String" size="60"/>
+				<parameter order="462" name="rcop" mandatory="0" type="String" size="60"/>
+				<parameter order="463" name="td" mandatory="0" type="String" size="60"/>
+				<parameter order="464" name="treca" mandatory="0" type="String" size="60"/>
+				<parameter order="465" name="estado" mandatory="0" type="String" size="60"/>
+				<parameter order="466" name="primas" mandatory="0" type="String" size="60"/>
+				<parameter order="467" name="fcobro" mandatory="0" type="String" size="60"/>
+				<parameter order="468" name="femision" mandatory="0" type="String" size="60"/>
+				<parameter order="469" name="agente" mandatory="0" type="String" size="60"/>
+				<parameter order="470" name="cmotivodesc" mandatory="0" type="String" size="300"/>
+				<parameter order="471" name="ccompan" mandatory="0" type="String" size="60"/>
+				<parameter order="472" name="tnombre" mandatory="0" type="String" size="60"/>
+				<parameter order="473" name="dni" mandatory="0" type="String" size="60"/>
+				<parameter order="474" name="descdni" mandatory="0" type="String" size="300"/>
+				<parameter order="475" name="tipofecha" mandatory="0" type="String" size="60"/>
+				<parameter order="476" name="certificadoinicial" mandatory="0" type="String" size="60"/>
+				<parameter order="477" name="certificadofinal" mandatory="0" type="String" size="60"/>
+				<parameter order="478" name="producto" mandatory="0" type="String" size="60"/>
+				<parameter order="479" name="oper" mandatory="0" type="String" size="60"/>
+				<parameter order="480" name="tproduc" mandatory="0" type="String" size="60"/>
+				<parameter order="481" name="cpoliza" mandatory="0" type="String" size="60"/>
+				<parameter order="482" name="tpoliza" mandatory="0" type="String" size="60"/>
+				<parameter order="483" name="bmodpag" mandatory="0" type="String" size="60"/>
+				<parameter order="484" name="cperson" mandatory="0" type="String" size="60"/>
+				<parameter order="485" name="tdninit" mandatory="0" type="String" size="60"/>
+				<parameter order="486" name="tapell1" mandatory="0" type="String" size="60"/>
+				<parameter order="487" name="tapell2" mandatory="0" type="String" size="60"/>
+				<parameter order="488" name="nombre1" mandatory="0" type="String" size="60"/>
+				<parameter order="489" name="bestado" mandatory="0" type="String" size="60"/>
+				<parameter order="490" name="cproduc" mandatory="0" type="String" size="60"/>
+				<parameter order="491" name="trotulo1" mandatory="0" type="String" size="60"/>
+				<parameter order="492" name="cmodali" mandatory="0" type="String" size="60"/>
+				<parameter order="493" name="nvermod" mandatory="0" type="String" size="60"/>
+				<parameter order="494" name="trotulo2" mandatory="0" type="String" size="60"/>
+				<parameter order="495" name="coficin" mandatory="0" type="String" size="60"/>
+				<parameter order="496" name="nmovimi" mandatory="0" type="String" size="60"/>
+				<parameter order="497" name="btipmov" mandatory="0" type="String" size="60"/>
+				<parameter order="498" name="femisio" mandatory="0" type="String" size="60"/>
+				<parameter order="499" name="cmotivo" mandatory="0" type="String" size="60"/>
+				<parameter order="500" name="crecibo" mandatory="0" type="String" size="60"/>
+				<parameter order="501" name="tusuari" mandatory="0" type="String" size="60"/>
+				<parameter order="502" name="ttermin" mandatory="0" type="String" size="60"/>
+				<parameter order="503" name="nhormov" mandatory="0" type="String" size="60"/>
+				<parameter order="504" name="nanexos" mandatory="0" type="String" size="60"/>
+				<parameter order="505" name="bmotivo" mandatory="0" type="String" size="60"/>
+				<parameter order="506" name="brepalt" mandatory="0" type="String" size="60"/>
+				<parameter order="507" name="tipogarantia" mandatory="0" type="String" size="60"/>
+				<parameter order="508" name="amparo" mandatory="0" type="String" size="60"/>
+				<parameter order="509" name="tipo" mandatory="0" type="String" size="200"/>
+				<parameter order="510" name="relva" mandatory="0" type="String" size="60"/>
+				<parameter order="511" name="retlva" mandatory="0" type="String" size="60"/>
+				<parameter order="512" name="retfue" mandatory="0" type="String" size="60"/>
+				<parameter order="513" name="ordpago" mandatory="0" type="String" size="60"/>
+				<parameter order="514" name="reccaja" mandatory="0" type="String" size="60"/>
+				<parameter order="515" name="garantia" mandatory="0" type="String" size="60"/>
+				<parameter order="516" name="importa" mandatory="0" type="String" size="60"/>
+				<parameter order="517" name="indacsel" mandatory="0" type="String" size="60"/>
+				<parameter order="518" name="indefront" mandatory="0" type="String" size="60"/>
+				<parameter order="519" name="indaplus" mandatory="0" type="String" size="60"/>
+				<list order="520" name="cliente" mandatory="0">
+					<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.ClientesDTO" artifactId="CCSEC002">
+						<parameter order="1" name="cedula" mandatory="0" type="String" size="20"/>
+						<parameter order="2" name="nombre" mandatory="0" type="String" size="100"/>
+						<parameter order="3" name="direccion" mandatory="0" type="String" size="200"/>
+						<parameter order="4" name="cuenta" mandatory="0" type="String" size="60"/>
+						<parameter order="5" name="tipocuenta" mandatory="0" type="String" size="60"/>
+					</dto>
+				</list>
+				<list order="521" name="beneficiario" mandatory="0">
+					<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.BeneficiariosDTO" artifactId="CCSEC002">
+						<parameter order="1" name="cedula" mandatory="0" type="String" size="20"/>
+						<parameter order="2" name="nombre" mandatory="0" type="String" size="100"/>
+						<parameter order="3" name="parentesco" mandatory="0" type="String" size="60"/>
+						<parameter order="4" name="porcpart" mandatory="0" type="String" size="60"/>
+						<parameter order="5" name="asegurado" mandatory="0" type="String" size="60"/>
+					</dto>
+				</list>
+				<list order="522" name="certificado" mandatory="0">
+					<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.CertificadosDTO" artifactId="CCSEC002">
+						<parameter order="1" name="fivig" mandatory="0" type="String" size="60"/>
+						<parameter order="2" name="ffvig" mandatory="0" type="String" size="60"/>
+						<parameter order="3" name="cartera" mandatory="0" type="String" size="60"/>
+						<parameter order="4" name="gestor" mandatory="0" type="String" size="60"/>
+						<parameter order="5" name="duracion" mandatory="0" type="String" size="60"/>
+						<parameter order="6" name="modpago" mandatory="0" type="String" size="60"/>
+						<parameter order="7" name="periodicidad" mandatory="0" type="String" size="60"/>
+						<parameter order="8" name="coaseguro" mandatory="0" type="String" size="60"/>
+						<parameter order="9" name="crecimiento" mandatory="0" type="String" size="60"/>
+						<parameter order="10" name="utilidad" mandatory="0" type="String" size="60"/>
+						<parameter order="11" name="administrativos" mandatory="0" type="String" size="60"/>
+						<parameter order="12" name="comision" mandatory="0" type="String" size="60"/>
+						<parameter order="13" name="capitalprincipal" mandatory="0" type="String" size="60"/>
+					</dto>
+				</list>
+				<list order="523" name="retribuciones" mandatory="0">
+					<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.RetribucionesDTO" artifactId="CCSEC002">
+						<parameter order="1" name="rol" mandatory="0" type="String" size="60"/>
+						<parameter order="2" name="nit" mandatory="0" type="String" size="60"/>
+						<parameter order="3" name="nombre" mandatory="0" type="String" size="60"/>
+						<parameter order="4" name="retribucion" mandatory="0" type="String" size="60"/>
+						<parameter order="5" name="desaut" mandatory="0" type="String" size="60"/>
+						<parameter order="6" name="causacion" mandatory="0" type="String" size="60"/>
+						<parameter order="7" name="finicio" mandatory="0" type="String" size="60"/>
+						<parameter order="8" name="flimite" mandatory="0" type="String" size="60"/>
+					</dto>
+				</list>
+				<list order="524" name="agentes" mandatory="0">
+					<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.AgentesDTO" artifactId="CCSEC002">
+						<parameter order="1" name="nombre" mandatory="0" type="String" size="60"/>
+						<parameter order="2" name="participacion" mandatory="0" type="String" size="60"/>
+						<parameter order="3" name="comision" mandatory="0" type="String" size="60"/>
+						<parameter order="4" name="porcentajecomision" mandatory="0" type="String" size="60"/>
+					</dto>
+				</list>
+				<list order="525" name="garantias" mandatory="0">
+					<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.GarantiasDTO" artifactId="CCSEC002">
+						<parameter order="1" name="ramo" mandatory="0" type="String" size="60"/>
+						<parameter order="2" name="amparo" mandatory="0" type="String" size="60"/>
+						<parameter order="3" name="emision" mandatory="0" type="String" size="60"/>
+						<parameter order="4" name="fefecto" mandatory="0" type="String" size="60"/>
+						<parameter order="5" name="capital" mandatory="0" type="String" size="60"/>
+						<parameter order="6" name="indicevariable" mandatory="0" type="String" size="60"/>
+						<parameter order="7" name="primaanualunica" mandatory="0" type="String" size="60"/>
+						<parameter order="8" name="sobreprima" mandatory="0" type="String" size="60"/>
+						<parameter order="9" name="extraprima" mandatory="0" type="String" size="60"/>
+					</dto>
+				</list>
+				<list order="526" name="bienes" mandatory="0">
+					<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.BienesDTO" artifactId="CCSEC002">
+						<parameter order="1" name="desc" mandatory="0" type="String" size="60"/>
+						<parameter order="2" name="porcentaje" mandatory="0" type="String" size="60"/>
+						<parameter order="3" name="tar" mandatory="0" type="String" size="60"/>
+						<parameter order="4" name="capital" mandatory="0" type="String" size="60"/>
+						<parameter order="5" name="ind" mandatory="0" type="String" size="60"/>
+					</dto>
+				</list>
+				<list order="527" name="recibos" mandatory="0">
+					<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.RecibosDTO" artifactId="CCSEC002">
+						<parameter order="1" name="recibo" mandatory="0" type="String" size="60"/>
+						<parameter order="2" name="tipo" mandatory="0" type="String" size="200"/>
+						<parameter order="3" name="fefecto" mandatory="0" type="String" size="60"/>
+						<parameter order="4" name="fvencimiento" mandatory="0" type="String" size="60"/>
+						<parameter order="5" name="financiado" mandatory="0" type="String" size="60"/>
+						<parameter order="6" name="coaseguro" mandatory="0" type="String" size="60"/>
+						<parameter order="7" name="importe" mandatory="0" type="String" size="60"/>
+						<parameter order="8" name="saldo" mandatory="0" type="String" size="60"/>
+						<parameter order="9" name="estado" mandatory="0" type="String" size="60"/>
+					</dto>
+				</list>
+				<list order="528" name="autorizaciones" mandatory="0">
+					<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.AutorizacionesDTO" artifactId="CCSEC002">
+						<parameter order="1" name="nivel" mandatory="0" type="String" size="60"/>
+						<parameter order="2" name="autorizacion" mandatory="0" type="String" size="60"/>
+						<parameter order="3" name="motivo" mandatory="0" type="String" size="60"/>
+						<parameter order="4" name="faut" mandatory="0" type="String" size="60"/>
+						<parameter order="5" name="usuario" mandatory="0" type="String" size="60"/>
+						<parameter order="6" name="causal" mandatory="0" type="String" size="60"/>
+						<parameter order="7" name="descripcion" mandatory="0" type="String" size="300"/>
+						<parameter order="8" name="estado" mandatory="0" type="String" size="60"/>
+					</dto>
+				</list>
+				<list order="529" name="clausulas" mandatory="0">
+					<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.ClausulasDTO" artifactId="CCSEC002">
+						<parameter order="1" name="nivel" mandatory="0" type="String" size="60"/>
+						<parameter order="2" name="codigo" mandatory="0" type="String" size="60"/>
+						<parameter order="3" name="tipo" mandatory="0" type="String" size="200"/>
+						<parameter order="4" name="clausula" mandatory="0" type="String" size="200"/>
+						<parameter order="5" name="anexo" mandatory="0" type="String" size="60"/>
+						<parameter order="6" name="fefecto" mandatory="0" type="String" size="60"/>
+						<parameter order="7" name="estado" mandatory="0" type="String" size="60"/>
+					</dto>
+				</list>
+				<parameter order="530" name="codval" mandatory="0" type="String" size="60"/>
+				<parameter order="531" name="codparam" mandatory="0" type="String" size="50"/>
+				<parameter order="532" name="descparam" mandatory="0" type="String" size="100"/>
+				<parameter order="533" name="tipoparam" mandatory="0" type="String" size="20"/>
+				<parameter order="534" name="refparam" mandatory="0" type="String" size="50"/>
+				<parameter order="535" name="totalregs" mandatory="0" type="String" size="60"/>
+				<parameter order="536" name="codsql" mandatory="0" type="String" size="2000"/>
+				<list order="537" name="sumaasegarray" mandatory="0">
+					<parameter order="1" name="Type" mandatory="0" type="String" size="100"/>
+				</list>
+				<list order="538" name="periodicidadpagoarray" mandatory="0">
+					<parameter order="1" name="Type" mandatory="0" type="String" size="100"/>
+				</list>
+				<list order="539" name="anioconstruccionarray" mandatory="0">
+					<parameter order="1" name="Type" mandatory="0" type="String" size="100"/>
+				</list>
+				<parameter order="540" name="stsbien" mandatory="0" type="String" size="100"/>
+				<parameter order="541" name="additionalinfo" mandatory="0" type="String" size="1000"/>
+				<parameter order="542" name="codocupac" mandatory="0" type="String" size="60"/>
+				<parameter order="543" name="fechaefecto" mandatory="0" type="String" size="40"/>
+				<parameter order="544" name="fechaemision" mandatory="0" type="String" size="40"/>
+				<parameter order="545" name="porcpago" mandatory="0" type="String" size="10"/>
+				<parameter order="546" name="descripcion" mandatory="0" type="String" size="1000"/>
+				<parameter order="547" name="mediodepago" mandatory="0" type="String" size="100"/>
+				<parameter order="548" name="barridodecuenta" mandatory="0" type="String" size="100"/>
+				<parameter order="549" name="cancelacionsaldos" mandatory="0" type="String" size="100"/>
+				<parameter order="550" name="sector" mandatory="0" type="String" size="100"/>
+				<parameter order="551" name="idbien" mandatory="0" type="String" size="100"/>
+				<parameter order="552" name="tipocli" mandatory="0" type="String" size="100"/>
+				<list order="553" name="asegurado" mandatory="0">
+					<dto order="1" name="Type" mandatory="0" package="com.bbva.ccse.dto.acselwebs.AseguradoDTO" artifactId="CCSEC002">
+						<parameter order="1" name="cedula" mandatory="0" type="String" size="30"/>
+						<parameter order="2" name="nombre" mandatory="0" type="String" size="150"/>
+						<parameter order="3" name="direccion" mandatory="0" type="String" size="200"/>
+						<parameter order="4" name="edad" mandatory="0" type="String" size="10"/>
+						<parameter order="5" name="fecnac" mandatory="0" type="String" size="30"/>
+						<parameter order="6" name="parentesco" mandatory="0" type="String" size="30"/>
+						<parameter order="7" name="prima" mandatory="0" type="String" size="30"/>
+					</dto>
+				</list>
+				<parameter order="554" name="apemat" mandatory="0" type="String" size="100"/>
+				<parameter order="555" name="descoaseguro" mandatory="0" type="String" size="100"/>
+				<parameter order="556" name="idProcesoExec" mandatory="0" type="String" size="50"/>
+				<parameter order="557" name="numpreformalizado" mandatory="0" type="String" size="100"/>
+				<parameter order="558" name="consecutivo" mandatory="0" type="String" size="100"/>
+				<parameter order="559" name="channelred" mandatory="0" type="String" size="100"/>
+				<parameter order="560" name="indcondig" mandatory="0" type="String" size="100"/>
+				<parameter order="561" name="codsucursal" mandatory="0" type="String" size="100"/>
+				<parameter order="562" name="numvaldoc" mandatory="0" type="String" size="100"/>
+				<parameter order="563" name="numcredpre" mandatory="0" type="String" size="100"/>
+				<parameter order="564" name="fecvalida" mandatory="0" type="String" size="100"/>
+				<parameter order="565" name="numoper" mandatory="0" type="String" size="100"/>
+				<parameter order="566" name="valaproxnueva" mandatory="0" type="String" size="30"/>
+				<parameter order="567" name="valaproxactual" mandatory="0" type="String" size="30"/>
+				<parameter order="568" name="idjob" mandatory="0" type="String" size="60"/>
+				<parameter order="569" name="nombrejob" mandatory="0" type="String" size="100"/>
+				<parameter order="570" name="calendario" mandatory="0" type="String" size="2000"/>
+				<parameter order="571" name="horainicio" mandatory="0" type="String" size="40"/>
+				<parameter order="572" name="horafin" mandatory="0" type="String" size="40"/>
+				<parameter order="573" name="codinterf" mandatory="0" type="String" size="60"/>
+				<parameter order="574" name="codigoautoriza" mandatory="0" type="String" size="30"/>
+				<parameter order="575" name="cnextrun" mandatory="0" type="String" size="4000"/>
+				<parameter order="576" name="descdia" mandatory="0" type="String" size="4000"/>
+				<parameter order="577" name="simulacion" mandatory="0" type="String" size="2000"/>
+				<parameter order="578" name="indprimultdiames" mandatory="0" type="String" size="30"/>
+				<parameter order="579" name="diasemana" mandatory="0" type="String" size="30"/>
+				<parameter order="580" name="descjob" mandatory="0" type="String" size="4000"/>
+				<parameter order="581" name="indbackground" mandatory="0" type="String" size="60"/>
+				<parameter order="582" name="usrrunma" mandatory="0" type="String" size="30"/>
+				<parameter order="583" name="nombreusr" mandatory="0" type="String" size="4000"/>
+				<parameter order="584" name="nombreusrma" mandatory="0" type="String" size="1000"/>
+				<parameter order="585" name="cantlotes" mandatory="0" type="String" size="30"/>
+				<parameter order="586" name="descinterface" mandatory="0" type="String" size="4000"/>
+				<parameter order="587" name="usrresp" mandatory="0" type="String" size="60"/>
+				<parameter order="588" name="tipojob" mandatory="0" type="String" size="60"/>
+				<parameter order="589" name="usrmodif" mandatory="0" type="String" size="100"/>
+				<parameter order="590" name="fechamodif" mandatory="0" type="String" size="40"/>
+				<parameter order="591" name="parametroadic" mandatory="0" type="String" size="2000"/>
+				<parameter order="592" name="periocidad" mandatory="0" type="String" size="60"/>
+				<parameter order="593" name="descperiocidad" mandatory="0" type="String" size="4000"/>
+				<parameter order="594" name="stsjob" mandatory="0" type="String" size="60"/>
+				<parameter order="595" name="cdescsts" mandatory="0" type="String" size="4000"/>
+				<parameter order="596" name="fecharunma" mandatory="0" type="String" size="40"/>
+				<parameter order="597" name="fecsts" mandatory="0" type="String" size="60"/>
+				<parameter order="598" name="inddiahabil" mandatory="0" type="String" size="60"/>
+				<parameter order="599" name="fechacrea" mandatory="0" type="String" size="40"/>
+				<parameter order="600" name="tipointerfaz" mandatory="0" type="String" size="60"/>
+				<parameter order="601" name="accionjob" mandatory="0" type="String" size="2000"/>
+				<parameter order="602" name="nombreuseresp" mandatory="0" type="String" size="4000"/>
+				<parameter order="603" name="usrcrea" mandatory="0" type="String" size="60"/>
+				<parameter order="604" name="desctipo" mandatory="0" type="String" size="4000"/>
+				<parameter order="605" name="bysegundo" mandatory="0" type="String" size="30"/>
+				<parameter order="606" name="byminuto" mandatory="0" type="String" size="30"/>
+				<parameter order="607" name="byhora" mandatory="0" type="String" size="30"/>
+				<parameter order="608" name="intervalo" mandatory="0" type="String" size="60"/>
+				<parameter order="609" name="indreproceso" mandatory="0" type="String" size="30"/>
+				<parameter order="610" name="observaciones" mandatory="0" type="String" size="2000"/>
+			</dto>
+		</list>
+		<dto order="2" name="pagination" mandatory="0" package="com.bbva.ccse.dto.acselwebs.PaginationDTO" artifactId="CCSEC002">
+			<dto order="1" name="links" mandatory="1" package="com.bbva.ccse.dto.acselwebs.LinksDTO" artifactId="CCSEC002">
+				<parameter order="1" name="first" mandatory="1" type="String" size="20"/>
+				<parameter order="2" name="last" mandatory="0" type="String" size="6"/>
+				<parameter order="3" name="previous" mandatory="0" type="String" size="6"/>
+				<parameter order="4" name="next" mandatory="0" type="String" size="6"/>
+			</dto>
+			<parameter order="2" name="page" mandatory="0" type="Long" size="6"/>
+			<parameter order="3" name="totalPages" mandatory="0" type="Long" size="6"/>
+			<parameter order="4" name="totalElements" mandatory="0" type="Long" size="10"/>
+			<parameter order="5" name="pageSize" mandatory="0" type="Long" size="6"/>
+		</dto>
+	</paramsOut>
+	<description>Acsel Evolution Plataforma Core Seguros BBVA TRX policy</description>
+</transaction>

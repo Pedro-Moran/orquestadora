@@ -1,0 +1,12 @@
+{
+    "component": "r2artifact",
+    "repoName": "ccset002",
+    "uuaa": "ccse",
+    "slave_label": "apx",
+    "extra_properties": null,
+    "apxrepoBranch": "master",
+    "componentPaaSId": "ccset002",
+    "appPaaSId": "ccse",
+    "proyectPaaSId": "ccse.co.dsg",
+    "resource_type": "du_online"
+}
