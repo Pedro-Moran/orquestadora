@@ -1,7 +1,6 @@
 package com.bbva.pfmh.dto.jcisconnector.ffmm.commons;
 
 import com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.InvestmentFund;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 import java.util.List;
@@ -13,7 +12,7 @@ public class OutputInvestmentFundsDTO implements Serializable {
     private List<InvestmentFund> data;
     private IntPaginationDTO dtoIntPagination;
 
-    private PaginationDTO dtoPagination = new PaginationDTO();
+    private PaginationDTO dtoPagination;
 
     public List<InvestmentFund> getData() {
         return data;
@@ -31,14 +30,12 @@ public class OutputInvestmentFundsDTO implements Serializable {
         this.dtoIntPagination = dtoIntPagination;
     }
 
-    @JsonProperty("DTOPagination")
     public PaginationDTO getDTOPagination() {
         return dtoPagination;
     }
 
-    @JsonProperty("DTOPagination")
     public void setDTOPagination(PaginationDTO dtoPagination) {
-        this.dtoPagination = (dtoPagination == null) ? new PaginationDTO() : dtoPagination;
+        this.dtoPagination = dtoPagination;
     }
 
     @Override
