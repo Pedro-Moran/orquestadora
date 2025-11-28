@@ -12,10 +12,8 @@ public class OutputInvestmentFundsDTO implements Serializable {
 
     private List<InvestmentFund> data;
     private IntPaginationDTO dtoIntPagination;
-    // Se expone como "DTOPagination" para alinearse con el parámetro de salida
-    // del transaction, que ya publica el nodo aunque el DTO no lo tuviera.
-    @JsonProperty("DTOPagination")
-    private PaginationDTO dtoPagination;
+
+    private PaginationDTO dtoPagination = new PaginationDTO();
 
     public List<InvestmentFund> getData() {
         return data;
@@ -33,12 +31,14 @@ public class OutputInvestmentFundsDTO implements Serializable {
         this.dtoIntPagination = dtoIntPagination;
     }
 
+    @JsonProperty("DTOPagination")
     public PaginationDTO getDTOPagination() {
         return dtoPagination;
     }
 
+    @JsonProperty("DTOPagination")
     public void setDTOPagination(PaginationDTO dtoPagination) {
-        this.dtoPagination = dtoPagination;
+        this.dtoPagination = (dtoPagination == null) ? new PaginationDTO() : dtoPagination;
     }
 
     @Override

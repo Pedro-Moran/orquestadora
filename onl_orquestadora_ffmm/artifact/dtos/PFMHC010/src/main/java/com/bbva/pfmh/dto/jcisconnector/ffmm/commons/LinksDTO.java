@@ -1,15 +1,24 @@
 package com.bbva.pfmh.dto.jcisconnector.ffmm.commons;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 
+@JsonInclude(JsonInclude.Include.ALWAYS)
 public class LinksDTO implements Serializable {
 
-    private static final long serialVersionUID = 4845434800549142797L;
+    @JsonProperty("first")
+    private String first;
 
-    private  String first;
-    private  String last;
-    private  String previous;
-    private  String next;
+    @JsonProperty("last")
+    private String last;
+
+    @JsonProperty("previous")
+    private String previous;
+
+    @JsonProperty("next")
+    private String next;
 
     public String getFirst() {
         return first;

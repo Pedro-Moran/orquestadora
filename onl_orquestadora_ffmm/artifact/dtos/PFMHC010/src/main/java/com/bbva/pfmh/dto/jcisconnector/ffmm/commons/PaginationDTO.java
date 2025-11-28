@@ -5,25 +5,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 
-
-// Comentario en español: se obliga a exponer siempre el nodo de enlaces en la paginación
 @JsonInclude(JsonInclude.Include.ALWAYS)
 public class PaginationDTO implements Serializable {
     private static final long serialVersionUID = 8268731132101006705L;
-    @SuppressWarnings("java:S116")
     @JsonProperty("DTOLinks")
-    private LinksDTO DTOLinks = new LinksDTO();
+    @JsonInclude(JsonInclude.Include.ALWAYS)
+    private LinksDTO dtoLinks = new LinksDTO();
     private Integer page;
     private Integer totalPages;
     private Integer totalElements;
     private Integer pageSize;
 
-    public LinksDTO getDTOLinks(){
-        return DTOLinks;
+    @JsonProperty("DTOLinks")
+    public LinksDTO getDtoLinks(){
+        return dtoLinks;
     }
 
-    public void setDTOLinks(LinksDTO dtoLinks){
-        this.DTOLinks = dtoLinks;
+    @JsonProperty("DTOLinks")
+    public void setDtoLinks(LinksDTO dtoLinks){
+        this.dtoLinks = (dtoLinks == null) ? new LinksDTO() : dtoLinks;
     }
 
     public Integer getPage() {
@@ -61,7 +61,7 @@ public class PaginationDTO implements Serializable {
     @Override
     public String toString() {
         return "DTOPagination{" +
-                "DTOLinks=" + DTOLinks +
+                "DTOLinks=" + dtoLinks +
                 ", page=" + page +
                 ", totalPages=" + totalPages +
                 ", totalElements=" + totalElements +
