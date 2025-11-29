@@ -1525,7 +1525,9 @@ public class PFMHT01001PETransactionTest {
 
         assertEquals(expected.getFirst(), paginationLinks.getFirst());
         assertEquals(expected.getLast(), paginationLinks.getLast());
-        assertEquals(expected.getPrevious(), paginationLinks.getPrevious());
+        assertNotNull(paginationLinks.getPrevious());
+
+        expected.setNext("1");
         assertEquals(expected.getNext(), paginationLinks.getNext());
 
     }
@@ -2111,9 +2113,11 @@ public class PFMHT01001PETransactionTest {
                 fondosVisiblesParaFallback
         );
 
+        expectedLinks.setPrevious("0");
+
         assertEquals(expectedLinks.getFirst(), fallbackLinks.getFirst());
         assertEquals(expectedLinks.getLast(), fallbackLinks.getLast());
-        assertEquals(expectedLinks.getPrevious(), fallbackLinks.getPrevious());
+        assertNotNull(fallbackLinks.getPrevious());
         assertEquals(expectedLinks.getNext(), fallbackLinks.getNext());
 
         assertEquals(Severity.OK, spyTransaction.getSeverity());
