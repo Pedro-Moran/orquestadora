@@ -84,10 +84,12 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         LinksDTO paginationLinks = ensurePaginationLinks(pagination, summary, normalizedPageSize, currentPage);
         LinksDTO exposedLinks = synchronizePaginationLinks(pagination, paginationLinks);
         LinksDTO normalizedLinks = normalizePaginationLinks(exposedLinks, pagination);
+        LinksDTO completedLinks = ensureDefaultLinks(normalizedLinks, pagination);
+        LinksDTO alignedLinks = alignPaginationLinksWithMetadata(pagination, completedLinks);
         LOGGER.info("DTOPagination final (antes de exponer) -> {}", pagination);
         LOGGER.info("DTOPagination.DTOLinks final -> {}",
                 pagination.getDTOLinks());
-        exposeLinks(normalizedLinks, pagination);
+        exposeLinks(alignedLinks, pagination);
         applyPaginationMetadata(paginationNode, pagination);
         propagatePaginationToEnvelopes(payload, pagination);
 
@@ -408,6 +410,61 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         pagination.setDTOLinks(copyLinks(metadataLinks));
 
         return copyLinks(metadataLinks);
+    }
+
+    private LinksDTO ensureDefaultLinks(LinksDTO links, PaginationDTO pagination) {
+        LinksDTO resolved = links == null ? new LinksDTO() : links;
+
+        if (!notBlank(resolved.getFirst())) {
+            resolved.setFirst("0");
+        }
+
+        if (!notBlank(resolved.getLast())) {
+            resolved.setLast("0");
+        }
+
+        pagination.setDTOLinks(copyLinks(resolved));
+
+        return copyLinks(resolved);
+    }
+
+    private LinksDTO alignPaginationLinksWithMetadata(PaginationDTO pagination, LinksDTO links) {
+        LinksDTO resolvedLinks = links == null ? new LinksDTO() : copyLinks(links);
+
+        if (pagination == null) {
+            return resolvedLinks;
+        }
+
+        Integer totalPages = pagination.getTotalPages();
+        Integer pageSize = pagination.getPageSize();
+        Integer totalElements = pagination.getTotalElements();
+
+        if ((totalPages == null || totalPages <= 0) && pageSize != null && pageSize > 0 && totalElements != null && totalElements >= 0) {
+            pagination.setTotalPages((int) Math.ceil((double) totalElements / pageSize));
+            totalPages = pagination.getTotalPages();
+        }
+
+        int lastPage = totalPages == null || totalPages <= 0 ? 0 : Math.max(totalPages - 1, 0);
+        int currentPage = pagination.getPage() == null ? 0 : Math.min(Math.max(pagination.getPage(), 0), lastPage);
+
+        if (!notBlank(resolvedLinks.getFirst())) {
+            resolvedLinks.setFirst("0");
+        }
+
+        if (!notBlank(resolvedLinks.getLast())) {
+            resolvedLinks.setLast(String.valueOf(lastPage));
+        }
+
+        if (!notBlank(resolvedLinks.getPrevious()) && currentPage > 0) {
+            resolvedLinks.setPrevious(String.valueOf(currentPage - 1));
+        }
+
+        if (!notBlank(resolvedLinks.getNext()) && currentPage < lastPage) {
+            resolvedLinks.setNext(String.valueOf(currentPage + 1));
+        }
+
+        pagination.setDTOLinks(copyLinks(resolvedLinks));
+        return copyLinks(resolvedLinks);
     }
     private PaginationDTO clonePagination(PaginationDTO pagination) {
         if (pagination == null) {
