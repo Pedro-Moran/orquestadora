@@ -260,7 +260,16 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
         this.setPagination(pagination);
         this.setDTOPagination(pagination);
+        publishLinks(pagination.getDTOLinks());
         publishPaginationParameterTable(pagination);
+    }
+
+    private void publishLinks(LinksDTO links) {
+        if (links == null) {
+            return;
+        }
+
+        this.addParameter("DTOLinks", copyLinks(links));
     }
     private void propagatePaginationToEnvelopes(List<OutputInvestmentFundsDTO> payload,
                                                 PaginationDTO pagination) {
