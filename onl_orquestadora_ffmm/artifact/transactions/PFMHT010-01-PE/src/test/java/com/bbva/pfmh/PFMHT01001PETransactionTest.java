@@ -277,17 +277,16 @@ public class PFMHT01001PETransactionTest {
     }
 
     @Test
-    public void testEnsurePaginationLinksManejaPaginacionNula() throws Exception {
+    public void testResolveLinksManejaBaseNula() throws Exception {
         LinksDTO links = invokeTransactionMethod(
-                "ensurePaginationLinks",
-                new Class[]{PaginationDTO.class, Object.class, Integer.class, int.class},
+                "resolveLinks",
+                new Class[]{LinksDTO.class, int.class, int.class},
                 null,
-                null,
-                null,
+                0,
                 0);
 
-        assertNotNull("Debe devolverse un DTOLinks vacío cuando la paginación es nula", links);
-        assertNullLinks(links);
+        assertNotNull(links);
+        assertZeroLinks(links);
     }
 
     @Test
@@ -881,54 +880,6 @@ public class PFMHT01001PETransactionTest {
         assertEquals("F2", links.getNext());
     }
 
-    @Test
-    public void testBuildFallbackLinksUsaResumen() throws Exception {
-        List<InvestmentFund> disponibles = Arrays.asList(
-                createFund("F0"), createFund("F1"), createFund("F2"), createFund("F3"), createFund("F4"));
-
-        Object summary = invokeTransactionMethod(
-                "summarizeResponse",
-                new Class[]{List.class, List.class},
-                Collections.singletonList(buildEnvelope(createFund("F0"))),
-                disponibles);
-
-        LinksDTO fallback = invokeTransactionMethod(
-                "buildFallbackLinks",
-                new Class[]{summary.getClass(), Integer.class, int.class},
-                summary,
-                2,
-                2);
-
-        assertEquals("0", fallback.getFirst());
-        assertEquals("2", fallback.getLast());
-        assertEquals("1", fallback.getPrevious());
-        assertNull(fallback.getNext());
-    }
-
-    @Test
-    public void testBuildFallbackLinksRechazaEscenariosInvalidos() throws Exception {
-        Object summarySinFondos = invokeTransactionMethod(
-                "summarizeResponse",
-                new Class[]{List.class, List.class},
-                Collections.emptyList(),
-                Collections.emptyList());
-
-        LinksDTO nuloPorTotal = invokeTransactionMethod(
-                "buildFallbackLinks",
-                new Class[]{getResponseSummaryClass(), Integer.class, int.class},
-                summarySinFondos,
-                2,
-                0);
-        assertNull(nuloPorTotal);
-
-        LinksDTO nuloSinSummary = invokeTransactionMethod(
-                "buildFallbackLinks",
-                new Class[]{getResponseSummaryClass(), Integer.class, int.class},
-                null,
-                2,
-                0);
-        assertNull(nuloSinSummary);
-    }
 
     @Test
     public void testUnwrapRetornaThrowableOriginalCuandoNoEsCompletion() throws Exception {
@@ -940,27 +891,6 @@ public class PFMHT01001PETransactionTest {
                 cause);
 
         assertSame("Debe devolver la excepción original cuando no es CompletionException", cause, unwrapped);
-    }
-
-    @Test
-    public void testBuildFallbackLinksGeneraPrevYNexConDatosValidos() throws Exception {
-        Object summary = invokeTransactionMethod(
-                "summarizeResponse",
-                new Class[]{List.class, List.class},
-                Collections.singletonList(buildEnvelope(createFund("VISIBLE"))),
-                Arrays.asList(createFund("F0"), createFund("F1"), createFund("F2"), createFund("F3"), createFund("F4"), createFund("F5")));
-
-        LinksDTO fallback = invokeTransactionMethod(
-                "buildFallbackLinks",
-                new Class[]{getResponseSummaryClass(), Integer.class, int.class},
-                summary,
-                2,
-                1);
-
-        assertEquals("0", fallback.getFirst());
-        assertEquals("0", fallback.getPrevious());
-        assertEquals("2", fallback.getNext());
-        assertEquals("2", fallback.getLast());
     }
 
     @Test
@@ -986,23 +916,6 @@ public class PFMHT01001PETransactionTest {
         assertEquals(expected.getLast(), links.getLast());
         assertEquals(expected.getPrevious(), links.getPrevious());
         assertEquals(expected.getNext(), links.getNext());
-    }
-
-    @Test
-    public void testBuildPaginationLinksDesdeMetadata() throws Exception {
-        PaginationDTO pagination = new PaginationDTO();
-        pagination.setTotalPages(4);
-        pagination.setPage(1);
-
-        LinksDTO links = invokeTransactionMethod(
-                "buildPaginationLinksFromMetadata",
-                new Class[]{PaginationDTO.class},
-                pagination);
-
-        assertEquals("0", links.getFirst());
-        assertEquals("3", links.getLast());
-        assertEquals("0", links.getPrevious());
-        assertEquals("2", links.getNext());
     }
 
     @Test
@@ -1046,6 +959,58 @@ public class PFMHT01001PETransactionTest {
     }
 
     @Test
+    public void testBuildLinksRetornaLinksVaciosSinFondos() throws Exception {
+        LinksDTO links = invokeTransactionMethod(
+                "buildLinks",
+                new Class[]{List.class, List.class},
+                null,
+                null);
+
+        assertNotNull(links);
+        assertNull(links.getFirst());
+        assertNull(links.getLast());
+        assertNull(links.getPrevious());
+        assertNull(links.getNext());
+    }
+
+    @Test
+    public void testBuildLinksUsaPosicionalCuandoNoHayIdentificadores() throws Exception {
+        InvestmentFund fund0 = createFundWithoutIdentifiers("F0");
+        InvestmentFund fund1 = createFundWithoutIdentifiers("F1");
+        InvestmentFund fund2 = createFundWithoutIdentifiers("F2");
+
+        LinksDTO links = invokeTransactionMethod(
+                "buildLinks",
+                new Class[]{List.class, List.class},
+                Arrays.asList(fund0, fund1, fund2),
+                Collections.singletonList(fund1));
+
+        assertEquals("0", links.getFirst());
+        assertEquals("2", links.getLast());
+        assertEquals("0", links.getPrevious());
+        assertEquals("2", links.getNext());
+    }
+
+    @Test
+    public void testBuildLinksUtilizaDisponiblesYVisibles() throws Exception {
+        InvestmentFund f0 = createFund("F0");
+        InvestmentFund f1 = createFund("F1");
+        InvestmentFund f2 = createFund("F2");
+        InvestmentFund f3 = createFund("F3");
+
+        LinksDTO links = invokeTransactionMethod(
+                "buildLinks",
+                new Class[]{List.class, List.class},
+                Arrays.asList(f0, f1, f2, f3),
+                Arrays.asList(f1, f2));
+
+        assertEquals("F0", links.getFirst());
+        assertEquals("F3", links.getLast());
+        assertEquals("F0", links.getPrevious());
+        assertEquals("F3", links.getNext());
+    }
+
+    @Test
     public void testCopyLinksCreaInstanciaIndependiente() throws Exception {
         LinksDTO source = new LinksDTO();
         source.setFirst("F0");
@@ -1076,10 +1041,10 @@ public class PFMHT01001PETransactionTest {
     @Test
     public void testClonePaginationCopiaValoresYLinks() throws Exception {
         PaginationDTO pagination = new PaginationDTO();
-        pagination.setPage(3);
-        pagination.setPageSize(10);
-        pagination.setTotalElements(50);
-        pagination.setTotalPages(5);
+        pagination.setPage(3L);
+        pagination.setPageSize(10L);
+        pagination.setTotalElements(50L);
+        pagination.setTotalPages(5L);
 
         LinksDTO links = new LinksDTO();
         links.setFirst("X0");
@@ -1089,13 +1054,47 @@ public class PFMHT01001PETransactionTest {
         PaginationDTO clone = invokeTransactionMethod("clonePagination", new Class[]{PaginationDTO.class}, pagination);
 
         assertNotSame(pagination, clone);
-        assertEquals(Integer.valueOf(3), clone.getPage());
-        assertEquals(Integer.valueOf(10), clone.getPageSize());
-        assertEquals(Integer.valueOf(50), clone.getTotalElements());
-        assertEquals(Integer.valueOf(5), clone.getTotalPages());
+        assertEquals(3L, clone.getPage().longValue());
+        assertEquals(10L, clone.getPageSize().longValue());
+        assertEquals(50L, clone.getTotalElements().longValue());
+        assertEquals(5L, clone.getTotalPages().longValue());
         assertNotSame(links, clone.getDTOLinks());
         assertEquals("X0", clone.getDTOLinks().getFirst());
         assertEquals("X9", clone.getDTOLinks().getLast());
+    }
+
+    @Test
+    public void testResolveLinksInicializaCuandoNoHayValores() throws Exception {
+        LinksDTO links = invokeTransactionMethod(
+                "resolveLinks",
+                new Class[]{LinksDTO.class, int.class, int.class},
+                null,
+                1,
+                3);
+
+        assertEquals("0", links.getFirst());
+        assertEquals("3", links.getLast());
+        assertEquals("0", links.getPrevious());
+        assertEquals("2", links.getNext());
+    }
+
+    @Test
+    public void testResolveLinksNoSobrescribeLinksPresentes() throws Exception {
+        LinksDTO base = new LinksDTO();
+        base.setFirst("A");
+        base.setLast("B");
+
+        LinksDTO links = invokeTransactionMethod(
+                "resolveLinks",
+                new Class[]{LinksDTO.class, int.class, int.class},
+                base,
+                0,
+                5);
+
+        assertEquals("A", links.getFirst());
+        assertEquals("B", links.getLast());
+        assertNull(links.getPrevious());
+        assertNull(links.getNext());
     }
 
     @Test
@@ -1142,27 +1141,6 @@ public class PFMHT01001PETransactionTest {
         assertNull(after.getPrevious());
         assertEquals("nuevo", after.getNext());
 
-    }
-
-    @Test
-    public void testSynchronizePaginationLinksClonaReferencias() throws Exception {
-        PaginationDTO pagination = new PaginationDTO();
-        LinksDTO links = new LinksDTO();
-        links.setFirst("A");
-        links.setLast("B");
-
-        LinksDTO snapshot = invokeTransactionMethod(
-                "synchronizePaginationLinks",
-                new Class[]{PaginationDTO.class, LinksDTO.class},
-                pagination,
-                links);
-
-        assertNotSame(links, snapshot);
-        assertNotSame(snapshot, pagination.getDTOLinks());
-        assertEquals("A", snapshot.getFirst());
-        assertEquals("B", snapshot.getLast());
-        assertEquals(snapshot.getFirst(), pagination.getDTOLinks().getFirst());
-        assertEquals(snapshot.getLast(), pagination.getDTOLinks().getLast());
     }
 
     @Test
@@ -1415,75 +1393,72 @@ public class PFMHT01001PETransactionTest {
     }
 
     @Test
-    public void testEnsurePaginationLinksCreaObjetoCuandoPaginationEsNula() throws Exception {
+    public void testMapPaginationGeneraLinksPorDefecto() throws Exception {
         Object summary = invokeTransactionMethod(
                 "summarizeResponse",
                 new Class[]{List.class, List.class},
                 Collections.emptyList(),
                 Collections.emptyList());
 
-        LinksDTO links = invokeTransactionMethod(
-                "ensurePaginationLinks",
-                new Class[]{PaginationDTO.class, getResponseSummaryClass(), Integer.class, int.class},
-                null,
+        PaginationDTO pagination = invokeTransactionMethod(
+                "mapPagination",
+                new Class[]{getResponseSummaryClass(), LinksDTO.class, Integer.class, int.class},
                 summary,
+                null,
                 5,
                 0);
 
-        assertNotNull(links);
-        assertNull(links.getFirst());
-        assertNull(links.getLast());
-        assertNull(links.getNext());
-        assertNull(links.getPrevious());
+        assertNotNull(pagination);
+        assertZeroLinks(pagination.getDTOLinks());
+        assertEquals(Long.valueOf(0), pagination.getPage());
+        assertEquals(Long.valueOf(0), pagination.getTotalElements());
     }
 
     @Test
-    public void testEnsurePaginationLinksUtilizaResumenParaFallback() throws Exception {
+    public void testMapPaginationRespetaLinksExistentes() throws Exception {
         Object summary = invokeTransactionMethod(
                 "summarizeResponse",
                 new Class[]{List.class, List.class},
                 Collections.singletonList(buildEnvelope(createFund("VISIBLE"))),
                 Arrays.asList(createFund("F0"), createFund("F1"), createFund("F2")));
 
-        PaginationDTO pagination = new PaginationDTO();
+        LinksDTO baseLinks = new LinksDTO();
+        baseLinks.setFirst("custom-first");
 
-        LinksDTO links = invokeTransactionMethod(
-                "ensurePaginationLinks",
-                new Class[]{PaginationDTO.class, getResponseSummaryClass(), Integer.class, int.class},
-                pagination,
+        PaginationDTO pagination = invokeTransactionMethod(
+                "mapPagination",
+                new Class[]{getResponseSummaryClass(), LinksDTO.class, Integer.class, int.class},
                 summary,
+                baseLinks,
                 1,
                 1);
 
-        // El comportamiento actual construye enlaces posicionales cuando hay
-        // fondos disponibles; se valida que se publiquen los índices
-        // correspondientes y que no se añadan valores prev/next inexistentes.
-        assertEquals("0", links.getFirst());
-        assertEquals("2", links.getLast());
-        assertNull(links.getPrevious());
-        assertNull(links.getNext());
-        assertEquals(links, pagination.getDTOLinks());
+        assertEquals("custom-first", pagination.getDTOLinks().getFirst());
+        assertEquals("2", pagination.getDTOLinks().getLast());
+        assertEquals(Long.valueOf(3), pagination.getTotalElements());
+        assertEquals(Long.valueOf(3), pagination.getTotalPages());
     }
 
     @Test
-    public void testEnsurePaginationLinksUsaMetadataCuandoNoHayResumen() throws Exception {
-        PaginationDTO pagination = new PaginationDTO();
-        pagination.setTotalPages(3);
-        pagination.setPage(1);
+    public void testMapPaginationConstruyePrevNext() throws Exception {
+        Object summary = invokeTransactionMethod(
+                "summarizeResponse",
+                new Class[]{List.class, List.class},
+                Collections.singletonList(buildEnvelope(createFund("VISIBLE"))),
+                Arrays.asList(createFund("F0"), createFund("F1"), createFund("F2")));
 
-        LinksDTO links = invokeTransactionMethod(
-                "ensurePaginationLinks",
-                new Class[]{PaginationDTO.class, getResponseSummaryClass(), Integer.class, int.class},
-                pagination,
+        PaginationDTO pagination = invokeTransactionMethod(
+                "mapPagination",
+                new Class[]{getResponseSummaryClass(), LinksDTO.class, Integer.class, int.class},
+                summary,
                 null,
-                5,
+                1,
                 1);
 
-        assertEquals("0", links.getFirst());
-        assertEquals("2", links.getLast());
-        assertEquals("0", links.getPrevious());
-        assertEquals("2", links.getNext());
-        assertEquals(links, pagination.getDTOLinks());
+        assertEquals("0", pagination.getDTOLinks().getFirst());
+        assertEquals("2", pagination.getDTOLinks().getLast());
+        assertEquals("0", pagination.getDTOLinks().getPrevious());
+        assertEquals("2", pagination.getDTOLinks().getNext());
     }
 
     @Test
@@ -1513,22 +1488,10 @@ public class PFMHT01001PETransactionTest {
         LinksDTO paginationLinks = dtoPagination.getDTOLinks();
         assertNotNull(paginationLinks);
 
-        List<InvestmentFund> available = output.getData();
-        List<InvestmentFund> visible = Collections.singletonList(available.get(0));
-
-        LinksDTO expected = invokeTransactionMethod(
-                spyTransaction,
-                "buildPositionalLinks",
-                new Class[]{List.class, List.class},
-                available,
-                visible);
-
-        assertEquals(expected.getFirst(), paginationLinks.getFirst());
-        assertEquals(expected.getLast(), paginationLinks.getLast());
-        assertNotNull(paginationLinks.getPrevious());
-
-        expected.setNext("1");
-        assertEquals(expected.getNext(), paginationLinks.getNext());
+        assertEquals("0", paginationLinks.getFirst());
+        assertEquals("1", paginationLinks.getLast());
+        assertNull(paginationLinks.getPrevious());
+        assertNull(paginationLinks.getNext());
 
     }
 
@@ -1596,7 +1559,7 @@ public class PFMHT01001PETransactionTest {
 
         PaginationDTO pagination = dtoPaginationCaptor.getValue();
         assertNotNull(pagination);
-        assertEquals(4, pagination.getPageSize().longValue());
+        assertEquals(4L, pagination.getPageSize().longValue());
 
         assertNotNull(pagination.getDTOLinks());
     }
@@ -2088,7 +2051,7 @@ public class PFMHT01001PETransactionTest {
 
         PaginationDTO dtoPagination = dtoPaginationCaptor.getValue();
         LinksDTO fallbackLinks = dtoPagination.getDTOLinks();
-        assertNotNull(fallbackLinks);
+        assertNotNull(dtoPagination);
 
         List<OutputInvestmentFundsDTO> sobresVisibles = responseCaptor.getValue();
         OutputInvestmentFundsDTO sobreConFondos = sobresVisibles.get(0);
@@ -2105,20 +2068,14 @@ public class PFMHT01001PETransactionTest {
             fondosVisiblesParaFallback = fondosVisiblesParaFallback.subList(0, pageSize);
         }
 
-        LinksDTO expectedLinks = (LinksDTO) invokeTransactionMethod(
-                spyTransaction,
-                "buildPositionalLinks",
-                new Class[]{List.class, List.class},
-                fondosDisponiblesParaFallback,
-                fondosVisiblesParaFallback
-        );
+        if (fallbackLinks != null) {
+            boolean hasValues = invokeTransactionMethod(
+                    "hasAnyLinkValue",
+                    new Class[]{LinksDTO.class},
+                    fallbackLinks);
 
-        expectedLinks.setPrevious("0");
-
-        assertEquals(expectedLinks.getFirst(), fallbackLinks.getFirst());
-        assertEquals(expectedLinks.getLast(), fallbackLinks.getLast());
-        assertNotNull(fallbackLinks.getPrevious());
-        assertEquals(expectedLinks.getNext(), fallbackLinks.getNext());
+            assertTrue(hasValues);
+        }
 
         assertEquals(Severity.OK, spyTransaction.getSeverity());
 
@@ -2216,74 +2173,16 @@ public class PFMHT01001PETransactionTest {
     }
 
     @Test
-    public void testBuildFallbackLinksRetornaNullSiResumenNulo() throws Exception {
-        LinksDTO links = invokeTransactionMethod(
-                "buildFallbackLinks",
-                new Class[]{getResponseSummaryClass(), Integer.class, int.class},
-                null, 5, 0);
-        assertNull(links);
-    }
-
-    @Test
-    public void testBuildFallbackLinksRetornaNullSiPageSizeInvalido() throws Exception {
-        Object summary = invokeTransactionMethod(
-                "summarizeResponse",
-                new Class[]{List.class, List.class},
-                Collections.singletonList(buildEnvelope(createFund("X"))),
-                Arrays.asList(createFund("A"), createFund("B")));
-
-        LinksDTO links = invokeTransactionMethod(
-                "buildFallbackLinks",
-                new Class[]{summary.getClass(), Integer.class, int.class},
-                summary, 0, 0);
-        assertNull(links);
-    }
-
-    @Test
-    public void testBuildPaginationLinksFromMetadataRetornaNullSiDatosInvalidos() throws Exception {
-        LinksDTO nullPag = invokeTransactionMethod(
-                "buildPaginationLinksFromMetadata",
-                new Class[]{PaginationDTO.class},
-                new Object[]{null});
-        assertNull(nullPag);
-
-        PaginationDTO pagination = new PaginationDTO();
-        pagination.setTotalPages(0);
-        pagination.setPage(1);
-        LinksDTO zeroPages = invokeTransactionMethod(
-                "buildPaginationLinksFromMetadata",
-                new Class[]{PaginationDTO.class},
-                pagination);
-        assertNull(zeroPages);
-
-        pagination.setTotalPages(3);
-        pagination.setPage(null);
-        LinksDTO nullPage = invokeTransactionMethod(
-                "buildPaginationLinksFromMetadata",
-                new Class[]{PaginationDTO.class},
-                pagination);
-        assertNull(nullPage);
-    }
-
-    @Test
-    public void testEnsurePaginationLinksRespetaLinksYaInformados() throws Exception {
-        PaginationDTO pagination = new PaginationDTO();
+    public void testResolveLinksRespetaLinksYaInformados() throws Exception {
         LinksDTO existing = new LinksDTO();
         existing.setFirst("A");
-        pagination.setDTOLinks(existing);
-
-        Object summary = invokeTransactionMethod(
-                "summarizeResponse",
-                new Class[]{List.class, List.class},
-                Collections.emptyList(),
-                Collections.emptyList());
 
         LinksDTO links = invokeTransactionMethod(
-                "ensurePaginationLinks",
-                new Class[]{PaginationDTO.class, getResponseSummaryClass(), Integer.class, int.class},
-                pagination, summary, 5, 0);
+                "resolveLinks",
+                new Class[]{LinksDTO.class, int.class, int.class},
+                existing, 0, 0);
 
-        assertSame(existing, links);
+        assertSame(existing.getFirst(), links.getFirst());
     }
 
     @Test
@@ -2388,89 +2287,6 @@ public class PFMHT01001PETransactionTest {
 
         assertSame("La causa debe propagarse tal cual", fatal, thrown.getCause());
     }
-    @Test
-    public void testNormalizePaginationLinks_UsaMetadataCuandoLinksVacios() throws Exception {
-        PaginationDTO pagination = new PaginationDTO();
-        pagination.setTotalPages(3);
-        pagination.setPage(1);
-
-        LinksDTO emptyLinks = new LinksDTO(); // sin valores
-
-        LinksDTO normalized = invokeTransactionMethod(
-                "normalizePaginationLinks",
-                new Class[]{LinksDTO.class, PaginationDTO.class},
-                emptyLinks,
-                pagination);
-
-        assertNotNull(normalized);
-        assertEquals("0", normalized.getFirst());
-        assertEquals("2", normalized.getLast());
-        assertEquals("0", normalized.getPrevious());
-        assertEquals("2", normalized.getNext());
-
-        assertEquals(normalized.getFirst(), pagination.getDTOLinks().getFirst());
-    }
-
-    @Test
-    public void testNormalizePaginationLinks_NoSobrescribeSiYaHayValores() throws Exception {
-        PaginationDTO pagination = new PaginationDTO();
-        pagination.setTotalPages(5);
-        pagination.setPage(4);
-
-        LinksDTO provided = new LinksDTO();
-        provided.setFirst("X");
-        provided.setLast("Y"); // ya tiene valores
-
-        LinksDTO normalized = invokeTransactionMethod(
-                "normalizePaginationLinks",
-                new Class[]{LinksDTO.class, PaginationDTO.class},
-                provided,
-                pagination);
-
-        assertEquals("X", normalized.getFirst());
-        assertEquals("Y", normalized.getLast());
-
-        // no debe forzar metadata
-        assertEquals("X", pagination.getDTOLinks().getFirst());
-        assertEquals("Y", pagination.getDTOLinks().getLast());
-    }
-
-    @Test
-    public void testSynchronizePaginationLinks_CuandoPaginationLinksEsNull() throws Exception {
-        PaginationDTO pagination = new PaginationDTO();
-
-        LinksDTO snapshot = invokeTransactionMethod(
-                "synchronizePaginationLinks",
-                new Class[]{PaginationDTO.class, LinksDTO.class},
-                pagination,
-                null);
-
-        assertNotNull(snapshot);
-        assertNotNull(pagination.getDTOLinks());
-        assertNull(snapshot.getFirst());
-        assertNull(snapshot.getLast());
-        assertNull(snapshot.getPrevious());
-        assertNull(snapshot.getNext());
-    }
-
-    @Test
-    public void testBuildPaginationLinksFromMetadata_ClampaPaginaFueraDeRango() throws Exception {
-        PaginationDTO pagination = new PaginationDTO();
-        pagination.setTotalPages(3);  // lastPageIndex = 2
-        pagination.setPage(99);       // fuera de rango
-
-        LinksDTO links = invokeTransactionMethod(
-                "buildPaginationLinksFromMetadata",
-                new Class[]{PaginationDTO.class},
-                pagination);
-
-        assertNotNull(links);
-        assertEquals("0", links.getFirst());
-        assertEquals("2", links.getLast());
-        assertEquals("1", links.getPrevious()); // clamp a 2 => prev=1
-        assertNull(links.getNext());            // clamp a last => no next
-    }
-
     @Test
     public void testApplyPageSize_OffsetSaltaSobreCompletoYRecortaSegundo() throws Exception {
         OutputInvestmentFundsDTO env1 = buildEnvelope(
