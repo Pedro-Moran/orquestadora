@@ -277,17 +277,16 @@ public class PFMHT01001PETransactionTest {
     }
 
     @Test
-    public void testEnsurePaginationLinksManejaPaginacionNula() throws Exception {
+    public void testResolveLinksManejaBaseNula() throws Exception {
         LinksDTO links = invokeTransactionMethod(
-                "ensurePaginationLinks",
-                new Class[]{PaginationDTO.class, Object.class, Integer.class, int.class},
+                "resolveLinks",
+                new Class[]{LinksDTO.class, int.class, int.class},
                 null,
-                null,
-                null,
+                0,
                 0);
 
-        assertNotNull("Debe devolverse un DTOLinks vacío cuando la paginación es nula", links);
-        assertNullLinks(links);
+        assertNotNull(links);
+        assertZeroLinks(links);
     }
 
     @Test
@@ -991,8 +990,8 @@ public class PFMHT01001PETransactionTest {
     @Test
     public void testBuildPaginationLinksDesdeMetadata() throws Exception {
         PaginationDTO pagination = new PaginationDTO();
-        pagination.setTotalPages(4);
-        pagination.setPage(1);
+        pagination.setTotalPages(4L);
+        pagination.setPage(1L);
 
         LinksDTO links = invokeTransactionMethod(
                 "buildPaginationLinksFromMetadata",
@@ -1076,10 +1075,10 @@ public class PFMHT01001PETransactionTest {
     @Test
     public void testClonePaginationCopiaValoresYLinks() throws Exception {
         PaginationDTO pagination = new PaginationDTO();
-        pagination.setPage(3);
-        pagination.setPageSize(10);
-        pagination.setTotalElements(50);
-        pagination.setTotalPages(5);
+        pagination.setPage(3L);
+        pagination.setPageSize(10L);
+        pagination.setTotalElements(50L);
+        pagination.setTotalPages(5L);
 
         LinksDTO links = new LinksDTO();
         links.setFirst("X0");
@@ -1089,10 +1088,10 @@ public class PFMHT01001PETransactionTest {
         PaginationDTO clone = invokeTransactionMethod("clonePagination", new Class[]{PaginationDTO.class}, pagination);
 
         assertNotSame(pagination, clone);
-        assertEquals(Integer.valueOf(3), clone.getPage());
-        assertEquals(Integer.valueOf(10), clone.getPageSize());
-        assertEquals(Integer.valueOf(50), clone.getTotalElements());
-        assertEquals(Integer.valueOf(5), clone.getTotalPages());
+        assertEquals(Long.valueOf(3L), clone.getPage());
+        assertEquals(Long.valueOf(10L), clone.getPageSize());
+        assertEquals(Long.valueOf(50L), clone.getTotalElements());
+        assertEquals(Long.valueOf(5L), clone.getTotalPages());
         assertNotSame(links, clone.getDTOLinks());
         assertEquals("X0", clone.getDTOLinks().getFirst());
         assertEquals("X9", clone.getDTOLinks().getLast());
@@ -1415,75 +1414,72 @@ public class PFMHT01001PETransactionTest {
     }
 
     @Test
-    public void testEnsurePaginationLinksCreaObjetoCuandoPaginationEsNula() throws Exception {
+    public void testMapPaginationGeneraLinksPorDefecto() throws Exception {
         Object summary = invokeTransactionMethod(
                 "summarizeResponse",
                 new Class[]{List.class, List.class},
                 Collections.emptyList(),
                 Collections.emptyList());
 
-        LinksDTO links = invokeTransactionMethod(
-                "ensurePaginationLinks",
-                new Class[]{PaginationDTO.class, getResponseSummaryClass(), Integer.class, int.class},
-                null,
+        PaginationDTO pagination = invokeTransactionMethod(
+                "mapPagination",
+                new Class[]{getResponseSummaryClass(), LinksDTO.class, Integer.class, int.class},
                 summary,
+                null,
                 5,
                 0);
 
-        assertNotNull(links);
-        assertNull(links.getFirst());
-        assertNull(links.getLast());
-        assertNull(links.getNext());
-        assertNull(links.getPrevious());
+        assertNotNull(pagination);
+        assertZeroLinks(pagination.getDTOLinks());
+        assertEquals(Long.valueOf(0), pagination.getPage());
+        assertEquals(Long.valueOf(0), pagination.getTotalElements());
     }
 
     @Test
-    public void testEnsurePaginationLinksUtilizaResumenParaFallback() throws Exception {
+    public void testMapPaginationRespetaLinksExistentes() throws Exception {
         Object summary = invokeTransactionMethod(
                 "summarizeResponse",
                 new Class[]{List.class, List.class},
                 Collections.singletonList(buildEnvelope(createFund("VISIBLE"))),
                 Arrays.asList(createFund("F0"), createFund("F1"), createFund("F2")));
 
-        PaginationDTO pagination = new PaginationDTO();
+        LinksDTO baseLinks = new LinksDTO();
+        baseLinks.setFirst("custom-first");
 
-        LinksDTO links = invokeTransactionMethod(
-                "ensurePaginationLinks",
-                new Class[]{PaginationDTO.class, getResponseSummaryClass(), Integer.class, int.class},
-                pagination,
+        PaginationDTO pagination = invokeTransactionMethod(
+                "mapPagination",
+                new Class[]{getResponseSummaryClass(), LinksDTO.class, Integer.class, int.class},
                 summary,
+                baseLinks,
                 1,
                 1);
 
-        // El comportamiento actual construye enlaces posicionales cuando hay
-        // fondos disponibles; se valida que se publiquen los índices
-        // correspondientes y que no se añadan valores prev/next inexistentes.
-        assertEquals("0", links.getFirst());
-        assertEquals("2", links.getLast());
-        assertNull(links.getPrevious());
-        assertNull(links.getNext());
-        assertEquals(links, pagination.getDTOLinks());
+        assertEquals("custom-first", pagination.getDTOLinks().getFirst());
+        assertEquals("2", pagination.getDTOLinks().getLast());
+        assertEquals(Long.valueOf(3), pagination.getTotalElements());
+        assertEquals(Long.valueOf(3), pagination.getTotalPages());
     }
 
     @Test
-    public void testEnsurePaginationLinksUsaMetadataCuandoNoHayResumen() throws Exception {
-        PaginationDTO pagination = new PaginationDTO();
-        pagination.setTotalPages(3);
-        pagination.setPage(1);
+    public void testMapPaginationConstruyePrevNext() throws Exception {
+        Object summary = invokeTransactionMethod(
+                "summarizeResponse",
+                new Class[]{List.class, List.class},
+                Collections.singletonList(buildEnvelope(createFund("VISIBLE"))),
+                Arrays.asList(createFund("F0"), createFund("F1"), createFund("F2")));
 
-        LinksDTO links = invokeTransactionMethod(
-                "ensurePaginationLinks",
-                new Class[]{PaginationDTO.class, getResponseSummaryClass(), Integer.class, int.class},
-                pagination,
+        PaginationDTO pagination = invokeTransactionMethod(
+                "mapPagination",
+                new Class[]{getResponseSummaryClass(), LinksDTO.class, Integer.class, int.class},
+                summary,
                 null,
-                5,
+                1,
                 1);
 
-        assertEquals("0", links.getFirst());
-        assertEquals("2", links.getLast());
-        assertEquals("0", links.getPrevious());
-        assertEquals("2", links.getNext());
-        assertEquals(links, pagination.getDTOLinks());
+        assertEquals("0", pagination.getDTOLinks().getFirst());
+        assertEquals("2", pagination.getDTOLinks().getLast());
+        assertEquals("0", pagination.getDTOLinks().getPrevious());
+        assertEquals("2", pagination.getDTOLinks().getNext());
     }
 
     @Test
@@ -2248,15 +2244,15 @@ public class PFMHT01001PETransactionTest {
         assertNull(nullPag);
 
         PaginationDTO pagination = new PaginationDTO();
-        pagination.setTotalPages(0);
-        pagination.setPage(1);
+        pagination.setTotalPages(0L);
+        pagination.setPage(1L);
         LinksDTO zeroPages = invokeTransactionMethod(
                 "buildPaginationLinksFromMetadata",
                 new Class[]{PaginationDTO.class},
                 pagination);
         assertNull(zeroPages);
 
-        pagination.setTotalPages(3);
+        pagination.setTotalPages(3L);
         pagination.setPage(null);
         LinksDTO nullPage = invokeTransactionMethod(
                 "buildPaginationLinksFromMetadata",
@@ -2266,24 +2262,16 @@ public class PFMHT01001PETransactionTest {
     }
 
     @Test
-    public void testEnsurePaginationLinksRespetaLinksYaInformados() throws Exception {
-        PaginationDTO pagination = new PaginationDTO();
+    public void testResolveLinksRespetaLinksYaInformados() throws Exception {
         LinksDTO existing = new LinksDTO();
         existing.setFirst("A");
-        pagination.setDTOLinks(existing);
-
-        Object summary = invokeTransactionMethod(
-                "summarizeResponse",
-                new Class[]{List.class, List.class},
-                Collections.emptyList(),
-                Collections.emptyList());
 
         LinksDTO links = invokeTransactionMethod(
-                "ensurePaginationLinks",
-                new Class[]{PaginationDTO.class, getResponseSummaryClass(), Integer.class, int.class},
-                pagination, summary, 5, 0);
+                "resolveLinks",
+                new Class[]{LinksDTO.class, int.class, int.class},
+                existing, 0, 0);
 
-        assertSame(existing, links);
+        assertSame(existing.getFirst(), links.getFirst());
     }
 
     @Test
@@ -2391,8 +2379,8 @@ public class PFMHT01001PETransactionTest {
     @Test
     public void testNormalizePaginationLinks_UsaMetadataCuandoLinksVacios() throws Exception {
         PaginationDTO pagination = new PaginationDTO();
-        pagination.setTotalPages(3);
-        pagination.setPage(1);
+        pagination.setTotalPages(3L);
+        pagination.setPage(1L);
 
         LinksDTO emptyLinks = new LinksDTO(); // sin valores
 
@@ -2414,8 +2402,8 @@ public class PFMHT01001PETransactionTest {
     @Test
     public void testNormalizePaginationLinks_NoSobrescribeSiYaHayValores() throws Exception {
         PaginationDTO pagination = new PaginationDTO();
-        pagination.setTotalPages(5);
-        pagination.setPage(4);
+        pagination.setTotalPages(5L);
+        pagination.setPage(4L);
 
         LinksDTO provided = new LinksDTO();
         provided.setFirst("X");
@@ -2456,8 +2444,8 @@ public class PFMHT01001PETransactionTest {
     @Test
     public void testBuildPaginationLinksFromMetadata_ClampaPaginaFueraDeRango() throws Exception {
         PaginationDTO pagination = new PaginationDTO();
-        pagination.setTotalPages(3);  // lastPageIndex = 2
-        pagination.setPage(99);       // fuera de rango
+        pagination.setTotalPages(3L);  // lastPageIndex = 2
+        pagination.setPage(99L);       // fuera de rango
 
         LinksDTO links = invokeTransactionMethod(
                 "buildPaginationLinksFromMetadata",
