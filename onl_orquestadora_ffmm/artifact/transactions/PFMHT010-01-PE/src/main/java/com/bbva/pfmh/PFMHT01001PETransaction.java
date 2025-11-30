@@ -245,7 +245,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
                                               List<InvestmentFund> availableFunds) {
         List<InvestmentFund> visibleFunds = extractFunds(payload);
         int totalElements = availableFunds == null ? 0 : availableFunds.size();
-        return new ResponseSummary(visibleFunds, availableFunds,  totalElements);
+        return new ResponseSummary(visibleFunds, totalElements);
     }
 
     private void applyPaginationMetadata(IntPaginationDTO paginationNode,
@@ -282,23 +282,16 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
     private final class ResponseSummary {
         private final List<InvestmentFund> visibleFunds;
-        private final List<InvestmentFund> availableFunds;
         private final int totalElements;
 
         private ResponseSummary(List<InvestmentFund> visibleFunds,
-                                List<InvestmentFund> availableFunds,
                                 int totalElements) {
             this.visibleFunds = visibleFunds == null ? Collections.emptyList() : visibleFunds;
-            this.availableFunds = availableFunds == null ? Collections.emptyList() : availableFunds;
             this.totalElements = totalElements;
         }
 
         private List<InvestmentFund> getVisibleFunds() {
             return visibleFunds;
-        }
-
-        private List<InvestmentFund> getAvailableFunds() {
-            return availableFunds;
         }
 
         private boolean hasVisibleFunds() {
@@ -567,75 +560,6 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         }
 
         return positional;
-    }
-
-    private LinksDTO buildFallbackLinks(ResponseSummary summary,
-                                        Integer normalizedPageSize,
-                                        int currentPage) {
-        if (summary == null) {
-            return null;
-        }
-
-        int totalElements = summary.getTotalElements();
-        if (totalElements <= 0) {
-            return null;
-        }
-
-        if (normalizedPageSize == null || normalizedPageSize <= 0) {
-            return null;
-        }
-
-        int totalPages = (int) Math.ceil((double) totalElements / normalizedPageSize);
-        if (totalPages <= 0) {
-            return null;
-        }
-
-        int lastPageIndex = Math.max(totalPages - 1, 0);
-        int clampedCurrentPage = Math.min(Math.max(currentPage, 0), lastPageIndex);
-
-        LinksDTO links = new LinksDTO();
-        links.setFirst("0");
-        links.setLast(String.valueOf(lastPageIndex));
-
-        if (clampedCurrentPage > 0) {
-            links.setPrevious(String.valueOf(clampedCurrentPage - 1));
-        }
-
-        if (clampedCurrentPage < lastPageIndex) {
-            links.setNext(String.valueOf(clampedCurrentPage + 1));
-        }
-
-        return links;
-    }
-
-    private LinksDTO buildPaginationLinksFromMetadata(PaginationDTO pagination) {
-        if (pagination == null) {
-            return null;
-        }
-
-        Long totalPages = pagination.getTotalPages();
-        Long currentPage = pagination.getPage();
-
-        if (totalPages == null || totalPages <= 0 || currentPage == null) {
-            return null;
-        }
-
-        int lastPageIndex = Math.max(clampToInt(totalPages - 1), 0);
-        int normalizedCurrent = Math.min(Math.max(clampToInt(currentPage), 0), lastPageIndex);
-
-        LinksDTO links = new LinksDTO();
-        links.setFirst("0");
-        links.setLast(String.valueOf(lastPageIndex));
-
-        if (normalizedCurrent > 0) {
-            links.setPrevious(String.valueOf(normalizedCurrent - 1));
-        }
-
-        if (normalizedCurrent < lastPageIndex) {
-            links.setNext(String.valueOf(normalizedCurrent + 1));
-        }
-
-        return links;
     }
 
     private boolean hasAnyLinkValue(LinksDTO links) {
