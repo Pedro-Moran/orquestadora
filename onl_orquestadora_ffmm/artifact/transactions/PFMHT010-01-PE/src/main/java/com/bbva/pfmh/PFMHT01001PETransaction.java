@@ -145,31 +145,39 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
             List<OutputInvestmentFundsDTO> page =
                     normalizeResponse(pfmhR010.executeGetFFMMStatements(req));
 
-            if (isEmptyPage(page)) {
-                done = true;
-            } else {
+            if (!isEmptyPage(page)) {
 
                 List<OutputInvestmentFundsDTO> sanitizedPage = sanitizeResponse(page);
                 allEnvelopes.addAll(sanitizedPage);
 
-                List<InvestmentFund> pageFunds = extractFunds(sanitizedPage);
+                int sizeBefore = allFunds.size();
 
-                allFunds.addAll(filterNewFunds(pageFunds, seenFundKeys));
+                List<InvestmentFund> pageFunds = extractFunds(sanitizedPage);
+                List<InvestmentFund> newFunds = filterNewFunds(pageFunds, seenFundKeys);
+                allFunds.addAll(newFunds);
+
+                boolean noProgress = allFunds.size() == sizeBefore;
 
                 lastNode = extractPagination(page);
                 String nextKey = extractNextKey(lastNode);
 
-                done = isPagingFinished(nextKey, key, seenPageKeys);
+                boolean noNextKey = (nextKey == null || nextKey.isEmpty());
+                boolean keyRepeats = !noNextKey &&
+                        (nextKey.equals(key) || !seenPageKeys.add(nextKey));
+
+                done = noNextKey || (keyRepeats && noProgress);
 
                 if (!done) {
                     key = nextKey;
                 }
+
+            } else {
+                done = true;
             }
         }
 
         return new FullHostResult(allEnvelopes, allFunds, lastNode);
     }
-
 
     private List<InvestmentFund> filterNewFunds(List<InvestmentFund> pageFunds,
                                                 Set<String> seenFundKeys) {
@@ -182,28 +190,17 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
             if (f == null) {
                 continue;
             }
+
             String fid = sanitizeKey(f.getInvestmentFundId());
             String fnum = sanitizeKey(f.getNumber());
             String dedupKey = fid != null ? fid : fnum;
 
-            if (dedupKey != null && seenFundKeys.add(dedupKey)) {
+            // agrega si NO hay key o si es nueva
+            if (dedupKey == null || seenFundKeys.add(dedupKey)) {
                 newFunds.add(f);
             }
         }
         return newFunds;
-    }
-
-    private boolean isPagingFinished(String nextKey,
-                                     String currentKey,
-                                     Set<String> seenPageKeys) {
-        if (nextKey == null || nextKey.isEmpty()) {
-            return true;
-        }
-        if (nextKey.equals(currentKey)) {
-            return true;
-        }
-        // si ya vimos esa key, es ciclo
-        return !seenPageKeys.add(nextKey);
     }
 
 
@@ -433,13 +430,23 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         int totalElements = summary == null ? 0 : summary.getTotalElements();
         pagination.setTotalElements((long) totalElements);
 
-        Long pageSize = normalizedPageSize == null ? null : asLong(normalizedPageSize);
-        pagination.setPageSize(pageSize);
+        boolean unpaged = (normalizedPageSize == null || normalizedPageSize <= 0);
 
-        long totalPages = 0;
-        if (pageSize != null && pageSize > 0 && totalElements > 0) {
-            totalPages = (long) Math.ceil((double) totalElements / pageSize);
+        Long pageSize;
+        long totalPages;
+
+        if (unpaged) {
+            pageSize = (long) totalElements;
+            totalPages = totalElements > 0 ? 1 : 0;
+            currentPage = 0;
+        } else {
+            pageSize = asLong(normalizedPageSize);
+            totalPages = (pageSize > 0 && totalElements > 0)
+                    ? (long) Math.ceil((double) totalElements / pageSize)
+                    : 0;
         }
+
+        pagination.setPageSize(pageSize);
         pagination.setTotalPages(totalPages);
 
         int lastPage = totalPages > 0 ? Math.max(clampToInt(totalPages - 1), 0) : 0;
@@ -450,7 +457,6 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         pagination.setDtoLinks(resolvedLinks);
         return pagination;
     }
-
 
     private LinksDTO resolveLinks(LinksDTO baseLinks, int currentPage, int lastPage) {
         LinksDTO resolved = baseLinks == null ? new LinksDTO() : copyLinks(baseLinks);
