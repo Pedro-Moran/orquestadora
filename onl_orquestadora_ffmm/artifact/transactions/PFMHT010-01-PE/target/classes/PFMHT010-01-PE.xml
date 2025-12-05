@@ -10,7 +10,7 @@
 	</paramsIn>
 	<paramsOut>
 		<list order="1" name="data" mandatory="1">
-			<dto order="1" name="Type" mandatory="0" package="com.bbva.pfmh.dto.jcisconnector.ffmm.commons.OutputInvestmentFundsDTO" artifactId="PFMHC010">
+			<dto order="1" name="Type" mandatory="0" package="com.bbva.pfmh.dto.jcisconnector.ffmm.investmen.InvestmentFund" artifactId="PFMHC010">
 				<parameter order="1" name="number" mandatory="1" type="String" size="20"/>
 				<parameter order="2" name="investmentFundId" mandatory="1" type="String" size="20"/>
 				<parameter order="3" name="isVisible" mandatory="0" type="Boolean" size="0"/>
@@ -55,8 +55,8 @@
 			<parameter order="2" name="pageSize" mandatory="0" type="Long" size="3"/>
 		</dto>
 		<dto order="3" name="DTOPagination" mandatory="0" package="com.bbva.pfmh.dto.jcisconnector.ffmm.commons.PaginationDTO" artifactId="PFMHC010">
-			<dto order="1" name="DTOLinks" mandatory="1" package="com.bbva.pfmh.dto.jcisconnector.ffmm.commons.LinksDTO" artifactId="PFMHC010">
-				<parameter order="1" name="first" mandatory="1" type="String" size="200"/>
+			<dto order="1" name="dtoLinks" mandatory="0" package="com.bbva.pfmh.dto.jcisconnector.ffmm.commons.LinksDTO" artifactId="PFMHC010">
+				<parameter order="1" name="first" mandatory="0" type="String" size="200"/>
 				<parameter order="2" name="last" mandatory="0" type="String" size="200"/>
 				<parameter order="3" name="previous" mandatory="0" type="String" size="200"/>
 				<parameter order="4" name="next" mandatory="0" type="String" size="200"/>

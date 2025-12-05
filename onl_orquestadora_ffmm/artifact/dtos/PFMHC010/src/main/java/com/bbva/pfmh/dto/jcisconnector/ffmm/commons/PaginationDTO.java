@@ -11,11 +11,11 @@ public class PaginationDTO implements Serializable {
     private Long totalElements;
     private Long pageSize;
 
-    public LinksDTO getDTOLinks() {
+    public LinksDTO getDtoLinks() {
         return dtoLinks;
     }
 
-    public void setDTOLinks(LinksDTO dtoLinks) {
+    public void setDtoLinks(LinksDTO dtoLinks) {
         this.dtoLinks = dtoLinks == null ? new LinksDTO() : dtoLinks;
     }
 
@@ -71,7 +71,7 @@ public class PaginationDTO implements Serializable {
     @Override
     public String toString() {
         return "PaginationDTO{" +
-                "DTOLinks=" + dtoLinks +
+                "dtoLinks=" + dtoLinks +
                 ", page=" + page +
                 ", totalPages=" + totalPages +
                 ", totalElements=" + totalElements +
