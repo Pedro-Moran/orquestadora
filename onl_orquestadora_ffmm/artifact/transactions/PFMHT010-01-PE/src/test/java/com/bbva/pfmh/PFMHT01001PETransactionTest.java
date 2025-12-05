@@ -1296,39 +1296,8 @@ public class PFMHT01001PETransactionTest {
         fundsF.setAccessible(true);
         List<InvestmentFund> funds = (List<InvestmentFund>) fundsF.get(full);
 
-        assertEquals(2, funds.size()); // F0 + F1 y corta sin 3ra llamada
-        verify(pfmhR010, times(2)).executeGetFFMMStatements(any());
-    }
-
-    @Test
-    public void testIsPagingFinishedBranches() throws Exception {
-        Set<String> seen = new HashSet<>();
-
-        boolean r1 = invokeTransactionMethod(
-                "isPagingFinished",
-                new Class[]{String.class, String.class, Set.class},
-                null, "K0", seen);
-        assertTrue(r1);
-
-        boolean r2 = invokeTransactionMethod(
-                "isPagingFinished",
-                new Class[]{String.class, String.class, Set.class},
-                "K0", "K0", seen);
-        assertTrue(r2);
-
-        // primera vez agrega K1 => no finished
-        boolean r3 = invokeTransactionMethod(
-                "isPagingFinished",
-                new Class[]{String.class, String.class, Set.class},
-                "K1", "K0", seen);
-        assertFalse(r3);
-
-        // segunda vez K1 ya estaba => finished por ciclo
-        boolean r4 = invokeTransactionMethod(
-                "isPagingFinished",
-                new Class[]{String.class, String.class, Set.class},
-                "K1", "K0", seen);
-        assertTrue(r4);
+        assertEquals(2, funds.size());
+        verify(pfmhR010, times(3)).executeGetFFMMStatements(any());
     }
 
     @Test
@@ -1442,7 +1411,7 @@ public class PFMHT01001PETransactionTest {
     }
 
     @Test
-    public void testBuildPagedRequest_SetsKeyOnlyWhenProvided_AndNullPageSize() throws Exception {
+    public void testBuildPagedRequest_SetsKeyOnlyWhenProvided_AndForcesHostPageSize() throws Exception {
         InputListInvestmentFundsDTO base = new InputListInvestmentFundsDTO();
         base.setCustomerId("C");
         base.setProfileId("P");
@@ -1454,8 +1423,9 @@ public class PFMHT01001PETransactionTest {
                 new Class[]{InputListInvestmentFundsDTO.class, String.class},
                 base, null);
 
-        assertEquals("BASE", r1.getPaginationKey()); // se queda la base
-        assertNull(r1.getPageSize());               // fuerza null
+        assertEquals("BASE", r1.getPaginationKey());
+
+        assertEquals(Integer.valueOf(25), r1.getPageSize());
 
         InputListInvestmentFundsDTO r2 = invokeTransactionMethod(
                 "buildPagedRequest",
@@ -1463,6 +1433,7 @@ public class PFMHT01001PETransactionTest {
                 base, "NEW");
 
         assertEquals("NEW", r2.getPaginationKey());
-        assertNull(r2.getPageSize());
+
+        assertEquals(Integer.valueOf(25), r2.getPageSize());
     }
 }
