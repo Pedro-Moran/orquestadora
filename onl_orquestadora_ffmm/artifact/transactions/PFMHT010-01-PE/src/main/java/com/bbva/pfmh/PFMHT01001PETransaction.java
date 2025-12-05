@@ -22,6 +22,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PFMHT01001PETransaction.class);
+    private static final int HOST_MAX_PAGE_SIZE = 25;
     @Override
     public void execute() {
         LOGGER.info("[PFMHT010] execute:: START");
@@ -48,7 +49,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         LOGGER.info("RBVDT30301PETransaction - START");
 
         LOGGER.info("DEBUG PFMHT010 - antes de invokeLibrary");
-        serviceRequest.setPageSize(null);
+        serviceRequest.setPageSize(resolveHostPageSize(input));
         serviceRequest.setPaginationKey(null);
         FullHostResult full = fetchAllFromHost(pfmhR010, serviceRequest);
 
@@ -213,8 +214,6 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         if (paginationKey != null) {
             req.setPaginationKey(paginationKey);
         }
-
-        req.setPageSize(null);
 
         return req;
     }
@@ -790,6 +789,15 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         }
 
         return null;
+    }
+
+    private Integer resolveHostPageSize(InputListInvestmentFundsDTO input) {
+        Integer normalized = resolvePageSize(input);
+        if (normalized == null) {
+            return null;
+        }
+
+        return Math.min(normalized, HOST_MAX_PAGE_SIZE);
     }
 
     private Long asLong(Integer value) {

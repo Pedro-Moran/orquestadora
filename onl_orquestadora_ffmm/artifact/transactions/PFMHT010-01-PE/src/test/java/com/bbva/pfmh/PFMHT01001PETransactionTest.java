@@ -978,6 +978,31 @@ public class PFMHT01001PETransactionTest {
                 input);
         assertNull(nullWhenZero);
     }
+
+    @Test
+    public void testResolveHostPageSizeAplicaLimiteDelHostYDejaNuloPorDefecto() throws Exception {
+        InputListInvestmentFundsDTO input = new InputListInvestmentFundsDTO();
+
+        Integer defaulted = invokeTransactionMethod(
+                "resolveHostPageSize",
+                new Class[] { InputListInvestmentFundsDTO.class },
+                input);
+        assertNull(defaulted);
+
+        input.setPageSize(10);
+        Integer preserved = invokeTransactionMethod(
+                "resolveHostPageSize",
+                new Class[] { InputListInvestmentFundsDTO.class },
+                input);
+        assertEquals(Integer.valueOf(10), preserved);
+
+        input.setPageSize(50);
+        Integer capped = invokeTransactionMethod(
+                "resolveHostPageSize",
+                new Class[] { InputListInvestmentFundsDTO.class },
+                input);
+        assertEquals(Integer.valueOf(25), capped);
+    }
     @Test
     public void testNormalizePageSizeGestionaValoresNoPositivosYExtremos() throws Exception {
         Integer nullSize = invokeTransactionMethod(
@@ -1454,8 +1479,8 @@ public class PFMHT01001PETransactionTest {
                 new Class[]{InputListInvestmentFundsDTO.class, String.class},
                 base, null);
 
-        assertEquals("BASE", r1.getPaginationKey()); // se queda la base
-        assertNull(r1.getPageSize());               // fuerza null
+        assertEquals("BASE", r1.getPaginationKey());
+        assertEquals(Integer.valueOf(99), r1.getPageSize());
 
         InputListInvestmentFundsDTO r2 = invokeTransactionMethod(
                 "buildPagedRequest",
@@ -1463,6 +1488,6 @@ public class PFMHT01001PETransactionTest {
                 base, "NEW");
 
         assertEquals("NEW", r2.getPaginationKey());
-        assertNull(r2.getPageSize());
+        assertEquals(Integer.valueOf(99), r2.getPageSize());
     }
 }
