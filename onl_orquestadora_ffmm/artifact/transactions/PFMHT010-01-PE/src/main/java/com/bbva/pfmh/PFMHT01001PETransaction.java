@@ -25,7 +25,7 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
     private static final int HOST_MAX_PAGE_SIZE = 25;
     @Override
     public void execute() {
-        LOGGER.info("[PFMHT010] execute:: START");
+        LOGGER.info("[PFMHT010] execute:: START #1");
         PFMHR010 pfmhR010 = this.getServiceLibrary(PFMHR010.class);
         InputListInvestmentFundsDTO input = this.getInputlistinvestmentfundsdto();
         if (input == null) {
@@ -49,22 +49,33 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         LOGGER.info("RBVDT30301PETransaction - START");
 
         LOGGER.info("DEBUG PFMHT010 - antes de invokeLibrary");
-        serviceRequest.setPageSize(resolveHostPageSize(input));
+        Integer hostPageSize = HOST_MAX_PAGE_SIZE;
+        serviceRequest.setPageSize(hostPageSize);
         serviceRequest.setPaginationKey(null);
         FullHostResult full = fetchAllFromHost(pfmhR010, serviceRequest);
+        LOGGER.info("[PFMHT010] host done -> envelopes={} funds={} lastKey={}",
+                full.envelopes == null ? 0 : full.envelopes.size(),
+                full.funds == null ? 0 : full.funds.size(),
+                full.lastPaginationNode == null ? null : full.lastPaginationNode.getPaginationKey());
 
         List<OutputInvestmentFundsDTO> sanitizedResponse = full.envelopes;
+        LOGGER.info("[PFMHT010] sanitizedResponse envelopes={}",
+                sanitizedResponse == null ? 0 : sanitizedResponse.size());
+
+        if (LOGGER.isDebugEnabled() && sanitizedResponse != null && !sanitizedResponse.isEmpty()) {
+            LOGGER.debug("[PFMHT010] sanitizedResponse firstEnvelopeFunds={}",
+                    extractFunds(sanitizedResponse.get(0)).size());
+        }
+
         List<InvestmentFund> availableFunds = full.funds;
         IntPaginationDTO paginationNode = full.lastPaginationNode;
 
-        boolean unpagedRequest = (paginationKey == null || paginationKey.trim().isEmpty())
-                && (pageSize == null || pageSize <= 0);
+        List<OutputInvestmentFundsDTO> canonicalResponse = rebuildEnvelope(availableFunds, paginationNode);
+        LOGGER.info("[PFMHT010] canonicalResponse envelopes={} totalFunds={}",
+                canonicalResponse.size(),
+                availableFunds.size());
 
-        if (unpagedRequest) {
-            sanitizedResponse = rebuildEnvelope(availableFunds, paginationNode);
-        }
-
-        if (sanitizedResponse.isEmpty() || availableFunds.isEmpty()) {
+        if (canonicalResponse.isEmpty() || availableFunds.isEmpty()) {
             handleFailure();
             return;
         }
@@ -79,18 +90,20 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
                 : startIndex / normalizedPageSize;
 
         List<OutputInvestmentFundsDTO> payload = resolvePayload(
-                sanitizedResponse, paginationNode, normalizedPageSize, startIndex);
-
+                canonicalResponse, paginationNode, normalizedPageSize, startIndex);
 
         ResponseSummary summary = summarizeResponse(payload, availableFunds);
-
-        LOGGER.info("response envelopes -> {}, investment funds -> {}", payload.size(), summary.getVisibleFunds().size());
-        LOGGER.debug("response detail -> {}", payload);
+        LOGGER.info("[PFMHT010] payload envelopes={} visibleFunds={} totalFunds={} startIndex={} pageSize={}",
+                payload.size(),
+                summary.getVisibleFunds().size(),
+                availableFunds.size(),
+                startIndex,
+                normalizedPageSize);
 
         LinksDTO links = buildLinks(availableFunds, summary.getVisibleFunds());
         LOGGER.info("linksDTO -> {}", links);
         PaginationDTO pagination = mapPagination(summary, links, normalizedPageSize, currentPage);
-        LOGGER.info("DTOPagination finaleeeeessss (antes de exponer) -> {}", pagination);
+        LOGGER.info("DTOPagination final (antes de exponer) -> {}", pagination);
         LOGGER.info("DTOPagination.DTOLinks final -> {}",
                 pagination.getDtoLinks());
         exposeLinks(pagination.getDtoLinks(), pagination);
@@ -127,9 +140,132 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
     private FullHostResult fetchAllFromHost(PFMHR010 pfmhR010,
                                             InputListInvestmentFundsDTO baseRequest) {
 
+        HostFetchState state = new HostFetchState();
+
+        while (state.canContinue()) {
+
+            logLoopStart(state, baseRequest);
+
+            List<OutputInvestmentFundsDTO> page =
+                    fetchPage(pfmhR010, baseRequest, state.key);
+
+            logRawPage(state, page);
+
+            if (isEmptyPage(page)) {
+                state.done = true;
+            } else {
+                HostPageResult pageResult = processPage(page, state);
+
+                logProcessedPage(state, pageResult);
+
+                boolean stopNow = shouldStop(pageResult, state);
+
+                if (stopNow) {
+                    state.done = true;
+                } else {
+                    accumulate(pageResult, state);
+
+                    logDecision(state, pageResult);
+
+                    state.advance(pageResult.nextKey);
+                }
+            }
+        }
+
+        logLoopEnd(state);
+
+        return new FullHostResult(state.allEnvelopes, state.allFunds, state.lastNode);
+    }
+
+    private List<OutputInvestmentFundsDTO> fetchPage(PFMHR010 pfmhR010,
+                                                     InputListInvestmentFundsDTO baseRequest,
+                                                     String key) {
+        InputListInvestmentFundsDTO req = buildPagedRequest(baseRequest, key);
+        return normalizeResponse(pfmhR010.executeGetFFMMStatements(req));
+    }
+
+    private HostPageResult processPage(List<OutputInvestmentFundsDTO> page,
+                                       HostFetchState state) {
+
+        List<OutputInvestmentFundsDTO> sanitizedPage = sanitizeResponse(page);
+        List<InvestmentFund> pageFunds = extractFunds(sanitizedPage);
+        List<InvestmentFund> newFunds = filterNewFunds(pageFunds, state.seenFundKeys);
+
+        state.lastNode = extractPagination(page);
+        String nextKey = extractNextKey(state.lastNode);
+
+        return new HostPageResult(sanitizedPage, pageFunds, newFunds, nextKey);
+    }
+
+    private boolean shouldStop(HostPageResult r, HostFetchState state) {
+        boolean noNextKey = isBlank(r.nextKey);
+        boolean keyRepeats = !noNextKey &&
+                (r.nextKey.equals(state.key) || !state.seenPageKeys.add(r.nextKey));
+        boolean noProgress = r.newFunds.isEmpty();
+
+        r.noNextKey = noNextKey;
+        r.keyRepeats = keyRepeats;
+        r.noProgress = noProgress;
+
+        return keyRepeats && noProgress;
+    }
+
+    private void accumulate(HostPageResult r, HostFetchState state) {
+        state.allEnvelopes.addAll(r.sanitizedPage);
+        state.allFunds.addAll(r.newFunds);
+    }
+
+    private void logLoopStart(HostFetchState state, InputListInvestmentFundsDTO baseRequest) {
+        LOGGER.info("[PFMHT010][HOST-LOOP] iter={} currentKey={} reqPageSize={}",
+                state.safety, state.key, baseRequest.getPageSize());
+    }
+
+    private void logRawPage(HostFetchState state, List<OutputInvestmentFundsDTO> page) {
+        LOGGER.info("[PFMHT010][HOST-LOOP] iter={} rawEnvelopes={}",
+                state.safety, page == null ? 0 : page.size());
+
+        IntPaginationDTO rawNode = extractPagination(page);
+        LOGGER.info("[PFMHT010][HOST-LOOP] iter={} hostPaginationKey={}",
+                state.safety, rawNode == null ? null : rawNode.getPaginationKey());
+    }
+
+    private void logProcessedPage(HostFetchState state, HostPageResult r) {
+        LOGGER.info("[PFMHT010][HOST-LOOP] iter={} sanitizedEnvelopes={} pageFunds={} newFunds={} allFundsBefore={}",
+                state.safety,
+                r.sanitizedPage.size(),
+                r.pageFunds.size(),
+                r.newFunds.size(),
+                state.allFunds.size());
+
+        if (!r.pageFunds.isEmpty()) {
+            InvestmentFund first = r.pageFunds.get(0);
+            InvestmentFund last = r.pageFunds.get(r.pageFunds.size() - 1);
+
+            LOGGER.info("[PFMHT010][HOST-LOOP] iter={} pageFirstId={} pageLastId={}",
+                    state.safety,
+                    first == null ? null : first.getInvestmentFundId(),
+                    last == null ? null : last.getInvestmentFundId());
+        }
+    }
+
+    private void logDecision(HostFetchState state, HostPageResult r) {
+        LOGGER.info("[PFMHT010][HOST-LOOP] iter={} nextKey={} noNextKey={} keyRepeats={} noProgress={}",
+                state.safety, r.nextKey, r.noNextKey, r.keyRepeats, r.noProgress);
+    }
+
+    private void logLoopEnd(HostFetchState state) {
+        LOGGER.info("[PFMHT010][HOST-LOOP-END] iterations={} totalEnvelopes={} totalFunds={} lastHostKey={}",
+                state.safety, state.allEnvelopes.size(), state.allFunds.size(),
+                state.lastNode == null ? null : state.lastNode.getPaginationKey());
+    }
+
+    private static boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
+    }
+
+    private static class HostFetchState {
         List<OutputInvestmentFundsDTO> allEnvelopes = new ArrayList<>();
         List<InvestmentFund> allFunds = new ArrayList<>();
-
         String key = null;
         IntPaginationDTO lastNode = null;
 
@@ -139,44 +275,35 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         int safety = 0;
         boolean done = false;
 
-        while (!done && safety++ < 200) {
-
-            InputListInvestmentFundsDTO req = buildPagedRequest(baseRequest, key);
-            List<OutputInvestmentFundsDTO> page =
-                    normalizeResponse(pfmhR010.executeGetFFMMStatements(req));
-
-            if (!isEmptyPage(page)) {
-
-                List<OutputInvestmentFundsDTO> sanitizedPage = sanitizeResponse(page);
-                allEnvelopes.addAll(sanitizedPage);
-
-                int sizeBefore = allFunds.size();
-
-                List<InvestmentFund> pageFunds = extractFunds(sanitizedPage);
-                List<InvestmentFund> newFunds = filterNewFunds(pageFunds, seenFundKeys);
-                allFunds.addAll(newFunds);
-
-                boolean noProgress = allFunds.size() == sizeBefore;
-
-                lastNode = extractPagination(page);
-                String nextKey = extractNextKey(lastNode);
-
-                boolean noNextKey = (nextKey == null || nextKey.isEmpty());
-                boolean keyRepeats = !noNextKey &&
-                        (nextKey.equals(key) || !seenPageKeys.add(nextKey));
-
-                done = noNextKey || (keyRepeats && noProgress);
-
-                if (!done) {
-                    key = nextKey;
-                }
-
-            } else {
-                done = true;
-            }
+        boolean canContinue() {
+            return !done && safety++ < 200;
         }
 
-        return new FullHostResult(allEnvelopes, allFunds, lastNode);
+        void advance(String nextKey) {
+            done = isBlank(nextKey);
+            if (!done) key = nextKey;
+        }
+    }
+
+    private static class HostPageResult {
+        List<OutputInvestmentFundsDTO> sanitizedPage;
+        List<InvestmentFund> pageFunds;
+        List<InvestmentFund> newFunds;
+        String nextKey;
+
+        boolean noNextKey;
+        boolean keyRepeats;
+        boolean noProgress;
+
+        HostPageResult(List<OutputInvestmentFundsDTO> sanitizedPage,
+                       List<InvestmentFund> pageFunds,
+                       List<InvestmentFund> newFunds,
+                       String nextKey) {
+            this.sanitizedPage = sanitizedPage;
+            this.pageFunds = pageFunds;
+            this.newFunds = newFunds;
+            this.nextKey = nextKey;
+        }
     }
 
     private List<InvestmentFund> filterNewFunds(List<InvestmentFund> pageFunds,
@@ -621,7 +748,9 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
 
     private LinksDTO buildLinks(List<InvestmentFund> availableFunds,
                                 List<InvestmentFund> visibleFunds) {
-        LOGGER.info("DEBUG PFMHT010 - List<InvestmentFund> antes de exponer: {}", availableFunds);
+        LOGGER.info("[PFMHT010] buildLinks availableFunds size={}",
+                availableFunds == null ? 0 : availableFunds.size());
+
         if ((availableFunds == null || availableFunds.isEmpty()) &&
                 visibleFunds != null && !visibleFunds.isEmpty()) {
             availableFunds = visibleFunds;
@@ -795,15 +924,6 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         }
 
         return null;
-    }
-
-    private Integer resolveHostPageSize(InputListInvestmentFundsDTO input) {
-        Integer normalized = resolvePageSize(input);
-        if (normalized == null) {
-            return null;
-        }
-
-        return Math.min(normalized, HOST_MAX_PAGE_SIZE);
     }
 
     private Long asLong(Integer value) {

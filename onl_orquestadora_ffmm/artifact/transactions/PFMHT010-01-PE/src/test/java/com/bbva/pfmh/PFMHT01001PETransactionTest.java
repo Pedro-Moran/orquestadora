@@ -293,7 +293,8 @@ public class PFMHT01001PETransactionTest {
         doNothing().when(spyTransaction).setDTOPagination(dtoPaginationCaptor.capture());
         doNothing().when(spyTransaction).setData(dataCaptor.capture());
 
-        when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class))).thenReturn(response, Collections.emptyList());
+        when(pfmhR010.executeGetFFMMStatements(any(InputListInvestmentFundsDTO.class)))
+                .thenReturn(response, Collections.emptyList());
 
         spyTransaction.execute();
 
@@ -303,16 +304,26 @@ public class PFMHT01001PETransactionTest {
         List<OutputInvestmentFundsDTO> capturedResponse = responseCaptor.getValue();
 
         assertEquals(1, capturedResponse.size());
-        assertSame(output, capturedResponse.get(0));
+
+        OutputInvestmentFundsDTO dto = capturedResponse.get(0);
+        assertNotNull(dto);
+        assertNotNull(dto.getData());
+        assertEquals(1, dto.getData().size());
+        assertEquals("F0", dto.getData().get(0).getInvestmentFundId());
+
+        assertEquals(intPag, dto.getDTOIntPagination());
+
+        assertNotNull(dto.getDTOPagination());
+        assertNotNull(dto.getDTOPagination().getDtoLinks());
 
         assertEquals(intPag, intPaginationCaptor.getValue());
-
         assertEquals(1, dataCaptor.getValue().size());
 
         PaginationDTO dtoPagination = dtoPaginationCaptor.getValue();
         assertNotNull(dtoPagination);
         assertNotNull(dtoPagination.getDtoLinks());
     }
+
 
     @Test
     public void testExecute_ResponseNull() {
@@ -978,31 +989,6 @@ public class PFMHT01001PETransactionTest {
                 input);
         assertNull(nullWhenZero);
     }
-
-    @Test
-    public void testResolveHostPageSizeAplicaLimiteDelHostYDejaNuloPorDefecto() throws Exception {
-        InputListInvestmentFundsDTO input = new InputListInvestmentFundsDTO();
-
-        Integer defaulted = invokeTransactionMethod(
-                "resolveHostPageSize",
-                new Class[] { InputListInvestmentFundsDTO.class },
-                input);
-        assertNull(defaulted);
-
-        input.setPageSize(10);
-        Integer preserved = invokeTransactionMethod(
-                "resolveHostPageSize",
-                new Class[] { InputListInvestmentFundsDTO.class },
-                input);
-        assertEquals(Integer.valueOf(10), preserved);
-
-        input.setPageSize(50);
-        Integer capped = invokeTransactionMethod(
-                "resolveHostPageSize",
-                new Class[] { InputListInvestmentFundsDTO.class },
-                input);
-        assertEquals(Integer.valueOf(25), capped);
-    }
     @Test
     public void testNormalizePageSizeGestionaValoresNoPositivosYExtremos() throws Exception {
         Integer nullSize = invokeTransactionMethod(
@@ -1449,6 +1435,7 @@ public class PFMHT01001PETransactionTest {
                 base, null);
 
         assertEquals("BASE", r1.getPaginationKey());
+
         assertEquals(Integer.valueOf(99), r1.getPageSize());
 
         InputListInvestmentFundsDTO r2 = invokeTransactionMethod(
@@ -1457,6 +1444,7 @@ public class PFMHT01001PETransactionTest {
                 base, "NEW");
 
         assertEquals("NEW", r2.getPaginationKey());
+
         assertEquals(Integer.valueOf(99), r2.getPageSize());
     }
 }
