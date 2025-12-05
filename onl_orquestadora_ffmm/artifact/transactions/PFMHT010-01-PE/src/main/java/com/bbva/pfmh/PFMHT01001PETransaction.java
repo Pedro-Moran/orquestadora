@@ -56,6 +56,13 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         List<InvestmentFund> availableFunds = full.funds;
         IntPaginationDTO paginationNode = full.lastPaginationNode;
 
+        boolean unpagedRequest = (paginationKey == null || paginationKey.trim().isEmpty())
+                && (pageSize == null || pageSize <= 0);
+
+        if (unpagedRequest) {
+            sanitizedResponse = rebuildEnvelope(availableFunds, paginationNode);
+        }
+
         if (sanitizedResponse.isEmpty() || availableFunds.isEmpty()) {
             handleFailure();
             return;
@@ -867,6 +874,18 @@ public class PFMHT01001PETransaction extends AbstractPFMHT01001PETransaction {
         emptyEnvelope.setData(Collections.emptyList());
         emptyEnvelope.setDTOIntPagination(pagination);
         return Collections.singletonList(emptyEnvelope);
+    }
+
+    private List<OutputInvestmentFundsDTO> rebuildEnvelope(List<InvestmentFund> funds,
+                                                           IntPaginationDTO pagination) {
+        if (funds == null || funds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        OutputInvestmentFundsDTO envelope = new OutputInvestmentFundsDTO();
+        envelope.setData(new ArrayList<>(funds));
+        envelope.setDTOIntPagination(pagination);
+        return Collections.singletonList(envelope);
     }
 
     private List<InvestmentFund> extractFunds(List<OutputInvestmentFundsDTO> response) {
